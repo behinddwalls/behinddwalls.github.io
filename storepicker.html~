@@ -186,8 +186,8 @@ var amznJQ,jQueryPatchIPadOffset=false;
     
 
 <!-- MsgId: store_picker_landing_page_ft; PresentationId: 399212442; Version: 3; TemplateId: 399208322; TemplateVersion: 1; FragmentId: prime_headline; -->
-<link rel="stylesheet" type="text/css" href="css/touchCarousel.css"/>  
-<link rel="stylesheet" type="text/css" href="css/store_picker_prime_new.css"/>
+<link rel="stylesheet" type="text/css" href="touchCarousel.css"/>  
+<link rel="stylesheet" type="text/css" href="store_picker_prime_new.css"/>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.6.2/jquery.min.js"></script>	
 <script type="text/javascript" src="https://images-na.ssl-images-amazon.com/images/G/01/marketing/prime/store_picker/javascript/javascript._V360060388_.js"></script> 
 <script type="text/javascript" src="https://images-na.ssl-images-amazon.com/images/G/01/marketing/prime/store_picker/javascript/jquery.touchcarousel-1.1.min._V387132590_.js"></script>
