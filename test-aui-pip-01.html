@@ -69,12 +69,6 @@ ue_csm.ue_hob=ue_csm.ue_hob||+new Date();(function(a){a.ue.cv={};a.ue.cv.scopes=
 
 <body>
 
-
-
-
-
-
-
 <link rel="stylesheet" href="https://images-na.ssl-images-amazon.com/images/G/01/AUIClients/AmazonUI-ed071c781bfdbf28e9e4425cff6b8da90f436a4a.device_type-mobile.secure.min._V1_.css" />
 <script>
 (function(){(function(){var e=window.P;if(e&&e.when&&e.register)throw Error("A copy of P has already been loaded on this page.");e=window.P={};e.error=function(e,m,j,k){e=e+" @ "+(m||"N/A")+":"+(j||"N/A");k&&k.substring(0,2)==="a-"&&(e="[aui] "+e);throw Error(e);}})();(function(){function e(b){for(var c=[],a=b&&b.length,f=0;a&&f<a;f++)c.push(h[b[f]]||i[b[f]]||null);return c}function p(b){var c=e(b.dependencies);if(b.fn&&typeof b.fn==="function")try{h[b.name]=b.fn.apply(window,c),i[b.name]=!0,q.notify(b)}catch(a){d.error("["+
@@ -147,7 +141,11 @@ color: #888888!important;
 .a-touch p.a-ship-saving-msg {
 padding-top: 0.5rem;
 padding-left: 0.5rem;
-padding-bottom: 1rem;
+font-size: 20px!important;
+font-family: Arial;
+line-height: 22px!important;
+}
+.a-touch .a-prime-benefits {
 font-size: 20px!important;
 font-family: Arial;
 line-height: 22px!important;
@@ -155,6 +153,7 @@ line-height: 22px!important;
 .a-touch .prime-img {
 padding-left: 0.25rem;
 padding-right: 1rem;
+padding-top: 2rem;
 padding-bottom: 2rem;
 width:100%;
 max-width: 260px;
@@ -190,7 +189,7 @@ max-width: 260px;
 <img alt="" class="prime-img" src="https://images-na.ssl-images-amazon.com/images/G/01/marketing/prime/primetime/Amazon-prime-logo._V342606456_.png">
 </div>
 
-<div class="a-row">
+<div class="a-row a-prime-benefits">
 	<div class="a-column">
 		<p class="a-text-bold"> Your Prime membership includes: </p>
 		<ul class="a-vertical">
@@ -299,19 +298,10 @@ By signing up, you acknowledge that you have read and agree to the <span> <a hre
 </div>
 <!-- PrimeFragmentEnd: prime_message_select; -->
 
-    
-    
-    
-    
-
 <!-- MsgId: mobile_web_forced_PrimeTime_AllPrimePurchase_WithShippingCharge_FT; PresentationId: 36146651; Version: 32; TemplateId: 36178251; TemplateVersion: 46; FragmentId: setup_form_end; -->
 </form>
 <!-- PrimeFragmentEnd: setup_form_end; -->
 
-    
-    
-    
-    
 
 <!-- MsgId: mobile_web_forced_PrimeTime_AllPrimePurchase_WithShippingCharge_FT; PresentationId: 36146651; Version: 32; TemplateId: 36178251; TemplateVersion: 46; FragmentId: setup_footer; -->
 </div>
@@ -336,27 +326,3 @@ var ue_pty='PrimeInterstitialPageAW', ue_spty='cart-to-pip', ue_pti='';
 </body>
 </html>
 <!-- PrimeFragmentEnd: setup_footer; -->
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
