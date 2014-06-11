@@ -312,7 +312,7 @@ function handleTouchEndForButton(event) {
   }
 
 function showSignupError(id) {
-  var error_msg = '<div class="prime-modal-container" role="alert" tabindex="1"><div class="prime-modal-title">' + document.getElementById('error-message-headline').innerHTML + '</div><div class="prime-modal-body">' + document.getElementById('error-message-details').innerHTML  + '<table      style="position:relative; top:10px;"><tr><td width=100%></td><td><div id="modalButton" class="amznButton textAppearanceAmazonButton float_right" role="button" tabindex="1"><div class="button_inner">' + document.getElementById('error-message-button').innerHTML + '</div></div></td></tr></table></div><div class="clear"></div></div>';
+  var error_msg = '<div class="prime-modal-container" role="alert" tabindex="1"><div class="prime-modal-title">' + document.getElementById('error-message-headline').innerHTML + '</div><div class="prime-modal-body">' + document.getElementById('error-message-details').innerHTML  + '<table      style="position:relative; top:10px;"><tr><td width=100%></td><td><div id="modalButton" class="amznButton textAppearanceAmazonButton float_right" role="button" tabindex="1"><div class="button_inner" role="button" tabindex=1>' + document.getElementById('error-message-button').innerHTML + '</div></div></td></tr></table></div><div class="clear"></div></div>';
   setModalWindow(id, error_msg);
   new amznButton("#modalButton", function() {alert('close');}, "amznButtonPressed");
 }
