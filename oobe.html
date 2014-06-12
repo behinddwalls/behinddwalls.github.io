@@ -1,7 +1,7 @@
-<!DOCTYPE>
+
 <html>
 <head>
-<meta content='width=device-width, initial-scale=1.0, user-scalable=no' name='viewport'>
+<meta content='width=device-width, initial-scale=1.0' name='viewport'>
 <script type="text/javascript">var ue_t0=ue_t0||+new Date();</script>
 <script type='text/javascript'>
 var ue_id='0ZGCBFYWC9021T82QVJE',
@@ -12,7 +12,7 @@ ue_csm.ue_hob=ue_csm.ue_hob||+new Date();(function(c){var a=c.ue,b=(Date.now||fu
 ue_csm.ue_hob=ue_csm.ue_hob||+new Date();(function(f,a){var b="FATAL",c={ec:0,ecf:0,pec:0,ts:0,erl:[],ter:[],mxe:50,startTimer:function(){c.ts++;setInterval(function(){if(f.ue&&(c.pec<c.ec)){f.uex("at")}c.pec=c.ec},10000)}};function e(i,h){if(c.ec>c.mxe||!i){return}c.ec++;c.ter.push(i);h=h||{};var g=i.logLevel||h.logLevel;if(!g||(g==b)){c.ecf++}h.pageURL=""+(a.location?a.location.href:"");h.logLevel=g;h.attribution=i.attribution||h.attribution;c.erl.push({ex:i,info:h})}function d(l,k,g,i,h){var j={m:l,f:k,l:g,c:""+i,err:h,fromOnError:1,args:arguments};f.ueLogError(j);return false}d.skipTrace=1;e.skipTrace=1;f.ueLogError=e;f.ue_err=c;a.onerror=d})(ue_csm,window);ue_csm.ue_hoe=+new Date();
 
 
-var ue_url='/gp/prime/pipeline/primekindlesignup/ariel/uedata/unsticky/801-0344887-5006822/PrimeClub/ntpoffrw',z
+var ue_url='/gp/prime/pipeline/primekindlesignup/ariel/uedata/unsticky/801-0344887-5006822/PrimeClub/ntpoffrw',
 ue_sid='801-0344887-5006822',
 ue_mid='ATVPDKIKX0DER',
 ue_sn='prime-platform-india-integ-0104.sea3.amazon.com',
@@ -89,51 +89,9 @@ featureIndex: 5
     
 
 <!-- MsgId: kindle_oobe_ariel_common_header_default; PresentationId: 36222231; Version: 4; TemplateId: 34203271; TemplateVersion: 1; FragmentId: ss; -->
-<link rel="stylesheet" href="https://raw.githubusercontent.com/codeforsurvival/Learn/master/others/oobe-new.css" type="text/css" media="all">
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.6.2/jquery.min.js"></script>
-<script>
- function getScaledRootFont() {
-    var errFactor = 0.5;
-    var rootH = window.innerHeight;
-    var wrapper = document.getElementById('wrapper');
-    var cH = Math.max(wrapper.offsetHeight, wrapper.scrollHeight);
-    // var cH = $('#wrapper').height();
- //   alert(rootH + '  ' + cH);
-
-    var imgH = $('div.upsell_container').height();
-//    alert(imgH);
-    if (rootH >= cH) {
-    	//rootH -= errFactor;
-        var pC = (rootH - cH ) * 100 / (rootH - imgH );
-    } else {
-    	//cH += errFactor;
-        var pC = (rootH - cH ) * 100 / (cH - imgH );
-    }
-    var rFold = $('html').css('font-size');
-    rFold = rFold.replace("px", "");
-    rFold = parseInt(rFold);
-    var res = rFold + pC * rFold / 100;
- //   alert(res);
-    var rootFont = Math.floor(res);
- //   alert(rootFont > (res-errFactor));
-    if(rootFont > (res-errFactor))
-    {
-  //  	alert("ErrFactor "+ (res-errFactor));
-    	return (res-errFactor).toPrecision(3);
-    }
-    return rootFont;
-}
- //alert(getScaledRootFont());
- 
- 
- $(window).bind("load", function() {
-   // code here
-   var resFont = getScaledRootFont();
-   //$('html').css('font-size',(resFont-1)+'px');
-   $('html').css('font-size',resFont+'px');
-});
-</script>
-<meta content='width=device-width, initial-scale=1.0,user-scalable=no' name='viewport'>
+<link rel="stylesheet" href="https://raw.githubusercontent.com/codeforsurvival/Learn/master/others/oobe.css" type="text/css" media="all">
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.6.2/jquery.min.js"></script>	
+<meta content='width=device-width, initial-scale=1.0' name='viewport'>
 <style  type="text/css"> 
 div.benefit_divider_old {
     background: url("https://images-na.ssl-images-amazon.com/images/G/01/marketing/prime/kindle_oobe/divider._V401240454_.png") no-repeat left top;
@@ -224,7 +182,7 @@ amznButton.prototype.bind = function(fn) {
 
 amznButton.prototype.isInside = function(touchObj, debug) {
   if (debug) {
- // alert("X :" + touchObj.x + " Y:" + touchObj.y + " " + this.minX + " " + this.maxX +  " " + this.minY + " " + this.maxY);}
+  alert("X :" + touchObj.x + " Y:" + touchObj.y + " " + this.minX + " " + this.maxX +  " " + this.minY + " " + this.maxY);}
   return touchObj.x >= this.minX && touchObj.x < this.maxX && touchObj.y >= this.minY && touchObj.y < this.maxY;
 };
 
@@ -301,7 +259,7 @@ function handleTouchEndForButton(event) {
   }
 
   function showProcessing(id) {
-    var data = '<div class="prime-modal-container" role="alert" tabindex="1"><div class="prime-modal-body"><table><tr><td><div class="spinner"></div></td><td><div class="waitingDialogText">' + document.getElementById('processing-message').innerHTML + '</div></td></tr></table></div><div class="clear"></div></div>'; 
+    var data = '<div class="prime-modal-container"><div class="prime-modal-body"><table><tr><td><div class="spinner"></div></td><td><div class="waitingDialogText">' + document.getElementById('processing-message').innerHTML + '</div></td></tr></table></div><div class="clear"></div></div>'; 
     setModalWindow(id, data);
     $(id).show();
     setMask();
@@ -311,16 +269,11 @@ function handleTouchEndForButton(event) {
     setModalWindow(id, data);
   }
 
-
 function showSignupError(id) {
-  var error_msg = '<div class="prime-modal-container"><div class="prime-modal-title">' + document.getElementById('error-message-headline').innerHTML + '</div><div class="prime-modal-body">' + document.getElementById('error-message-details').innerHTML  + '<table      style="position:relative; top:10px;"><tr><td width=100%></td><td><div id="modalButton" class="amznButton textAppearanceAmazonButton float_right" role="button" tabindex="1"><div class="button_inner">' + document.getElementById('error-message-button').innerHTML + '</div></div></td></tr></table></div><div class="clear"></div></div>';
+  var error_msg = '<div class="prime-modal-container"><div class="prime-modal-title">' + document.getElementById('error-message-headline').innerHTML + '</div><div class="prime-modal-body">' + document.getElementById('error-message-details').innerHTML  + '<table      style="position:relative; top:10px;"><tr><td width=100%></td><td><div id="modalButton" class="amznButton textAppearanceAmazonButton float_right" role="button" tabindex="1">' + document.getElementById('error-message-button').innerHTML + '</div></td></tr></table></div><div class="clear"></div></div>';
   setModalWindow(id, error_msg);
-  $(".prime-modal-title").focus();
-  $(".prime-modal-container").focus();
-  $("#modalButton").focus();
   new amznButton("#modalButton", function() {closeWindow();}, "amznButtonPressed");
 }
-
 
 function handleSignupRequest() {
   showProcessing('#signupResult');
@@ -407,7 +360,7 @@ $(document).ready(function () {
 </script>
 <span id="processing-message" style="display:none">Please wait while we complete the signup process.</span> 
 <span  id="error-message-headline" style="display:none">Dear test,</span>
-<span id="error-message-details" style="display:none" tabindex="10">An error occurred while trying to sign you up. Please try again later at Amazon.com/prime</span>
+<span id="error-message-details" style="display:none">An error occurred while trying to sign you up. Please try again later at Amazon.com/prime</span>
 <span id="error-message-button" style="display:none">Continue</span>
 
 <title>Amazon Prime</title>
@@ -565,7 +518,7 @@ featureIndex: 5
 
     
 
-<div id="wrapper"    >
+    
     
 
 <!-- MsgId: kindle_oobe_ariel_signupOffer_ft; PresentationId: 36225691; Version: 3; TemplateId: 36225671; TemplateVersion: 5; FragmentId: header; -->
@@ -1003,38 +956,15 @@ var ue_pty='PrimeClub', ue_spty='SignUpPage_KindleOOBE_ariel', ue_pti='PrimePipe
 </noscript>
 
 </div>
-</div>
 <script type='text/javascript'>var uept={pageType:'PrimeClub',subPageType:'SignUpPage_KindleOOBE_ariel',pageTypeId:'PrimePipeline',pageAction:'Validate-request'};</script><script type='text/javascript'>
 (function(b,c){var a=c.images;if(a&&a.length){b.ue.count("totalImages",a.length)}})(ue_csm,document);
 </script>
 <script type='text/javascript'>
 (function(b,g){var h=20,i=50,f="length",j=b.ue,d="getEntriesByType";function a(m,l){return m.filter(function(n){return n.initiatorType==l})}function e(l,n){if(!j.t[l]){return}var u=j.t[l]-j._t0,m=n.filter(function(v){return v.responseEnd!==0&&(k(v)<u)}),q=a(m,"script"),o=a(m,"link"),s=a(m,"img"),t=m.map(function(w){var v=w.name.match(/^(https|http)?\:\/\/(.+?)\//i);return v&&v[2]}).filter(function(x,w,v){return x&&v.lastIndexOf(x)==w}),p=m.filter(function(v){return v.duration<h}),r=((u-Math.max.apply(null,m.map(k)))<i)|0;if(l=="af"){j._afjs=q.length}return l+":"+[m[f],q[f],o[f],s[f],t[f],p[f],r].join("-")}function k(l){return l.responseEnd-(j._t0-g.timing.navigationStart)}function c(){var o=g[d]("resource"),n=e("cf",o),l=e("af",o),m=e("ld",o);delete j._rt;j._ld=j.t.ld-j._t0;if(j._art){j._art()}return[n,l,m].join("_")}j._rre=k;j._rt=g&&g.timing&&g[d]&&c})(ue_csm,window.performance);
 </script>
-<!--script>
- 
- function getScaledRootFont()
- {
-  var rootH = window.innerHeight
-  //alert(iHeight);
-  var cH = document.getElementById('wrapper').offsetHeight;
- //alert(divH);
- var pC = (rootH - cH)*100/rootH;
- var rFold = $('html').css('font-size');
- rFold = rFold.replace("px", "");
- rFold = parseInt(rFold);
- return rFold + pC*rFold/100;
- 	
- }
- //alert(getScaledRootFont());
- 
- 
- $(window).bind("load", function() {
-   // code here
-   $('html').css('font-size',getScaledRootFont().toPrecision(3)+'px');
-});
-</script-->
 </body>
 </html>
+
 
 
 
