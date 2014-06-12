@@ -12,7 +12,7 @@ ue_csm.ue_hob=ue_csm.ue_hob||+new Date();(function(c){var a=c.ue,b=(Date.now||fu
 ue_csm.ue_hob=ue_csm.ue_hob||+new Date();(function(f,a){var b="FATAL",c={ec:0,ecf:0,pec:0,ts:0,erl:[],ter:[],mxe:50,startTimer:function(){c.ts++;setInterval(function(){if(f.ue&&(c.pec<c.ec)){f.uex("at")}c.pec=c.ec},10000)}};function e(i,h){if(c.ec>c.mxe||!i){return}c.ec++;c.ter.push(i);h=h||{};var g=i.logLevel||h.logLevel;if(!g||(g==b)){c.ecf++}h.pageURL=""+(a.location?a.location.href:"");h.logLevel=g;h.attribution=i.attribution||h.attribution;c.erl.push({ex:i,info:h})}function d(l,k,g,i,h){var j={m:l,f:k,l:g,c:""+i,err:h,fromOnError:1,args:arguments};f.ueLogError(j);return false}d.skipTrace=1;e.skipTrace=1;f.ueLogError=e;f.ue_err=c;a.onerror=d})(ue_csm,window);ue_csm.ue_hoe=+new Date();
 
 
-var ue_url='/gp/prime/pipeline/primekindlesignup/ariel/uedata/unsticky/801-0344887-5006822/PrimeClub/ntpoffrw',
+var ue_url='/gp/prime/pipeline/primekindlesignup/ariel/uedata/unsticky/801-0344887-5006822/PrimeClub/ntpoffrw',z
 ue_sid='801-0344887-5006822',
 ue_mid='ATVPDKIKX0DER',
 ue_sn='prime-platform-india-integ-0104.sea3.amazon.com',
@@ -314,7 +314,9 @@ function handleTouchEndForButton(event) {
 function showSignupError(id) {
   var error_msg = '<div class="prime-modal-container" role="alert" tabindex="10"><div class="prime-modal-title">' + document.getElementById('error-message-headline').innerHTML + '</div><div class="prime-modal-body">' + document.getElementById('error-message-details').innerHTML  + '<table      style="position:relative; top:10px;"><tr><td width=100%></td><td><div id="modalButton" class="amznButton textAppearanceAmazonButton float_right" role="button" tabindex="1"><div class="button_inner" role="button" tabindex=1>' + document.getElementById('error-message-button').innerHTML + '</div></div></td></tr></table></div><div class="clear"></div></div>';
   setModalWindow(id, error_msg);
+  $(".prime-modal-title").focus();
   $(".prime-modal-container").focus();
+  $("#modalButton").focus();
   new amznButton("#modalButton", function() {alert('close');}, "amznButtonPressed");
 }
 
