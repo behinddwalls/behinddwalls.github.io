@@ -98,10 +98,10 @@ featureIndex: 5
     var wrapper = document.getElementById('wrapper');
     var cH = Math.max(wrapper.offsetHeight, wrapper.scrollHeight);
     // var cH = $('#wrapper').height();
-    alert(rootH + '  ' + cH);
+ //   alert(rootH + '  ' + cH);
 
     var imgH = $('div.upsell_container').height();
-    alert(imgH);
+//    alert(imgH);
     if (rootH >= cH) {
     	//rootH -= errFactor;
         var pC = (rootH - cH ) * 100 / (rootH - imgH );
@@ -113,12 +113,12 @@ featureIndex: 5
     rFold = rFold.replace("px", "");
     rFold = parseInt(rFold);
     var res = rFold + pC * rFold / 100;
-    alert(res);
+ //   alert(res);
     var rootFont = Math.floor(res);
-    alert(rootFont > (res-errFactor));
+ //   alert(rootFont > (res-errFactor));
     if(rootFont > (res-errFactor))
     {
-    	alert("ErrFactor "+ (res-errFactor));
+  //  	alert("ErrFactor "+ (res-errFactor));
     	return (res-errFactor).toPrecision(3);
     }
     return rootFont;
@@ -224,7 +224,7 @@ amznButton.prototype.bind = function(fn) {
 
 amznButton.prototype.isInside = function(touchObj, debug) {
   if (debug) {
-  alert("X :" + touchObj.x + " Y:" + touchObj.y + " " + this.minX + " " + this.maxX +  " " + this.minY + " " + this.maxY);}
+ // alert("X :" + touchObj.x + " Y:" + touchObj.y + " " + this.minX + " " + this.maxX +  " " + this.minY + " " + this.maxY);}
   return touchObj.x >= this.minX && touchObj.x < this.maxX && touchObj.y >= this.minY && touchObj.y < this.maxY;
 };
 
