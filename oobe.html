@@ -274,8 +274,8 @@ function showSignupError(id) {
   setModalWindow(id, error_msg);
   
  //$(".prime-modal-title").focus();
-  $(".prime-modal-body").focus();
- // $("#modalButton").focus();
+ // $(".prime-modal-body").focus();
+  $("#modalButton").focus();
   new amznButton("#modalButton", function() {closeWindow();}, "amznButtonPressed");
 } 
 
