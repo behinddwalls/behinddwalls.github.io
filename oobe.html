@@ -350,6 +350,7 @@ function handleTouchEndForButton(event) {
 function showSignupError(id) {
   var error_msg = '<div class="prime-modal-container"><div class="prime-modal-title">' + document.getElementById('error-message-headline').innerHTML + '</div><div class="prime-modal-body">' + document.getElementById('error-message-details').innerHTML  + '<table      style="position:relative; top:10px;"><tr><td width=100%></td><td><div id="modalButton" class="amznButton textAppearanceAmazonButton float_right"><div class="button_inner" role="button" tabindex="1">' + document.getElementById('error-message-button').innerHTML + '</div></div></td></tr></table></div><div class="clear"></div></div>';
   setModalWindow(id, error_msg);
+  $("#error-message-button").focus();
   $(".prime-modal-title").focus();
   $(".prime-modal-body").focus();
   $("#modalButton").focus();
@@ -358,9 +359,10 @@ function showSignupError(id) {
 
 function handleSignupRequest() {
   showProcessing('#signupResult');
-  alert("Coming");
   // Need to remove tab indexes from Signup and No Thanks button
   // So customers can't tab to invalid buttons.
+
+  $("#signupButton").blur();
   $("#signupButton").removeAttr("tabindex");
   $("#no_thanks").removeAttr("tabindex");
   
