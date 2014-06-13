@@ -270,7 +270,7 @@ function handleTouchEndForButton(event) {
   }
 
 function showSignupError(id) {
-  var error_msg = '<div class="prime-modal-container"><div class="prime-modal-title">' + document.getElementById('error-message-headline').innerHTML + '</div><div class="prime-modal-body">' + document.getElementById('error-message-details').innerHTML  + '<table  +style="position:relative; top:10px;"><tr><td width=100%></td><td><div id="modalButton" class="amznButton textAppearanceAmazonButton float_right" role="alert" tabindex="1">' + "Hellooooo" + '</div></td></tr></table></div><div class="clear"></div></div>';
+  var error_msg = '<div class="prime-modal-container"><div class="prime-modal-title">' + document.getElementById('error-message-headline').innerHTML + '</div><div class="prime-modal-body">' + document.getElementById('error-message-details').innerHTML  + '<table  +style="position:relative; top:10px;"><tr><td width=100%></td><td><div id="modalButton" class="amznButton textAppearanceAmazonButton float_right" role="button" tabindex="1">' + "Hellooooo" + '</div></td></tr></table></div><div class="clear"></div></div>';
   setModalWindow(id, error_msg);
   
   $(".prime-modal-title").focus();
@@ -775,7 +775,7 @@ new amznButton("#signupButton", handleSignupRequest, "amznButtonPricePressed");
 	<div class="clear_both"></div>
 	<div class="after_signup_buttons">After your 30-day free trial Amazon Prime is just $99/year. There is no obligation to continue.</div>
 	<div id="mask" style="top: 0; left: 0; position:absolute; z-index:9000; background-color:#C0C0C0; display:none;"></div>
-	<div id="signupResult" role="alert" style="display:none; z-index:9999; background-color:#000000; position:absolute;"></div>
+	<div id="signupResult" style="display:none; z-index:9999; background-color:#000000; position:absolute;"></div>
 </div>
 <!-- PrimeFragmentEnd: bottom; -->
 
