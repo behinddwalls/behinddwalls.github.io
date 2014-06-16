@@ -129,6 +129,7 @@ ue_csm.ue_hob=ue_csm.ue_hob||+new Date();(function(a){a.ue.cv={};a.ue.cv.scopes=
 
 <script type="text/javascript">
 
+
 var amznJQ,jQueryPatchIPadOffset=false;
 (function() {
   function f(x) {return function(){x.push(arguments);}}
@@ -201,6 +202,21 @@ if (document.body.childNodes.length) {
     <script type="text/javascript" src="https://images-na.ssl-images-amazon.com/images/G/01/browser-scripts/site-wide-js-1.2.6-beacon/site-wide-4789452096._V1_.js"></script>
 <script type='text/javascript'>
     amznJQ.addLogical('popover', []);
+    function submitAndRedirect(helpNode) { 
+  document.forms["singlepageSignUpForm"]["action.signup"].name = "action.prepareBillingInfoForPropagation.injectIntoContext:displayHelpNodeID=" + helpNode;
+  document.forms["singlepageSignUpForm"]["action.signup"].click(); 
+}
+
+amznJQ.onReady('JQuery', function() {
+  (function($) {
+     $(document).ready(function() {
+        if ($('#errorStripe').length) {
+          // Go to the error stripe if it exists
+          $(window).scrollTop($('#errorStripe').offset().top-15);
+        }
+     });
+  })(jQuery);
+});
 </script>
 
 
