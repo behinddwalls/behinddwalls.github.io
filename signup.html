@@ -1,6 +1,10 @@
 <html>
 <head>
-<script type="text/javascript">var ue_t0=ue_t0||+new Date();</script>
+<script type="text/javascript">var ue_t0=ue_t0||+new Date();
+function submitAndRedirect(helpNode) { 
+  document.forms["singlepageSignUpForm"]["action.signup"].name = "action.prepareBillingInfoForPropagation.injectIntoContext:displayHelpNodeID=" + helpNode;
+  document.forms["singlepageSignUpForm"]["action.signup"].click(); 
+}</script>
 <script type='text/javascript'>
 var ue_id='0K5QBJETD6H22QS25HYC',
 ue_csm = window,
@@ -202,10 +206,7 @@ if (document.body.childNodes.length) {
     <script type="text/javascript" src="https://images-na.ssl-images-amazon.com/images/G/01/browser-scripts/site-wide-js-1.2.6-beacon/site-wide-4789452096._V1_.js"></script>
 <script type='text/javascript'>
     amznJQ.addLogical('popover', []);
-    function submitAndRedirect(helpNode) { 
-  document.forms["singlepageSignUpForm"]["action.signup"].name = "action.prepareBillingInfoForPropagation.injectIntoContext:displayHelpNodeID=" + helpNode;
-  document.forms["singlepageSignUpForm"]["action.signup"].click(); 
-}
+    
 
 amznJQ.onReady('JQuery', function() {
   (function($) {
