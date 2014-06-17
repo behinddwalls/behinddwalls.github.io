@@ -6,7 +6,8 @@ function submitAndRedirect(helpNode) {
 try{
   document.forms["singlepageSignUpForm"]["action.signup"].name = "action.prepareBillingInfoForPropagation.injectIntoContext:displayHelpNodeID=" + helpNode;
   //document.forms["singlepageSignUpForm"]["action.signup"].click(); 
-  document.getElementById('action.signup').click()
+  document.getElementById('action.signup').click();
+  document.getElementById('action.signup').click();
  } catch(err)
   {
   	alert("hell"+err);
