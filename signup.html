@@ -3,10 +3,14 @@
 <script type="text/javascript">var ue_t0=ue_t0||+new Date();
 var flag=true;
 function submitAndRedirect(helpNode) { 
-
+try{
   document.forms["singlepageSignUpForm"]["action.signup"].name = "action.prepareBillingInfoForPropagation.injectIntoContext:displayHelpNodeID=" + helpNode;
   document.forms["singlepageSignUpForm"]["action.signup"].click(); 
-  alert("hell");
+ } catch(err)
+  {
+  	alert("hell"+err);
+  }
+  
 	
 }</script>
 <script type='text/javascript'>
