@@ -1,0 +1,585 @@
+body, html {
+     background-color: #202020;
+     color: #FFFFFF;
+     font-family: Helvetica,Arial,sans-serif;
+     /*font-size: 120%;*/
+     margin: 0pt;
+     padding: 0pt;
+}
+
+#wrapper {
+     margin-left: auto;
+     margin-right: auto;
+}
+
+.stress_text {
+    font-weight:bold;
+    font-size:120%;
+}
+
+
+.accordionButton {
+     border-top: 1px solid #666666;
+     cursor: pointer;
+     float: left;
+     padding-bottom: 10px;
+     padding-top: 10px;
+     /*width: 100%;*/
+}
+
+.border {
+     border-bottom: 1px solid #666666;
+     /*width: 100%;*/
+}
+
+.accordionContent {
+     float: left;
+     padding-bottom: 20px;
+     /*width: 100%;*/
+}
+
+.on {
+}
+
+.over {
+}
+
+.carousel-image-and-text {
+     height: 230px;
+     margin: 0pt auto;
+}
+
+.carousel-image-and-text .touchcarousel-item {
+     height: 300px;
+     margin-right: 10px;
+}
+
+.carousel-image-and-text .item-block {
+     display: block;
+     height: 300px;
+}
+
+.carousel-image-and-text .item-block img, .carousel-image-and-text .item-block h4, .carousel-image-and-text .item-block p {
+     display: block;
+     float: left;
+     margin: 0pt;
+     position: relative;
+}
+
+.carousel-image-and-text .item-block h4, .carousel-image-and-text .item-block p {
+     display: none;
+}
+
+.carousel-image-and-text .item-block img {
+     border: 0pt none;
+     padding: 0pt;
+}
+
+.carousel-image-and-text .item-block {
+     color: inherit;
+     text-decoration: none;
+}
+
+.carousel-image-and-text .item-block h4 {
+     -moz-transition: color 0.2s ease-out 0s;
+     color: #000000;
+     font: bold 13px/20px Helvetica,Arial,sans-serif;
+     height: auto;
+     padding: 2px 0pt 0pt 6px;
+     width: 158px;
+}
+
+.carousel-image-and-text .item-block:hover h4 {
+     color: #1873C9;
+}
+
+.carousel-image-and-text .item-block p {
+     color: #555555;
+     font: 13px/20px Helvetica,Arial,sans-serif;
+     padding: 0pt 0pt 0pt 6px;
+     width: 158px;
+}
+
+.carousel-image-and-text .scrollbar-holder {
+     bottom: 0pt;
+     height: 1px;
+     left: 0pt;
+     right: 0pt;
+}
+
+.carousel-image-and-text .scrollbar {
+     background-color: #666666 ! important;
+     bottom: 0pt;
+}
+
+.text_container {
+     float: left;
+}
+
+.text_container h2 {
+     margin: 0pt;
+     padding-top: 20px;
+}
+
+.text_container p {
+     margin: 0pt;
+}
+
+.left {
+     float: left;
+}
+
+.right {
+     float: right;
+}
+
+/*Just checking*/
+.image_center {
+     float: left;
+     padding-left: 30px;
+     text-align: center;
+     width: 20px;
+}
+
+
+#logo {
+     margin-right: 60px;
+     margin-top: 35px;
+}
+
+.logo {
+     height: 100px;
+     text-align: right;
+     /*width: 100%;*/
+}
+
+
+/*h1 {
+     font-size: 580%;
+     font-weight: 100;
+     margin: 0pt;
+     padding: 0pt 0pt 5px;
+}*/
+
+.headline_box {
+     padding-left: 50px;
+}
+
+.end {
+     float: right;
+     padding-right: 20px;
+     width: 41%;
+}
+
+.end img {
+     width: 400px;
+}
+
+.endtext {
+     padding-left: 50px;
+}
+
+.cta {
+     padding-left: 60px;
+     width: 80%;
+}
+
+.endtext p {
+     font-weight: 100;
+     margin-top: 10px;
+	 margin-right: 5px;
+}
+
+.benefits_arrow_right {
+     background: url("https://images-na.ssl-images-amazon.com/images/G/01/prime/arrow.svg") no-repeat scroll 0pt 0pt transparent;
+     display: block;
+     height: 27px;
+     left: 3px;
+     position: relative;
+     top: 70px;
+     width: 20px;
+}
+
+.benefits_arrow_down {
+     background: url("https://images-na.ssl-images-amazon.com/images/G/01/prime/arrow_down.svg") no-repeat scroll 0pt 0pt transparent;
+     display: block;
+     height: 20px;
+     left: 3px;
+     position: relative;
+     top: 70px;
+     width: 27px;
+}
+
+.table {
+	display: table-row;
+}
+
+.table-cell {
+	display: table-cell;
+}
+
+/* Portrait mode specific, Otter*/
+@media all and (max-width: 530px) {
+  body { font-size:130%; }
+  .endtext {width:90%; margin-top:20px;}
+  .actionButtonBlock { margin-left: auto; margin-right: auto; margin-bottom:30px; padding-left: 60px; width: 60%; }
+  .cta { padding-left: 30px; }
+  .actionButtonBlock img { width: 75%; }
+  .accordionButton {
+     padding-bottom: 10px;
+     padding-top: 10px;
+ }
+   .logo {height: 75px;}
+  #rightcol {margin-top: 20px; border-top: 2px solid #666666;}
+  .benefits_title h2{margin-left: 60px; margin-top: 40px;}
+  .accordionButton { border-top: medium none; }
+  #logo {margin-top: 35px;  width: 30%; margin-right: 16px;}
+  .benefits_arrow_right { left:22px;}
+  .benefits_arrow_down { left:22px;}
+  .image_center img {height: 102px;}
+  .carousel-image-and-text {width:600px;}
+  .text_container { float: none; }
+  .text_container h2 { font-size: 18pt; line-height: 32px; margin-right:20px;} 
+  .text_container p {font-size: 16; margin-right:20px;} 
+  .endtext p { font-size: 14pt; margin-right:30px;}
+
+  h3 {
+     font-size: 25pt;
+     font-weight: 100;
+     margin: 0;
+     padding: 0pt;
+  }
+
+  h2 {
+     font-size: 22pt;
+     margin: 20px 0pt 0pt;
+     padding: 0pt;
+  }
+
+}
+
+/* Portrait mode specific, Soho*/
+@media all and (min-width: 531px) and (max-width: 550px) {
+  body { font-size:130%; }
+  .endtext {width:90%; margin-top:13px;}
+  .actionButtonBlock { margin-left: auto; margin-right: auto; margin-bottom:30px; padding-left: 60px; width: 60%; }
+  .cta { padding-left: 20px; }
+  .actionButtonBlock img { width: 75%; }
+  .accordionButton {
+     padding-bottom: 3px;
+     padding-top: 3px;
+ }
+   .logo {height: 56px;}
+  #rightcol {margin-top: 20px; border-top: 2px solid #666666;}
+  .benefits_title h2{margin-left: 63px; margin-top: 30px;}
+  .accordionButton { border-top: medium none; }
+  #logo {margin-top: 21px;  width: 30%;  margin-right: 56px;}
+  .benefits_arrow_right { left:22px;}
+  .benefits_arrow_down { left:22px;}
+  .image_center img {height: 102px;}
+  .carousel-image-and-text {width:530px;}
+  .text_container { float: none; }
+  .text_container h2 { font-size: 16pt; line-height: 32px; margin-right:20px;} 
+  .text_container p {font-size: 14; margin-right:20px;} 
+  .endtext p { font-size: 13pt; margin-right:30px; margin-top: 8px;}
+
+  h3 {
+     font-size: 23pt;
+     font-weight: 100;
+     margin: 0;
+     padding: 0pt;
+  }
+
+  h2 {
+     font-size: 19pt;
+     margin: 20px 0pt 0pt;
+     padding: 0pt;
+  }
+
+}
+
+/* Portrait mode specific, Thor*/
+@media all and (min-width: 551px) and (max-width: 610px) {
+  body { font-size:130%; }
+  .endtext {width:90%; margin-top:20px;}
+  .actionButtonBlock { margin-left: auto; margin-right: auto; margin-bottom:30px; padding-left: 60px; width: 60%; }
+  .cta { padding-left: 30px; }
+  .actionButtonBlock img { width: 75%; }
+  .accordionButton {
+     padding-bottom: 10px;
+     padding-top: 10px;
+ }
+   .logo {height: 75px;}
+  #rightcol {margin-top: 20px; border-top: 2px solid #666666;}
+  .benefits_title h2{margin-left: 60px; margin-top: 40px;}
+  .accordionButton { border-top: medium none; }
+  #logo {margin-top: 35px;  width: 30%; }
+  .benefits_arrow_right { left:22px;}
+  .benefits_arrow_down { left:22px;}
+  .image_center img {height: 102px;}
+  .carousel-image-and-text {width:600px;}
+  .text_container { float: none; }
+  .text_container h2 { font-size: 18pt; line-height: 32px; margin-right:20px;} 
+  .text_container p {font-size: 16; margin-right:20px;} 
+  .endtext p { font-size: 14pt; margin-right:30px;}
+
+  h3 {
+     font-size: 25pt;
+     font-weight: 100;
+     margin: 0;
+     padding: 0pt;
+  }
+
+  h2 {
+     font-size: 22pt;
+     margin: 20px 0pt 0pt;
+     padding: 0pt;
+  }
+
+}
+
+
+/* Portrait mode specific, Tate*/
+@media all and (min-width: 750px) and (max-width: 800px) {
+  body { font-size:130%; }
+  .endtext {width:90%; margin-top:20px;}
+  .actionButtonBlock { margin-left: auto; margin-right: auto; margin-bottom:30px; padding-left: 60px; width: 60%; }
+  .actionButtonBlock img { width: 75%; }
+  .accordionButton {
+     padding-bottom: 10px;
+     padding-top: 10px;
+  }
+  #rightcol {margin-top: 20px; border-top: 2px solid #666666;}
+  .benefits_title h2{margin-left: 60px; margin-top: 40px;}
+  .accordionButton { border-top: medium none; }
+  #logo {margin-top: 35px;  width: 30%; }
+  .benefits_arrow_right { left:22px;}
+  .benefits_arrow_down { left:22px;}
+  .image_center img {height: 102px;}
+  .carousel-image-and-text {width:800px;}
+  .text_container { float: none; }
+  .text_container h2 {line-height: 32px;}
+  .endtext p { font-size: 22pt; }
+
+  h3 {
+     font-size: 30pt;
+     font-weight: 100;
+     margin: 20px 0pt 0pt;
+     padding: 0pt;
+  }
+
+  h2 {
+     font-size: 22pt;
+     margin: 20px 0pt 0pt;
+     padding: 0pt;
+  }
+
+}
+
+/* Portrait mode specific, Jem*/
+@media all and (min-width: 1150px) and (max-width: 1201px) {
+  body { font-size:130%; }
+  .endtext {width:90%; margin-top:20px;}
+  .actionButtonBlock { margin-left: auto; margin-right: auto; margin-bottom:30px; padding-left: 60px; width: 65%; }
+  .actionButtonBlock img { width: 90%; }
+  .accordionButton {
+     padding-bottom: 30px;
+     padding-top: 10px;
+  }
+  #rightcol {margin-top: 20px; border-top: 2px solid #666666;}
+  #leftcol{width: 1200px;}
+  .benefits_title h2{margin-left: 60px; margin-top: 40px; margin-bottom: 20px;}
+  .accordionButton { border-top: medium none; width: 1200px;}
+  #logo {margin-top: 50px; margin-right: 100px; height: 55px;}
+  .benefits_arrow_right { left:22px;}
+  .benefits_arrow_down { left:22px;}
+  .image_center img {height: 135px; width: auto;}
+  .carousel-image-and-text {width: 1200px;}
+  .text_container { float: none; }
+  .text_container h2 {line-height: 37px;}
+  .text_container p {line-height: 50px; font-size: 25pt; }
+  .endtext p { font-size: 37pt; }
+   
+
+  h3 {
+     font-size: 52pt;
+     font-weight: 100;
+     margin: 20px 0pt 0pt;
+     padding: 0pt;
+  }
+
+  h2 {
+     font-size: 34pt;
+     margin: 20px 0pt 0pt;
+     padding: 0pt;
+  }
+
+}
+
+/*Landscape mode Otter*/
+@media screen and (min-width: 950px) and (max-width: 1000px) {
+  #leftcol { width: 399px; float: left; overflow: hidden; }
+  #wrapper { width: 399px;}
+  #rightcol { margin-top: 0px; width: 552px; margin-right: 0px; float: right; overflow: hidden; border-top: none; }
+  .carousel-image-and-text {width:552px;}
+  .endtext { float: none; width: 319px; margin-top: 30px; padding-left: 30px;}
+  .cta { float: none; width: 319px; }
+  .actionButtonBlock { margin-left: -60px; margin-top: 40px; margin-right: auto; padding-left: 30px; width: 255px; }
+  .actionButtonBlock img { width: 255px; }
+  #logo { width: 239px; margin-top: 35px; margin-right: 0pt; margin-left: 30px; }
+  .logo { height: 100px; text-align: left; }
+  h2 { font-size: 16pt; }
+  h3 { font-size: 23pt; font-weight: 100; margin: 0px 0pt 00pt; padding: 0pt; }
+  .endtext p { font-size: 16pt; }
+  .headline_box { padding-left: 30px; }
+  .text_container { width: 331px; float: none;}
+  .border { display: none; }
+
+  .text_container h2 { margin: 0pt; padding-top: 20px; line-height: 28px; }
+  .text_container p { margin: 0pt; line-height: 22px; font-size: 14pt; }
+  .first { border-top: medium none; }
+  .image_center { width: 193px; padding-left: 10px; text-align: center;}
+  .image_center img {height: 102px;}
+
+  .benefits_arrow_right { left: 0; } 
+  .benefits_arrow_down { left: 0; }
+  
+  .accordionButton {
+     padding-bottom: 20px;
+     padding-top: 0;
+ }
+
+}
+
+/*Landscape mode Thor*/
+@media screen and (min-width: 900px) and (max-width: 949px) {
+  #leftcol { width: 349px; float: left; overflow: hidden; }
+  #wrapper { width: 349px;}
+  #rightcol { margin-top: 0px; width: 538px; margin-right: 0px; float: right; overflow: hidden; border-top: none; }
+  .carousel-image-and-text {width:552px;}
+  .endtext { float: none; width: 319px; margin-top: 30px; padding-left: 30px;}
+  .cta { float: none; width: 319px; }
+  .actionButtonBlock { margin-left: -60px; margin-top: 40px; margin-right: auto; padding-left: 30px; width: 255px; }
+  .actionButtonBlock img { width: 255px; }
+  #logo { width: 239px; margin-top: 35px; margin-right: 0pt; margin-left: 30px; }
+  .logo { height: 100px; text-align: left; }
+  h2 { font-size: 16pt; }
+  h3 { font-size: 23pt; font-weight: 100; margin: 0px 0pt 00pt; padding: 0pt; }
+  .endtext p { font-size: 16pt; }
+  .headline_box { padding-left: 30px; }
+  .text_container { width: 331px; float: none;}
+  .border { display: none; }
+
+  .text_container h2 { margin: 0pt; padding-top: 20px; line-height: 28px; }
+  .text_container p { margin: 0pt; line-height: 22px; font-size: 14pt; }
+  .first { border-top: medium none; }
+  .image_center { width: 193px; padding-left: 10px; text-align: center;}
+  .image_center img {height: 102px;}
+
+  .benefits_arrow_right { left: 0; } 
+  .benefits_arrow_down { left: 0; }
+  
+  .accordionButton {
+     padding-bottom: 20px;
+     padding-top: 0;
+ }
+
+}
+
+/*Landscape mode Tate*/
+@media screen and (min-width: 1202px) and (max-width: 1250px) {
+  #leftcol { width: 499px; float: left; overflow: hidden; }
+  #wrapper { width: 499px;}
+  #rightcol { margin-top: 20px; width: 640px; margin-right: 60px; float: right; overflow: hidden; }
+  .carousel-image-and-text {width:691px;}
+  .endtext { float: none; width: 399px; margin-top: 30px; margin-left: 30px; padding-left: 0px;}
+  .cta { float: none; width: 399px; }
+  .actionButtonBlock { margin-left: -60px;  margin-top: 40px; margin-right: auto; padding-left: 30px; width: 319px; }
+  .actionButtonBlock img { width: 319px; }
+  #logo { width: 299px; margin-top: 35px; margin-right: 0pt; margin-left: 30px; height: 53px; float:left;}
+  h2 { font-size: 19pt; }
+  h3 { font-size: 24pt; font-weight: 100; margin: 40px 0pt 10pt; padding: 0pt; }
+  .endtext p { font-size: 20pt; }
+  
+  .text_container { width: 449px; float: none; }
+  .border { display: none; }
+  .text_container h2 { margin: 0pt; padding-top: 20px; line-height: 35px; }
+  .text_container p { margin: 0pt; line-height: 25px; font-size: 18pt; }
+  .first { border-top: medium none; }
+  .image_center { width: 241px; padding-left: 0pt; text-align: center; }
+  .image_center img {height: 102px;}
+
+  .accordionButton {
+     padding-bottom: 20px;
+     padding-top: 0;
+ }
+  .headline_box { padding-left: 30px; }
+}
+
+/*Landscape mode Soho*/
+@media screen and (min-width: 801px) and (max-width: 801px) {
+  #leftcol { width: 313px; float: left; overflow: hidden; }
+  #wrapper { width: 313px;}
+  #rightcol { margin-top: 2px; width: 462px; margin-right: 2px; float: right; overflow: hidden; }
+  .carousel-image-and-text {width:691px;}
+  .endtext { float: none; width: 399px; margin-top: 30px; margin-left: 15px; padding-left: 0px;}
+  .cta { float: none; width: 399px; }
+  .actionButtonBlock { margin-left: -97px;  margin-top:29px; margin-right: auto; padding-left: 30px; width: 319px; }
+  .actionButtonBlock img { width: 254px; }
+  .logo { height: 33px; }
+  #logo { width: 231px; margin-top: 15px; margin-right: 0pt; margin-left: 15px; height: 40px; float:left;}
+  h2 { font-size: 15pt; }
+  h3 { font-size: 22pt; font-weight: 100; margin: 40px 0pt 10pt; padding: 0pt; }
+  .endtext p { font-size: 14pt; width: 292px}
+  .benefits_title h2{font-size: 17pt}
+  
+  .text_container { width: 290px; float: none; }
+  .border { display: none; }
+  .text_container h2 { margin: 0pt; padding-top: 6px; line-height: 27px; }
+  .text_container p { margin: 0pt; line-height: 19px; font-size: 12pt; }
+  .first { border-top: medium none; }
+  .image_center { width: 206px; padding-left: 0pt; text-align: center; }
+  .image_center img {height: 98px;}
+
+  .accordionButton {
+     padding-bottom: 6px;
+     padding-top: 0;
+ }
+  .headline_box { padding-left: 15px; }
+  
+  .benefits_arrow_right { top: 60px; }
+}
+
+/*Landscape mode Jem*/
+@media screen and (min-width: 1800px) {
+  body { font-size:250%; }
+  #leftcol { width: 700px; float: left; overflow: hidden; }
+  #wrapper { width: 650px;}
+  #rightcol { margin-top: 70px; width: 900px; margin-right: 50px; float: right; overflow: hidden; }
+  .carousel-image-and-text {width:850px;}
+  .endtext { float: none; width: 600px; margin-top: 30px; margin-left: 30px; padding-left: 0px;}
+  .cta { float: none; width: 499px; }
+  .actionButtonBlock { margin-left: -60px;  margin-top: 40px; margin-right: auto; padding-left: 30px; width: 470px; }
+  .actionButtonBlock img { width: 470px; }
+  #logo { width: 359px; margin-top: 100px; margin-right: 0pt; margin-left: 58px; height: 63px; float:left;}
+  h2 { font-size: 30pt; }
+  h3 { font-size: 40pt; font-weight: 100; margin: 40px 0pt 10pt; padding: 0pt; }
+  .endtext p { font-size: 35pt; }
+  
+  .text_container { width: 100%; float: none; }
+  .border { display: none; }
+  .text_container h2 { margin: 0pt; padding-top: 10px; line-height: 45px; padding-bottom: 10px; }
+  .text_container p { margin: 0pt; line-height: 35px; font-size: 28pt; }
+  .first { border-top: medium none; }
+  .image_center { width: 271px; padding-left: 0pt; text-align: center; }
+  .image_center img {height:150px; width:auto; }
+
+  .accordionButton {
+     padding-bottom: 30px;
+     padding-top: 0;
+	 width: 100%;
+ }
+  .headline_box { padding-left: 30px; margin-top: 80px; }
+}
+
+
