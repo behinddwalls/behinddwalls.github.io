@@ -49,11 +49,13 @@
 
 
 
+
+
 <html>
 <head>
 <script type="text/javascript">var ue_t0=ue_t0||+new Date();</script>
 <script type='text/javascript'>
-var ue_id='0VFGCAMVRHNB1X9TZ7XS',
+var ue_id='0KTN3T7G353Y039TZ8N7',
 ue_csm = window,
 ue_err_chan = 'jserr-rw',
 ue = {};
@@ -70,7 +72,7 @@ ue_navtiming=1,
 ue_log_idx=0,
 ue_fcsn=1,
 ue_isrw=true,
-ue_fpf='//fls-fe.amazon.co.jp/1/batch/1/OP/A1VC38T7YXB528:375-9685492-4133516:0VFGCAMVRHNB1X9TZ7XS$uedata=s:',
+ue_fpf='//fls-fe.amazon.co.jp/1/batch/1/OP/A1VC38T7YXB528:375-9685492-4133516:0KTN3T7G353Y039TZ8N7$uedata=s:',
 ue_lnb=0,
 ue_lwl=0,
 ue_svi=0,
@@ -81,7 +83,7 @@ ue_csm.ue_hob=ue_csm.ue_hob||+new Date();(function(i,o){i.ueinit=(i.ueinit||0)+1
 
 
 </script>
-<!-- x6vhcihfch5ru1qqjgjaas3hav8420qkdbtbjztv5l79tylafj64iowiwdru49c09v6ej88hghmzuheczs10sj6q5bfubm9okf4nom0pollugq4rz3b9f131zzzwxm4osiidw7rmwbj5h3ctiozslxghyjdbt5bg8ulwfe5wrztxehchkc8krvkkujazzhvtl0t7vwmxh7 -->
+<!-- i93qu1xahy0abl0mukbadwx92luxd359cyyamb8klinmam75qej60wmtt7eh74nke6kwukn21tb5 -->
 <script type='text/javascript'>
 ue_csm.ue_hob=ue_csm.ue_hob||+new Date();(function(a){a.ue.cv={};a.ue.cv.scopes={};a.ue.count=function(d,b,c){var f={},e=a.ue.cv;f.counter=d;f.value=b;if(c&&c.scope){e=a.ue.cv.scopes[c.scope]=a.ue.cv.scopes[c.scope]||{};f.scope=c.scope}if(b===undefined){return e[d]}e[d]=b;if(a.ue.log){a.ue.log(f,"csmcount")}}})(ue_csm);ue_csm.ue_hoe=+new Date();
 </script>
@@ -182,7 +184,7 @@ var amznJQ,jQueryPatchIPadOffset=false;
 
 <!-- MsgId: store_picker_landing_page_member_suspended; PresentationId: 66734769; Version: 1; TemplateId: 66600929; TemplateVersion: 3; FragmentId: prime_headline; -->
 <link rel="stylesheet" type="text/css" href="touchcarousel-jp.css"/>  
-<link rel="stylesheet" type="text/css" href="storepicker-jp.css"/>
+<link rel="stylesheet" type="text/css" href="https://images-na.ssl-images-amazon.com/images/G/09/marketing/prime/store_picker/css/store_picker_prime._V360658554_.css"/>
 <!&#8212; Style for gen7 devices:Ariel and Aston -->
 <style>
 @media all and (max-width: 810px) and (min-width: 768px) {
@@ -194,6 +196,7 @@ max-height: 120px ! important;
 .carousel-image-and-text {
 height: 130px ! important;
 margin: 0pt auto;
+width:100px;
 }
 #rightcol {overflow-x:hidden;}
 #leftcol {overflow-x:hidden;}
@@ -215,10 +218,12 @@ max-height: 120px ! important;
 .carousel-image-and-text {
 height: 130px ! important;
 margin: 0pt auto;
+width:100px;
 }
 #rightcol {overflow-x:hidden;}
 #leftcol {overflow-x:hidden;}
 .carousel-image-and-text .touchcarousel-item {
+/*this is distance between carousel images*/
 height: auto;
 margin-right: 10px;
 }
@@ -230,7 +235,7 @@ height: auto;
 </style>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.6.2/jquery.min.js"></script>	
 <script type="text/javascript" src="https://images-na.ssl-images-amazon.com/images/G/09/marketing/prime/store_picker/javascript/javascript._V369755572_.js"></script> 
-<script type="text/javascript" src="touchcarousel-jp.js"></script>
+<script type="text/javascript" src="https://images-na.ssl-images-amazon.com/images/G/09/marketing/prime/store_picker/javascript/jquery.touchcarousel-1.1.min._V369755572_.js"></script>
 <div id="leftcol">
     <div class="logo">
     	 <img src="https://images-na.ssl-images-amazon.com/images/G/09/prime/prime_logo._V383835101_.svg" id="logo" >
@@ -515,17 +520,17 @@ var ue_pty='PrimeClub', ue_spty='StorePicker', ue_pti='PrimePipeline';
 
 </script>
 
-<a href='/gp/uedata/unsticky/375-9685492-4133516//ntpoffrw?tepes=1&amp;id=0VFGCAMVRHNB1X9TZ7XS'>v</a>
+<a href='/gp/uedata/unsticky/375-9685492-4133516//ntpoffrw?tepes=1&amp;id=0KTN3T7G353Y039TZ8N7'>v</a>
 <noscript>
-     <img src='/gp/uedata/unsticky/375-9685492-4133516//ntpoffrw?noscript&amp;id=0VFGCAMVRHNB1X9TZ7XS&amp;pty=PrimeClub&amp;spty=StorePicker&amp;pti=PrimePipeline' />
-     <img src='//fls-fe.amazon.co.jp/1/batch/1/OP/A1VC38T7YXB528:375-9685492-4133516:0VFGCAMVRHNB1X9TZ7XS$uedata=s:%2Fgp%2Fprime%2Fpipeline%2Fstorepicker.html%2Fuedata%2Funsticky%2F375-9685492-4133516%2FPrimeClub%2Fntpoffrw%3Fnoscript%26id%3D0VFGCAMVRHNB1X9TZ7XS%26pty%3DPrimeClub%26spty%3DStorePicker%26pti%3DPrimePipeline:2000' />
+     <img src='/gp/uedata/unsticky/375-9685492-4133516//ntpoffrw?noscript&amp;id=0KTN3T7G353Y039TZ8N7&amp;pty=PrimeClub&amp;spty=StorePicker&amp;pti=PrimePipeline' />
+     <img src='//fls-fe.amazon.co.jp/1/batch/1/OP/A1VC38T7YXB528:375-9685492-4133516:0KTN3T7G353Y039TZ8N7$uedata=s:%2Fgp%2Fprime%2Fpipeline%2Fstorepicker.html%2Fuedata%2Funsticky%2F375-9685492-4133516%2FPrimeClub%2Fntpoffrw%3Fnoscript%26id%3D0KTN3T7G353Y039TZ8N7%26pty%3DPrimeClub%26spty%3DStorePicker%26pti%3DPrimePipeline:2000' />
 
 </noscript>
 
 </div>
 <script type='text/javascript'>
 (function(a){a._uec=function(d){var h=window,b=h.performance,f=b?b.navigation.type:0;if(f===0){var e="; expires="+new Date(+new Date()+604800000).toGMTString(),c=+new Date()-ue_t0;if(c>0){var g="|"+(+new Date());document.cookie="csm-hit="+(d/c).toFixed(2)+g+e+"; path=/"}}}})(ue_csm);
-_uec(26784);
+_uec(26660);
 </script>
 <script type='text/javascript'>var uept={pageType:'PrimeClub',subPageType:'StorePicker',pageTypeId:'PrimePipeline',pageAction:'Validate-request'};</script><script type='text/javascript'>
 (function(b,c){var a=c.images;if(a&&a.length){b.ue.count("totalImages",a.length)}})(ue_csm,document);
