@@ -198,25 +198,7 @@ var amznJQ,jQueryPatchIPadOffset=false;
 }
 </style>
 <script type="text/javascript">
-  jQuery(function($) {
-    $(".accordionButton").click(function(e) {
-      if ($(this).hasClass("on")) {
-        $(this).next().children(":first-child").touchCarousel({
-          pagingNav: false,
-          directionNav:false,
-          snapToItems: false,
-          itemsPerMove: 4,
-          scrollToLast: false,
-          loopItems: false,
-          scrollbar: true,
-          scrollbarAutoHide: true,
-        });
-
-        $(this).next().hide();
-        $(this).next().slideDown();
-      }
-    });
-  });
+ 
 </script>
 
 
@@ -482,6 +464,25 @@ var amznJQ,jQueryPatchIPadOffset=false;
 			
 		
 		});
+		 jQuery(function($) {
+    $(".accordionButton").click(function(e) {
+      if ($(this).hasClass("on")) {
+        $(this).next().children(":first-child").touchCarousel({
+          pagingNav: false,
+          directionNav:false,
+          snapToItems: false,
+          itemsPerMove: 4,
+          scrollToLast: false,
+          loopItems: false,
+          scrollbar: true,
+          scrollbarAutoHide: true,
+        });
+
+        $(this).next().hide();
+        $(this).next().slideDown();
+      }
+    });
+  });
 
                function navigate(destination) {
                       if (typeof(webclient) == "object" && typeof(webclient.navigate) == "function") {
