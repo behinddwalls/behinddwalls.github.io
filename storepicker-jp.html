@@ -188,8 +188,6 @@ var amznJQ,jQueryPatchIPadOffset=false;
 <!&#8212; Style for gen7 devices:Ariel and Aston -->
 <style>
 @media all and (max-width: 810px) and (min-width: 768px) {
-#rightcol {overflow-x:hidden;}
-#leftcol {overflow-x:hidden;}
 .carousel-image-and-text .item-block img {
 border: 0pt none;
 padding: 0pt;
@@ -198,6 +196,16 @@ max-height: 120px ! important;
 .carousel-image-and-text {
 height: 130px ! important;
 margin: 0pt auto;
+}
+#rightcol {overflow-x:hidden;}
+#leftcol {overflow-x:hidden;}
+.carousel-image-and-text .item-block {
+display: block;
+height: auto;
+}
+.carousel-image-and-text .touchcarousel-item {
+height: auto;
+margin-right: 10px;
 }
 }
 @media all and (max-width: 767px) and (min-width: 511px) {
@@ -207,11 +215,21 @@ padding: 0pt;
 max-height: 120px ! important;
 }
 .carousel-image-and-text {
+/* view part*/
 height: 130px ! important;
 margin: 0pt auto;
 }
 #rightcol {overflow-x:hidden;}
 #leftcol {overflow-x:hidden;}
+.carousel-image-and-text .touchcarousel-item {
+/*this is distance between carousel images*/
+height: auto;
+margin-right: 10px;
+}
+.carousel-image-and-text .item-block {
+display: block;
+height: auto;
+}
 }
 </style>
 <script type="text/javascript">
