@@ -1,0 +1,425 @@
+html {
+  background-color: #FFFAFA;
+  color: #000000;
+  font-family: Helvetica, Arial, sans-serif;
+  font-size:12px;
+  margin: 0pt;
+  padding: 0pt;
+}
+
+body {
+ margin: 0 2rem;
+}
+
+/*
+											Viewport P  Viewport L
+Kindle Fire HDX	8.9"	Apollo	2560x1600	1600x2305	2438x1468	323 PPI	2GB	2.2 ghz quad core
+Kindle Fire HDX	7"	    Thor	1920x1200	1200x1672	1804x1070	216 PPI	2GB	2.2 ghz quad core
+Kindle Fire HD	7"    	SOHO	1280x800	800x1109	1202x700	216 PPI	1GB	1.5 ghz dual core
+Kindle Fire	7"	        Tate	?	        800x1101	1202x699	?	?	?
+
+*/
+
+/*portrait modes*/
+
+/* THOR & SOHO */
+@media all and (max-width: 600px) {
+	html {
+		font-size: 4px;
+	}
+  
+  #wrapper .headline_box h3 {
+    font-size: 4rem;
+  }
+  
+  #wrapper .endtext {
+    font-size: 3.5rem;
+  }
+  
+  .accordionButton .text_container h2 {
+    font-size: 5rem;
+  }
+  
+  .accordionButton .text_container p {
+    font-size: 3.5rem;
+  }
+  
+  #rightcol .benefits_title h2 {
+    font-size: 4rem;
+  }
+}
+
+@media all and (min-width: 601px) and (max-width: 830px) {
+	html {
+		font-size: 8px;
+	}
+}
+
+@media all and (min-width: 831px) and (max-width: 1130px) {
+	html {
+		font-size: 10px;
+	}
+}
+
+/* jem and thor */
+@media all and (min-width: 1131px) and (max-width: 1430px) {
+	html {
+		font-size: 14px;
+	}
+}
+
+/* apollo */
+@media all and (min-width: 1431px) and (max-width: 1730px) {
+	html {
+		font-size: 18px;
+	}
+}
+
+@media all and (min-width: 1731px) and (max-width: 2030px) {
+	html {
+		font-size: 19px;
+	}
+}
+
+@media all and (min-width: 2031px) and (max-width: 2331px) {
+	html {
+		font-size: 20px;
+	}
+}
+
+@media all and (min-width: 2331px) and (max-width: 2631px) {
+	html {
+		font-size: 21px;
+	}
+}
+
+/* Landscape modes */
+
+/* THOR & SOHO */
+@media all and (min-width: 0px) and (max-width: 950px) and (orientation:landscape) {
+	html {
+		font-size: 5px;
+	}
+  
+  #wrapper .endtext{
+    font-size: 3.1rem;
+  }
+  
+  #wrapper .headline_box h3 {
+    font-size: 3.5rem;
+  }
+  
+  #rightcol .benefits_title h2 {
+    font-size: 3.5rem;
+  }
+}
+
+@media all and (min-width: 951px) and (max-width: 1000px) and (orientation:landscape) {
+	html {
+		font-size: 7px;
+	}
+}
+
+@media all and (min-width: 1001px) and (max-width: 1200px) and (orientation:landscape) {
+	html {
+		font-size: 7px;
+	}
+}
+
+@media all and (min-width: 1201px) and (max-width: 1400px) and (orientation:landscape) {
+	html {
+		font-size: 9px;
+	}
+}
+
+@media all and (min-width: 1401px) and (max-width: 1600px) and (orientation:landscape) {
+	html {
+		font-size: 11px;
+	}
+}
+
+@media all and (min-width: 1601px) and (max-width: 1800px) and (orientation:landscape) {
+	html {
+		font-size: 13px;
+	}
+}
+
+/* jem */
+@media all and (min-width: 1801px) and (max-width: 2000px) and (orientation:landscape) {
+	html {
+		font-size: 16px;
+	}
+}
+
+@media all and (min-width: 2001px) and (max-width: 2200px) and (orientation:landscape) {
+	html {
+		font-size: 18px;
+	}
+}
+
+@media all and (min-width: 2201px) and (max-width: 2400px) and (orientation:landscape) {
+	html {
+		font-size: 19px;
+	}
+}
+
+/*apollo*/
+@media all and (min-width: 2401px) and (max-width: 2600px) and (orientation:landscape) {
+	html {
+		font-size: 20px;
+	}
+}
+
+#wrapper {
+  margin-left: auto;
+  margin-right: auto;
+  font-size: 3rem;
+}
+.stress_text {
+  font-weight: bold;
+  font-size: 1.2rem;
+}
+.accordionButton {
+  background: url("https://images-na.ssl-images-amazon.com/images/G/01/prime/arrow.svg") no-repeat 0px 50%;
+  display: table;
+  border-top: 1px solid #666666;
+  cursor: pointer;
+  float: left;
+  padding-bottom: 1rem;
+  padding-top: 1rem;
+  clear: both;
+  width: 100%;
+  font-size: 2rem;
+}
+
+.accordionButton.on {
+	background: url("https://images-na.ssl-images-amazon.com/images/G/01/prime/arrow_down.svg") no-repeat 0px 50%;
+  
+}
+
+.border {
+  border-bottom: 1px solid #666666;
+}
+.accordionContent {
+  float: left;
+  padding: 1rem 0;
+  clear: both;
+  width: 100%;
+}
+.carousel-image-and-text {
+  height: 230px;
+  margin: 0pt auto;
+}
+.carousel-image-and-text .touchcarousel-item {
+  height: 300px;
+  margin-right: 10px;
+}
+.carousel-image-and-text .item-block {
+  display: block;
+  height: 300px;
+  color: inherit;
+  text-decoration: none;
+}
+.carousel-image-and-text .item-block img {
+  display: block;
+  float: left;
+  margin: 0pt;
+  position: relative;
+  border: 0pt none;
+  padding: 0pt;
+}
+.carousel-image-and-text .item-block h4 {
+  display: block;
+  display: none;
+  float: left;
+  margin: 0pt;
+  position: relative;
+  -moz-transition: color 0.2s ease-out 0s;
+  color: #000000;
+  font: bold 1rem/1.5rem Helvetica, Arial, sans-serif;
+  height: auto;
+  padding: 2px 0pt 0pt 6px;
+  width: 158px;
+}
+.carousel-image-and-text .item-block p {
+  display: block;
+  display: none;
+  float: left;
+  margin: 0pt;
+  position: relative;
+  color: #555555;
+  font: 1rem/1.5rem Helvetica, Arial, sans-serif;
+  padding: 0pt 0pt 0pt 6px;
+  width: 158px;
+}
+.carousel-image-and-text .item-block:hover h4 {
+  color: #1873c9;
+}
+.carousel-image-and-text .scrollbar-holder {
+  bottom: 0pt;
+  height: 1px;
+  left: 0pt;
+  right: 0pt;
+}
+.carousel-image-and-text .scrollbar {
+  background-color: #666666 ! important;
+  bottom: 0pt;
+}
+.text_container {
+  padding-left:1rem;
+	vertical-align: middle;
+}
+.text_container h2 {
+  margin: 0pt;
+  font-size: 3.5rem;
+  padding-top:0;
+}
+.text_container p {
+  margin: 0pt;
+  color: #666666;
+  font-size:2.5rem;
+}
+.left {
+  float: left;
+}
+.right {
+  float: right;
+}
+.image_center {
+  padding-left: 30px;
+  vertical-align: middle;
+  text-align: center;
+  width: 15rem;
+  height: auto;
+}
+
+.image_center  img{
+  float: none;
+  height: 10rem;
+  width: auto;
+}
+
+#logo {
+	height: 100%;
+	margin-right: 2rem;
+	margin-top: 2rem;
+}
+.logo {
+  height: 4rem;
+  text-align: right;
+}
+
+.end {
+  float: right;
+  padding-right: 20px;
+  width: 41%;
+}
+.end img {
+  width: 400px;
+}
+
+.endtext p {
+  font-weight: 100;
+  margin-top: 10px;
+  margin-right: 5px;
+}
+.cta img{
+	height: 7rem;
+  margin-top: 2rem;
+}
+.benefits_arrow_right {
+  background: url("https://images-na.ssl-images-amazon.com/images/G/01/prime/arrow.svg") no-repeat scroll 0pt 0pt transparent;
+  display: block;
+  height: 27px;  
+  position: relative;  
+  width: 20px;  
+  background: url("https://images-na.ssl-images-amazon.com/images/G/01/prime/arrow.svg") no-repeat 0px 50%;
+	float:left;	
+	left:auto;
+	top:auto;	
+  
+  display:none;
+}
+.benefits_arrow_down {
+  background: url("https://images-na.ssl-images-amazon.com/images/G/01/prime/arrow_down.svg") no-repeat scroll 0pt 0pt transparent;
+  display: block;
+  height: 27px;
+  left: 3px;
+  position: relative;
+  top: 70px;
+  width: 27px;
+  
+  display: none;
+}
+.table {
+  display: table-row;
+}
+.table-cell {
+  display: table-cell;
+}
+
+.touchcarousel {
+	width: 100% !important;
+}
+
+#rightcol{
+	font-size: 2.5rem;
+}
+
+.benefits_title h2 {
+	font-size: 3rem;
+}
+
+/*landscape modes*/
+@media all and (orientation:landscape) {
+	#leftcol {
+		float:left;
+		width:40%;
+		font-size:2rem;
+	}
+	
+	#wrapper {
+		font-size: 2.5rem;
+	}
+	
+	#rightcol {
+		float: left;
+		width: 55%;
+		margin-left: 5%;
+	}
+	
+	.logo {
+		text-align: center;
+		height: 5rem;
+		height:auto;
+	}
+	
+	#logo {
+		width: 70%;
+		height: auto;
+	}
+}
+
+/* this section is a hack to ensure that the images in the
+  carousel scale with the screen resolution.
+*/
+.touchcarousel-item .item-block img{
+  max-height:15rem;
+}
+
+.carousel-image-and-text .touchcarousel-item {
+  height: auto !important;
+}
+
+.carousel-image-and-text {
+  height: auto !important;
+}
+
+.carousel-image-and-text .item-block {
+  height: auto !important;
+}
+
+.touchcarousel .touchcarousel-wrapper {
+  height:auto !important;
+}
+/* end carousel image hack */
