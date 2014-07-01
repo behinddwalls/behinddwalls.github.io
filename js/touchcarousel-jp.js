@@ -367,7 +367,7 @@
         },
         updateCarouselSize: function (a) {
             var b = this;
-            this.carouselWidth = this.carouselRoot.width();
+            this.carouselWidth = 300;//this.carouselRoot.width();
             if (this.settings.scrollToLast) {
                 var c = 0;
                 if (this._ir2) {
