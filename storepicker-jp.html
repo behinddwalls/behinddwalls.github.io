@@ -197,6 +197,27 @@ var amznJQ,jQueryPatchIPadOffset=false;
 #leftcol {overflow-x:hidden;}
 }
 </style>
+<script type="text/javascript">
+  jQuery(function($) {
+    $(".accordionButton").click(function(e) {
+      if ($(this).hasClass("on")) {
+        $(this).next().children(":first-child").touchCarousel({
+          pagingNav: false,
+          directionNav:false,
+          snapToItems: false,
+          itemsPerMove: 4,
+          scrollToLast: false,
+          loopItems: false,
+          scrollbar: true,
+          scrollbarAutoHide: true,
+        });
+
+        $(this).next().hide();
+        $(this).next().slideDown();
+      }
+    });
+  });
+</script>
 
 
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.6.2/jquery.min.js"></script>	
