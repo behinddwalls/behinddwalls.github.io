@@ -475,21 +475,25 @@ var amznJQ,jQueryPatchIPadOffset=false;
 </div>
 <script type="text/javascript">
 		jQuery(function($) {
-	
-		
-			$(".carousel-image-and-text").touchCarousel({					
-				pagingNav: false,
-				directionNav:false, 
-				snapToItems: false,
-				itemsPerMove: 4,				
-				scrollToLast: false,
-				loopItems: false,
-				scrollbar: true,
-				scrollbarAutoHide: true,
-		    });
-			
-		
-		});
+    $(".accordionButton").click(function(e) {
+      if ($(this).hasClass("on")) {
+        $(this).next().children(":first-child").touchCarousel({
+          pagingNav: false,
+          directionNav:false,
+          snapToItems: false,
+          itemsPerMove: 4,
+          scrollToLast: false,
+          loopItems: false,
+          scrollbar: true,
+          scrollbarAutoHide: true,
+        });
+
+        $(this).next().hide();
+        $(this).next().slideDown();
+      }
+    });
+  });
+
 
                function navigate(destination) {
                       if (typeof(webclient) == "object" && typeof(webclient.navigate) == "function") {
