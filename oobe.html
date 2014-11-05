@@ -138,7 +138,7 @@ function getScaledRootFont() {
 
 
 function showSignupError(id) {
-  var error_msg = '<div class="prime-modal-container" tabindex="-1"><div class="prime-modal-title">' + document.getElementById('error-message-headline').innerHTML + '</div><div class="prime-modal-body">' + document.getElementById('error-message-details').innerHTML  + '<table      style="position:relative; top:10px;"><tr><td width=100%></td><td><div id="modalButton" class="amznButton textAppearanceAmazonButton float_right" onclick=alert("close")><div class="button_inner" role="button" tabindex="1">' + document.getElementById('error-message-button').innerHTML + '</div></div></td></tr></table></div><div class="clear"></div></div>';
+  var error_msg = '<div class="prime-modal-container" tabindex="-1"><div class="prime-modal-title">' + document.getElementById('error-message-headline').innerHTML + '</div><div class="prime-modal-body">' + document.getElementById('error-message-details').innerHTML  + '<table      style="position:relative; top:10px;"><tr><td width=100%></td><td><div id="modalButton" class="amznButton textAppearanceAmazonButton float_right" onclick=alert("close")><div class="button_inner" role="button">' + document.getElementById('error-message-button').innerHTML + '</div></div></td></tr></table></div><div class="clear"></div></div>';
   setModalWindow(id, error_msg);
   $("#signupButton").blur();
   $("#signupResult").focus();
@@ -355,7 +355,7 @@ $(document).ready(function () {
 	<div class="clear_both"></div>
 	<div class="after_signup_buttons">After your 30-day free trial Amazon Prime is just $99/year. There is no obligation to continue.</div>
 	<div id="mask" style="top: 0; left: 0; position:absolute; z-index:9000; background-color:#C0C0C0; display:none;"></div>
-	<div id="signupResult" role="alert" style="display:none; z-index:9999; background-color:#000000; position:absolute;"></div>
+	<div tabindex="0" id="signupResult" role="alert" style="display:none; z-index:9999; background-color:#000000; position:absolute;"></div>
 </div>
 
 
