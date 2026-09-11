@@ -1,1 +1,144 @@
-Welcome to my Page!!!
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Preetam Dwivedi</title>
+  <meta name="description" content="Staff Software Engineer at Uber. Developer platforms for large monorepos — Git, merge queues, code review, and CI.">
+  <link rel="canonical" href="https://behinddwalls.github.io/">
+  <meta property="og:title" content="Preetam Dwivedi">
+  <meta property="og:description" content="Staff Software Engineer at Uber. Developer platforms for large monorepos.">
+  <meta property="og:url" content="https://behinddwalls.github.io/">
+  <style>
+    :root {
+      --ink: #1a1814;
+      --muted: #5c574e;
+      --rule: #d9d4c8;
+      --bg: #f6f3eb;
+      --paper: #fffcf6;
+      --accent: #8b2942;
+    }
+
+    * { box-sizing: border-box; }
+
+    html { color-scheme: light; }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font: 18px/1.55 "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif;
+    }
+
+    main {
+      max-width: 38rem;
+      margin: 0 auto;
+      padding: 4.5rem 1.5rem 5rem;
+    }
+
+    header p {
+      margin: 0.35rem 0 0;
+      color: var(--muted);
+      font-size: 0.95rem;
+      letter-spacing: 0.02em;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(2.1rem, 6vw, 2.8rem);
+      font-weight: 600;
+      letter-spacing: -0.03em;
+      line-height: 1.1;
+    }
+
+    nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.85rem 1.25rem;
+      margin: 1.6rem 0 0;
+      font-size: 0.92rem;
+    }
+
+    a {
+      color: var(--accent);
+      text-underline-offset: 0.18em;
+    }
+
+    a:hover { color: var(--ink); }
+
+    nav a { text-decoration-thickness: 1px; }
+
+    hr {
+      border: 0;
+      border-top: 1px solid var(--rule);
+      margin: 2.1rem 0;
+    }
+
+    p { margin: 0 0 1rem; }
+
+    .lede { font-size: 1.12rem; }
+
+    h2 {
+      margin: 0 0 0.55rem;
+      font-size: 0.78rem;
+      font-weight: 600;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--muted);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    }
+
+    section { margin-bottom: 2rem; }
+
+    footer {
+      margin-top: 2.5rem;
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --ink: #efe9dc;
+        --muted: #b3ab9c;
+        --rule: #3a362f;
+        --bg: #16140f;
+        --paper: #1c1a14;
+        --accent: #e08a9a;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <h1>Preetam Dwivedi</h1>
+      <p>A Variable Constant · Staff Software Engineer at Uber · Seattle</p>
+      <nav>
+        <a href="https://github.com/behinddwalls">GitHub</a>
+        <a href="https://www.linkedin.com/in/behinddwalls/">LinkedIn</a>
+        <a href="https://arxiv.org/abs/2604.11977">GitFarm (arXiv)</a>
+        <a href="https://github.com/uber/submitqueue">SubmitQueue</a>
+      </nav>
+    </header>
+
+    <hr>
+
+    <p class="lede">I build developer platforms for very large monorepos — Git as a service, merge queues, code review, and CI. The work sits between a reviewed change and a green trunk: speculative execution, queueing at tenant scale, and test signal you can actually trust.</p>
+
+    <section>
+      <h2>Paper</h2>
+      <p><a href="https://arxiv.org/abs/2604.11977">GitFarm: Git as a Service for Large-Scale Monorepos</a> — first author. How Uber serves Git past the point where off-the-shelf hosting works.</p>
+    </section>
+
+    <section>
+      <h2>Open source</h2>
+      <p><a href="https://github.com/uber/submitqueue">uber/submitqueue</a> is Uber’s speculative merge queue: it keeps trunk green by building batches before they land. I’m the top contributor. The work spans the speculation engine (what to build, in what order, and when evidence is enough to land), the message queue as tenants grow, and the Git/CI path that actually merges a batch.</p>
+      <p>Elsewhere: a <a href="https://github.com/tobi/walgit/pull/12">dev setup guide</a> for <a href="https://github.com/tobi/walgit">tobi/walgit</a>, the PHP 8.2 upgrade of <a href="https://github.com/uber/arcanist">uber/arcanist</a>, and <a href="https://gist.github.com/behinddwalls">design notes</a>.</p>
+    </section>
+
+    <footer>
+      Open to conversations about developer platforms, build and merge infrastructure, and large-scale CI.
+    </footer>
+  </main>
+</body>
+</html>
