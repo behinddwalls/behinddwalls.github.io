@@ -31,9 +31,9 @@
     }
 
     main {
-      max-width: 38rem;
+      max-width: 56rem;
       margin: 0 auto;
-      padding: 4.5rem 1.5rem 5rem;
+      padding: 5rem 2rem 6rem;
     }
 
     header p {
@@ -71,15 +71,21 @@
     hr {
       border: 0;
       border-top: 1px solid var(--rule);
-      margin: 2.1rem 0;
+      margin: 2.6rem 0;
     }
 
     p { margin: 0 0 1rem; }
 
-    .lede { font-size: 1.12rem; }
+    .lede {
+      max-width: 51rem;
+      margin-bottom: 3.2rem;
+      font-size: clamp(1.12rem, 2.2vw, 1.28rem);
+      line-height: 1.52;
+    }
 
     h2 {
-      margin: 0 0 0.55rem;
+      margin: 0;
+      padding-top: 0.28rem;
       font-size: 0.78rem;
       font-weight: 600;
       letter-spacing: 0.14em;
@@ -89,56 +95,35 @@
     }
 
     h3 {
-      margin: 0 0 0.45rem;
+      margin: 0 0 0.5rem;
       font-size: 1.22rem;
       line-height: 1.3;
       font-weight: 600;
     }
 
-    section { margin-bottom: 2rem; }
-
-    .talk-card {
-      margin-top: 0.8rem;
-      overflow: hidden;
-      border: 1px solid var(--rule);
-      border-radius: 0.35rem;
-      background: var(--paper);
-      box-shadow: 0 0.65rem 1.8rem rgb(26 24 20 / 8%);
+    section {
+      display: grid;
+      grid-template-columns: 7rem minmax(0, 1fr);
+      gap: 0 2rem;
+      margin-bottom: 3rem;
     }
 
-    .talk-cover {
-      display: block;
-      background: #151515;
+    section > h2 { grid-column: 1; }
+
+    .section-body {
+      grid-column: 2;
+      min-width: 0;
     }
 
-    .talk-cover img {
-      display: block;
-      width: 100%;
-      height: auto;
-      aspect-ratio: 16 / 9;
-      object-fit: cover;
-      transition: opacity 160ms ease;
-    }
+    .section-body > :last-child { margin-bottom: 0; }
 
-    .talk-cover:hover img { opacity: 0.88; }
-
-    .talk-copy { padding: 1.05rem 1.15rem 1.15rem; }
-
-    .talk-copy > p:not(.talk-meta):not(.talk-actions) {
+    .item-note {
       color: var(--muted);
       font-size: 0.96rem;
     }
 
-    .talk-meta {
-      margin-bottom: 0.35rem;
-      color: var(--muted);
-      font: 0.75rem/1.4 -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-    }
-
     .talk-events {
-      margin: 1.1rem 0 0;
+      margin: 1.25rem 0 0;
       padding: 0;
       border-top: 1px solid var(--rule);
       list-style: none;
@@ -150,7 +135,7 @@
       grid-template-columns: minmax(0, 1fr) auto;
       align-items: center;
       gap: 0.7rem 1rem;
-      padding: 0.78rem 0;
+      padding: 0.95rem 0;
       border-bottom: 1px solid var(--rule);
     }
 
@@ -176,6 +161,59 @@
       white-space: nowrap;
     }
 
+    .item-list {
+      border-top: 1px solid var(--rule);
+    }
+
+    .item {
+      padding: 1.05rem 0 0.2rem;
+      border-bottom: 1px solid var(--rule);
+    }
+
+    .item p { color: var(--muted); }
+
+    .project-links {
+      margin: 0;
+      padding: 0;
+      border-top: 1px solid var(--rule);
+      list-style: none;
+    }
+
+    .project-links li {
+      display: grid;
+      grid-template-columns: 9.5rem minmax(0, 1fr);
+      gap: 1rem;
+      padding: 0.85rem 0;
+      border-bottom: 1px solid var(--rule);
+    }
+
+    .project-links a {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+      font-size: 0.92rem;
+      font-weight: 600;
+    }
+
+    .project-links span {
+      color: var(--muted);
+      font-size: 0.96rem;
+    }
+
+    @media (max-width: 44rem) {
+      main { padding: 3.5rem 1.35rem 4rem; }
+
+      .lede { margin-bottom: 2.6rem; }
+
+      section {
+        display: block;
+        margin-bottom: 2.6rem;
+      }
+
+      section > h2 {
+        margin-bottom: 0.7rem;
+        padding-top: 0;
+      }
+    }
+
     @media (max-width: 34rem) {
       .talk-event {
         grid-template-columns: 1fr;
@@ -183,12 +221,23 @@
       }
 
       .talk-event-links { justify-content: flex-start; }
+
+      .project-links li {
+        grid-template-columns: 1fr;
+        gap: 0.25rem;
+      }
     }
 
     footer {
-      margin-top: 2.5rem;
+      margin: 3.5rem 0 0 9rem;
+      padding-top: 1.2rem;
+      border-top: 1px solid var(--rule);
       color: var(--muted);
       font-size: 0.92rem;
+    }
+
+    @media (max-width: 44rem) {
+      footer { margin-left: 0; }
     }
 
     @media (prefers-color-scheme: dark) {
@@ -209,12 +258,12 @@
       <h1>Preetam Dwivedi</h1>
       <p>A Variable Constant · Staff Software Engineer at Uber · Seattle</p>
       <nav>
+        <a href="#writing">Writing</a>
         <a href="#talks">Talks</a>
+        <a href="#projects">Projects</a>
         <a href="https://github.com/behinddwalls">GitHub</a>
         <a href="https://www.linkedin.com/in/behinddwalls/">LinkedIn</a>
         <a href="https://arxiv.org/abs/2604.11977">GitFarm (arXiv)</a>
-        <a href="https://github.com/uber/submitqueue">SubmitQueue</a>
-        <a href="https://github.com/uber/tango">Tango</a>
       </nav>
     </header>
 
@@ -224,52 +273,78 @@
 
     <section>
       <h2>Paper</h2>
-      <p><a href="https://arxiv.org/abs/2604.11977">GitFarm: Git as a Service for Large-Scale Monorepos</a> — first author. How Uber serves Git past the point where off-the-shelf hosting works.</p>
+      <div class="section-body">
+        <h3><a href="https://arxiv.org/abs/2604.11977">GitFarm: Git as a Service for Large-Scale Monorepos</a></h3>
+        <p class="item-note">First author. How Uber serves Git past the point where off-the-shelf hosting works.</p>
+      </div>
+    </section>
+
+    <section id="writing">
+      <h2>Writing</h2>
+      <div class="section-body item-list">
+        <article class="item">
+          <h3><a href="https://www.uber.com/us/en/blog/gitfarm-as-a-service/">GitFarm: Git® as a Service for Large-Scale Monorepos</a></h3>
+          <p>Co-author, Uber Engineering</p>
+        </article>
+        <article class="item">
+          <h3><a href="https://www.uber.com/us/en/blog/modernizing-artifact-storage/">Modernizing Artifact Storage at Uber</a></h3>
+          <p>Co-author, Uber Engineering</p>
+        </article>
+      </div>
     </section>
 
     <section id="talks">
       <h2>Talks</h2>
-      <article class="talk-card">
-        <a class="talk-cover" href="slides/merging-at-scale/" aria-label="View WeAreDevelopers slides">
-          <img src="slides/merging-at-scale/images/conference/slide-01.jpg" width="1440" height="810" loading="lazy" alt="Title slide for Merging at Scale: From Broken Builds to Green Mainline">
-        </a>
-        <div class="talk-copy">
-          <p class="talk-meta">With Manjari Akella</p>
-          <h3>Merging at Scale: From Broken Builds to Green Mainline</h3>
-          <p>A look at speculative execution, architecture, results, and tradeoffs behind a merge queue for a large monorepo.</p>
-          <ul class="talk-events">
-            <li class="talk-event">
-              <div>
-                <strong>WeAreDevelopers</strong>
-                <small>47-slide talk deck</small>
-              </div>
-              <div class="talk-event-links">
-                <a href="https://www.youtube.com/watch?v=mPssttsZknY&amp;t=144s" target="_blank" rel="noopener">Watch talk</a>
-                <a href="slides/merging-at-scale/">View slides</a>
-                <a href="slides/%28WAD%29%20Merging%20at%20Scale_%20From%20Broken%20Builds%20to%20Green%20Mainline.pdf">PDF</a>
-              </div>
-            </li>
-            <li class="talk-event">
-              <div>
-                <strong>Seattle Systems</strong>
-                <small>66-slide talk deck</small>
-              </div>
-              <div class="talk-event-links">
-                <a href="https://www.youtube.com/watch?v=O4sCvZAMC9w" target="_blank" rel="noopener">Watch talk</a>
-                <a href="slides/merging-at-scale/?deck=extended">View slides</a>
-                <a href="slides/%28v2%29%20Merging%20at%20Scale_%20From%20Broken%20Builds%20to%20Green%20Mainline.pdf">PDF</a>
-              </div>
-            </li>
-          </ul>
-        </div>
-      </article>
+      <div class="section-body">
+        <h3>Merging at Scale: From Broken Builds to Green Mainline</h3>
+        <p class="item-note">With Manjari Akella</p>
+        <ul class="talk-events">
+          <li class="talk-event">
+            <div>
+              <strong>WeAreDevelopers</strong>
+              <small>47 slides</small>
+            </div>
+            <div class="talk-event-links">
+              <a href="https://www.youtube.com/watch?v=mPssttsZknY&amp;t=144s" target="_blank" rel="noopener">Video</a>
+              <a href="slides/merging-at-scale/">Slides</a>
+              <a href="slides/%28WAD%29%20Merging%20at%20Scale_%20From%20Broken%20Builds%20to%20Green%20Mainline.pdf">PDF</a>
+            </div>
+          </li>
+          <li class="talk-event">
+            <div>
+              <strong>Seattle Systems</strong>
+              <small>66 slides</small>
+            </div>
+            <div class="talk-event-links">
+              <a href="https://www.youtube.com/watch?v=O4sCvZAMC9w" target="_blank" rel="noopener">Video</a>
+              <a href="slides/merging-at-scale/?deck=extended">Slides</a>
+              <a href="slides/%28v2%29%20Merging%20at%20Scale_%20From%20Broken%20Builds%20to%20Green%20Mainline.pdf">PDF</a>
+            </div>
+          </li>
+        </ul>
+      </div>
     </section>
 
-    <section>
-      <h2>Open source</h2>
-      <p><a href="https://github.com/uber/submitqueue">uber/submitqueue</a> is Uber’s speculative merge queue: it keeps trunk green by building batches before they land. I’m the top contributor. The work spans the speculation engine (what to build, in what order, and when evidence is enough to land), the message queue as tenants grow, and the Git/CI path that actually merges a batch.</p>
-      <p><a href="https://github.com/uber/tango">uber/tango</a> computes the changed targets and conflict graph that SubmitQueue uses to speculate. I helped open-source it and stand up the GitHub Actions merge gate.</p>
-      <p>Elsewhere: a <a href="https://github.com/tobi/walgit/pull/12">dev setup guide</a> for <a href="https://github.com/tobi/walgit">tobi/walgit</a>, the PHP 8.2 upgrade of <a href="https://github.com/uber/arcanist">uber/arcanist</a>, and <a href="https://gist.github.com/behinddwalls">design notes</a>.</p>
+    <section id="projects">
+      <h2>Projects</h2>
+      <ul class="section-body project-links">
+        <li>
+          <a href="https://github.com/uber/submitqueue">uber/submitqueue</a>
+          <span>Uber’s speculative merge queue for keeping mainline green.</span>
+        </li>
+        <li>
+          <a href="https://github.com/uber/tango">uber/tango</a>
+          <span>Changed-target and conflict-graph analysis for speculative builds.</span>
+        </li>
+        <li>
+          <a href="https://github.com/tobi/walgit">tobi/walgit</a>
+          <span>Contributed the development setup guide for this Rust Git server.</span>
+        </li>
+        <li>
+          <a href="https://github.com/uber/arcanist">uber/arcanist</a>
+          <span>Led the PHP 8.2 upgrade of Uber’s Arcanist fork.</span>
+        </li>
+      </ul>
     </section>
 
     <footer>
