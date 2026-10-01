@@ -386,13 +386,14 @@
       <h1>Merging at Scale: From Broken Builds to Green Mainline</h1>
     </div>
     <label class="edition">
-      <span>Edition</span>
-      <select id="deckSelect" aria-label="Presentation edition">
-        <option value="conference">Conference deck</option>
-        <option value="extended">Extended deck</option>
+      <span>Talk</span>
+      <select id="deckSelect" aria-label="Talk venue">
+        <option value="conference">WeAreDevelopers</option>
+        <option value="extended">Seattle Systems</option>
       </select>
     </label>
     <nav class="downloads" aria-label="Presentation downloads">
+      <a id="videoLink" href="#" target="_blank" rel="noopener">Watch talk</a>
       <a id="pdfLink" href="#" target="_blank" rel="noopener">Open PDF</a>
       <a id="pptxLink" href="#">PowerPoint</a>
     </nav>
@@ -433,16 +434,18 @@
   <script>
     const decks = {
       conference: {
-        label: "Conference deck",
+        label: "WeAreDevelopers",
         count: 47,
         imageDirectory: "images/conference",
+        video: "https://www.youtube.com/watch?v=mPssttsZknY&t=144s",
         pdf: "../%28WAD%29%20Merging%20at%20Scale_%20From%20Broken%20Builds%20to%20Green%20Mainline.pdf",
         pptx: "../%28WAD%29%20Merging%20at%20Scale_%20From%20Broken%20Builds%20to%20Green%20Mainline.pptx"
       },
       extended: {
-        label: "Extended deck",
+        label: "Seattle Systems",
         count: 66,
         imageDirectory: "images/extended",
+        video: "https://www.youtube.com/watch?v=O4sCvZAMC9w",
         pdf: "../%28v2%29%20Merging%20at%20Scale_%20From%20Broken%20Builds%20to%20Green%20Mainline.pdf",
         pptx: "../Merging%20at%20Scale_%20From%20Broken%20Builds%20to%20Green%20Mainline.pptx"
       }
@@ -450,6 +453,7 @@
 
     const elements = {
       deckSelect: document.querySelector("#deckSelect"),
+      videoLink: document.querySelector("#videoLink"),
       pdfLink: document.querySelector("#pdfLink"),
       pptxLink: document.querySelector("#pptxLink"),
       slideImage: document.querySelector("#slideImage"),
@@ -573,6 +577,7 @@
     elements.pageCount.textContent = String(deck.count);
     elements.pageNumber.max = String(deck.count);
     elements.scrubber.max = String(deck.count);
+    elements.videoLink.href = deck.video;
     elements.pdfLink.href = deck.pdf;
     elements.pptxLink.href = deck.pptx;
     elements.slideImage.addEventListener("load", () => elements.slideImage.classList.remove("is-loading"));

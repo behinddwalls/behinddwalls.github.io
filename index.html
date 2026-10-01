@@ -137,26 +137,52 @@
       text-transform: uppercase;
     }
 
-    .talk-actions {
-      display: flex;
-      flex-wrap: wrap;
+    .talk-events {
+      margin: 1.1rem 0 0;
+      padding: 0;
+      border-top: 1px solid var(--rule);
+      list-style: none;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    }
+
+    .talk-event {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
       align-items: center;
       gap: 0.7rem 1rem;
-      margin: 0.9rem 0 0;
-      font: 0.88rem/1.4 -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+      padding: 0.78rem 0;
+      border-bottom: 1px solid var(--rule);
     }
 
-    .talk-actions .primary {
-      padding: 0.55rem 0.8rem;
-      border-radius: 0.25rem;
-      background: var(--accent);
-      color: var(--paper);
-      text-decoration: none;
+    .talk-event strong {
+      display: block;
+      font-size: 0.92rem;
+      font-weight: 600;
     }
 
-    .talk-actions .primary:hover {
-      background: var(--ink);
-      color: var(--paper);
+    .talk-event small {
+      display: block;
+      margin-top: 0.12rem;
+      color: var(--muted);
+      font-size: 0.76rem;
+    }
+
+    .talk-event-links {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      gap: 0.5rem 0.85rem;
+      font-size: 0.82rem;
+      white-space: nowrap;
+    }
+
+    @media (max-width: 34rem) {
+      .talk-event {
+        grid-template-columns: 1fr;
+        gap: 0.5rem;
+      }
+
+      .talk-event-links { justify-content: flex-start; }
     }
 
     footer {
@@ -204,18 +230,37 @@
     <section id="talks">
       <h2>Talks</h2>
       <article class="talk-card">
-        <a class="talk-cover" href="slides/merging-at-scale/" aria-label="View Merging at Scale presentation">
+        <a class="talk-cover" href="slides/merging-at-scale/" aria-label="View WeAreDevelopers slides">
           <img src="slides/merging-at-scale/images/conference/slide-01.jpg" width="1440" height="810" loading="lazy" alt="Title slide for Merging at Scale: From Broken Builds to Green Mainline">
         </a>
         <div class="talk-copy">
-          <p class="talk-meta">47 slides · with Manjari Akella</p>
-          <h3><a href="slides/merging-at-scale/">Merging at Scale: From Broken Builds to Green Mainline</a></h3>
+          <p class="talk-meta">With Manjari Akella</p>
+          <h3>Merging at Scale: From Broken Builds to Green Mainline</h3>
           <p>A look at speculative execution, architecture, results, and tradeoffs behind a merge queue for a large monorepo.</p>
-          <p class="talk-actions">
-            <a class="primary" href="slides/merging-at-scale/">View presentation</a>
-            <a href="slides/%28WAD%29%20Merging%20at%20Scale_%20From%20Broken%20Builds%20to%20Green%20Mainline.pdf">PDF</a>
-            <a href="slides/%28WAD%29%20Merging%20at%20Scale_%20From%20Broken%20Builds%20to%20Green%20Mainline.pptx">PowerPoint</a>
-          </p>
+          <ul class="talk-events">
+            <li class="talk-event">
+              <div>
+                <strong>WeAreDevelopers</strong>
+                <small>47-slide talk deck</small>
+              </div>
+              <div class="talk-event-links">
+                <a href="https://www.youtube.com/watch?v=mPssttsZknY&amp;t=144s" target="_blank" rel="noopener">Watch talk</a>
+                <a href="slides/merging-at-scale/">View slides</a>
+                <a href="slides/%28WAD%29%20Merging%20at%20Scale_%20From%20Broken%20Builds%20to%20Green%20Mainline.pdf">PDF</a>
+              </div>
+            </li>
+            <li class="talk-event">
+              <div>
+                <strong>Seattle Systems</strong>
+                <small>66-slide talk deck</small>
+              </div>
+              <div class="talk-event-links">
+                <a href="https://www.youtube.com/watch?v=O4sCvZAMC9w" target="_blank" rel="noopener">Watch talk</a>
+                <a href="slides/merging-at-scale/?deck=extended">View slides</a>
+                <a href="slides/%28v2%29%20Merging%20at%20Scale_%20From%20Broken%20Builds%20to%20Green%20Mainline.pdf">PDF</a>
+              </div>
+            </li>
+          </ul>
         </div>
       </article>
     </section>
