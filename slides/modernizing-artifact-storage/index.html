@@ -3,14 +3,14 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Merging at Scale — Preetam Dwivedi</title>
-  <meta name="description" content="Merging at Scale: From Broken Builds to Green Mainline, a presentation by Preetam Dwivedi and Manjari Akella.">
-  <link rel="canonical" href="https://behinddwalls.github.io/slides/merging-at-scale/">
-  <meta property="og:title" content="Merging at Scale: From Broken Builds to Green Mainline">
-  <meta property="og:description" content="A presentation about merge queues, speculative execution, and keeping a large monorepo green.">
+  <title>Modernizing Artifact Storage at Uber — Preetam Dwivedi</title>
+  <meta name="description" content="Modernizing Artifact Storage at Uber, a presentation by Preetam Dwivedi and Manjari Akella.">
+  <link rel="canonical" href="https://behinddwalls.github.io/slides/modernizing-artifact-storage/">
+  <meta property="og:title" content="Modernizing Artifact Storage at Uber">
+  <meta property="og:description" content="A presentation about modernizing artifact storage infrastructure at Uber.">
   <meta property="og:type" content="article">
-  <meta property="og:url" content="https://behinddwalls.github.io/slides/merging-at-scale/">
-  <meta property="og:image" content="https://behinddwalls.github.io/slides/merging-at-scale/images/conference/slide-01.jpg">
+  <meta property="og:url" content="https://behinddwalls.github.io/slides/modernizing-artifact-storage/">
+  <meta property="og:image" content="https://behinddwalls.github.io/slides/modernizing-artifact-storage/images/slide-01.jpg">
   <style>
     :root {
       color-scheme: dark;
@@ -43,14 +43,12 @@
     }
 
     button,
-    select,
     input { font: inherit; }
 
     a { color: inherit; }
 
     a:focus-visible,
     button:focus-visible,
-    select:focus-visible,
     input:focus-visible {
       outline: 2px solid var(--focus);
       outline-offset: 2px;
@@ -60,7 +58,7 @@
       position: relative;
       z-index: 5;
       display: grid;
-      grid-template-columns: minmax(0, 1fr) auto auto;
+      grid-template-columns: minmax(0, 1fr) auto;
       align-items: center;
       gap: 0.8rem 1.25rem;
       min-height: 4.4rem;
@@ -89,23 +87,6 @@
       font-weight: 600;
       text-overflow: ellipsis;
       white-space: nowrap;
-    }
-
-    .edition {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      color: var(--muted);
-      font-size: 0.8rem;
-    }
-
-    select {
-      min-width: 9.4rem;
-      padding: 0.42rem 1.8rem 0.42rem 0.6rem;
-      border: 1px solid var(--rule);
-      border-radius: 0.28rem;
-      background: var(--panel-raised);
-      color: var(--ink);
     }
 
     .downloads {
@@ -339,13 +320,6 @@
         padding: 0.55rem 0.7rem;
       }
 
-      .edition span { display: none; }
-
-      select {
-        min-width: 8.5rem;
-        max-width: 42vw;
-      }
-
       .downloads {
         grid-column: 1 / -1;
         padding-top: 0.45rem;
@@ -385,26 +359,19 @@
   <header class="topbar">
     <div class="identity">
       <a class="back" href="../../">← Preetam Dwivedi</a>
-      <h1>Merging at Scale: From Broken Builds to Green Mainline</h1>
+      <h1>Modernizing Artifact Storage at Uber</h1>
     </div>
-    <label class="edition">
-      <span>Talk</span>
-      <select id="deckSelect" aria-label="Talk venue">
-        <option value="conference">WeAreDevelopers</option>
-        <option value="extended">Seattle Systems</option>
-      </select>
-    </label>
     <nav class="downloads" aria-label="Presentation downloads">
-      <a id="videoLink" href="#" target="_blank" rel="noopener">Watch talk</a>
-      <a id="pdfLink" href="#" target="_blank" rel="noopener">Open PDF</a>
-      <a id="pptxLink" href="#">PowerPoint</a>
+      <a href="https://swampup.jfrog.com/agenda/" target="_blank" rel="noopener">Agenda</a>
+      <a href="../Modernizing%20Artifact%20Storage%20at%20Uber.pdf" target="_blank" rel="noopener">Open PDF</a>
+      <a href="../Modernizing%20Artifact%20Storage%20at%20Uber.pptx">PowerPoint</a>
     </nav>
   </header>
 
   <main class="viewer" id="viewer">
     <div class="stage" id="stage">
       <div class="slide-shell">
-        <img class="slide-image" id="slideImage" src="data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=" width="1440" height="810" alt="Slide 1 of the Merging at Scale presentation">
+        <img class="slide-image" id="slideImage" src="data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=" width="1440" height="810" alt="Slide 1 of the Modernizing Artifact Storage at Uber presentation">
       </div>
     </div>
     <button class="side-control prev" id="sidePrevious" type="button" aria-label="Previous slide">‹</button>
@@ -415,9 +382,9 @@
     <button class="control-button" id="previous" type="button" aria-label="Previous slide">‹</button>
     <div class="page-status">
       <input class="page-number" id="pageNumber" type="number" min="1" value="1" aria-label="Current slide">
-      <span>/ <span id="pageCount">47</span></span>
+      <span>/ <span id="pageCount">46</span></span>
     </div>
-    <input class="scrubber" id="scrubber" type="range" min="1" max="47" value="1" aria-label="Choose slide">
+    <input class="scrubber" id="scrubber" type="range" min="1" max="46" value="1" aria-label="Choose slide">
     <button class="control-button" id="next" type="button" aria-label="Next slide">›</button>
     <span class="controls-spacer" aria-hidden="true">&nbsp;</span>
     <span class="hint">← → or space to navigate</span>
@@ -434,30 +401,12 @@
   </dialog>
 
   <script>
-    const decks = {
-      conference: {
-        label: "WeAreDevelopers",
-        count: 47,
-        imageDirectory: "images/conference",
-        video: "https://www.youtube.com/watch?v=mPssttsZknY&t=144s",
-        pdf: "../%28WAD%29%20Merging%20at%20Scale_%20From%20Broken%20Builds%20to%20Green%20Mainline.pdf",
-        pptx: "../%28WAD%29%20Merging%20at%20Scale_%20From%20Broken%20Builds%20to%20Green%20Mainline.pptx"
-      },
-      extended: {
-        label: "Seattle Systems",
-        count: 66,
-        imageDirectory: "images/extended",
-        video: "https://www.youtube.com/watch?v=O4sCvZAMC9w",
-        pdf: "../%28v2%29%20Merging%20at%20Scale_%20From%20Broken%20Builds%20to%20Green%20Mainline.pdf",
-        pptx: "../Merging%20at%20Scale_%20From%20Broken%20Builds%20to%20Green%20Mainline.pptx"
-      }
+    const deck = {
+      count: 46,
+      imageDirectory: "images"
     };
 
     const elements = {
-      deckSelect: document.querySelector("#deckSelect"),
-      videoLink: document.querySelector("#videoLink"),
-      pdfLink: document.querySelector("#pdfLink"),
-      pptxLink: document.querySelector("#pptxLink"),
       slideImage: document.querySelector("#slideImage"),
       stage: document.querySelector("#stage"),
       previous: document.querySelector("#previous"),
@@ -474,9 +423,6 @@
       overviewGrid: document.querySelector("#overviewGrid")
     };
 
-    const requestedDeck = new URLSearchParams(window.location.search).get("deck");
-    const deckKey = Object.hasOwn(decks, requestedDeck) ? requestedDeck : "conference";
-    const deck = decks[deckKey];
     let currentPage = parsePage(window.location.hash.slice(1));
     let overviewBuilt = false;
     let pointerStart = null;
@@ -516,7 +462,7 @@
       currentPage = nextPage;
       elements.slideImage.classList.add("is-loading");
       elements.slideImage.src = imagePath(currentPage);
-      elements.slideImage.alt = `Slide ${currentPage} of ${deck.count} from Merging at Scale`;
+      elements.slideImage.alt = `Slide ${currentPage} of ${deck.count} from Modernizing Artifact Storage at Uber`;
       elements.pageNumber.value = String(currentPage);
       elements.scrubber.value = String(currentPage);
       elements.previous.disabled = currentPage === 1;
@@ -564,24 +510,9 @@
       });
     }
 
-    function changeDeck(nextDeckKey) {
-      const url = new URL(window.location.href);
-      if (nextDeckKey === "conference") {
-        url.searchParams.delete("deck");
-      } else {
-        url.searchParams.set("deck", nextDeckKey);
-      }
-      url.hash = "1";
-      window.location.assign(url);
-    }
-
-    elements.deckSelect.value = deckKey;
     elements.pageCount.textContent = String(deck.count);
     elements.pageNumber.max = String(deck.count);
     elements.scrubber.max = String(deck.count);
-    elements.videoLink.href = deck.video;
-    elements.pdfLink.href = deck.pdf;
-    elements.pptxLink.href = deck.pptx;
     elements.slideImage.addEventListener("load", () => elements.slideImage.classList.remove("is-loading"));
     elements.slideImage.addEventListener("error", () => elements.slideImage.classList.remove("is-loading"));
 
@@ -597,7 +528,6 @@
         event.currentTarget.blur();
       }
     });
-    elements.deckSelect.addEventListener("change", (event) => changeDeck(event.target.value));
     elements.overviewButton.addEventListener("click", openOverview);
     elements.closeOverview.addEventListener("click", () => elements.overviewDialog.close());
     elements.overviewGrid.addEventListener("click", (event) => {
