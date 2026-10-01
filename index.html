@@ -11,12 +11,21 @@
   <meta property="og:url" content="https://behinddwalls.github.io/">
   <style>
     :root {
-      --ink: #1a1814;
-      --muted: #5c574e;
-      --rule: #d9d4c8;
-      --bg: #f6f3eb;
-      --paper: #fffcf6;
-      --accent: #8b2942;
+      --ink: #182321;
+      --muted: #626d68;
+      --rule: #d3d9d3;
+      --bg: #f4f0e7;
+      --paper: #fffdf8;
+      --surface: rgb(255 253 248 / 78%);
+      --accent: #963d55;
+      --accent-strong: #74273f;
+      --accent-soft: #f0dce2;
+      --secondary: #2f6b62;
+      --row-hover: rgb(47 107 98 / 6%);
+      --shadow: rgb(35 50 45 / 10%);
+      --glow-one: rgb(150 61 85 / 13%);
+      --glow-two: rgb(47 107 98 / 12%);
+      --on-accent: #fffaf8;
     }
 
     * { box-sizing: border-box; }
@@ -24,39 +33,68 @@
     html { color-scheme: light; }
 
     body {
+      min-height: 100vh;
       margin: 0;
-      background: var(--bg);
+      background:
+        radial-gradient(circle at 8% 0%, var(--glow-one), transparent 27rem),
+        radial-gradient(circle at 92% 11%, var(--glow-two), transparent 31rem),
+        var(--bg);
       color: var(--ink);
       font: 18px/1.55 "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif;
     }
 
     main {
-      max-width: 56rem;
+      max-width: 62rem;
       margin: 0 auto;
-      padding: 5rem 2rem 6rem;
+      padding: 5.5rem 2.25rem 6rem;
+    }
+
+    header {
+      position: relative;
+      padding-left: 1.3rem;
+    }
+
+    header::before {
+      position: absolute;
+      top: 0.25rem;
+      bottom: 0.15rem;
+      left: 0;
+      width: 0.24rem;
+      border-radius: 999px;
+      background: linear-gradient(var(--accent), var(--secondary));
+      content: "";
     }
 
     header p {
       margin: 0.35rem 0 0;
       color: var(--muted);
-      font-size: 0.95rem;
-      letter-spacing: 0.02em;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+      font-size: 0.9rem;
+      letter-spacing: 0.025em;
     }
 
     h1 {
       margin: 0;
-      font-size: clamp(2.1rem, 6vw, 2.8rem);
+      font-size: clamp(2.45rem, 7vw, 3.45rem);
       font-weight: 600;
-      letter-spacing: -0.03em;
-      line-height: 1.1;
+      letter-spacing: -0.045em;
+      line-height: 1.04;
     }
 
     nav {
-      display: flex;
+      display: inline-flex;
       flex-wrap: wrap;
-      gap: 0.85rem 1.25rem;
-      margin: 1.6rem 0 0;
-      font-size: 0.92rem;
+      gap: 0.18rem;
+      max-width: 100%;
+      margin: 1.65rem 0 0;
+      padding: 0.32rem;
+      border: 1px solid var(--rule);
+      border-radius: 999px;
+      background: var(--surface);
+      box-shadow: 0 0.55rem 1.6rem var(--shadow);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+      font-size: 0.84rem;
+      backdrop-filter: blur(12px);
     }
 
     a {
@@ -64,23 +102,53 @@
       text-underline-offset: 0.18em;
     }
 
-    a:hover { color: var(--ink); }
+    a:hover { color: var(--secondary); }
 
-    nav a { text-decoration-thickness: 1px; }
+    nav a {
+      padding: 0.4rem 0.72rem;
+      border-radius: 999px;
+      color: var(--ink);
+      font-weight: 550;
+      text-decoration: none;
+      transition: color 150ms ease, background 150ms ease, transform 150ms ease;
+    }
+
+    nav a:hover {
+      background: var(--accent-soft);
+      color: var(--accent-strong);
+      transform: translateY(-1px);
+    }
+
+    nav #contact-link {
+      background: var(--accent-strong);
+      color: var(--on-accent);
+    }
+
+    nav #contact-link:hover {
+      background: var(--secondary);
+      color: var(--on-accent);
+    }
+
+    a:focus-visible,
+    button:focus-visible {
+      outline: 2px solid var(--secondary);
+      outline-offset: 3px;
+    }
 
     hr {
+      height: 1px;
       border: 0;
-      border-top: 1px solid var(--rule);
-      margin: 2.6rem 0;
+      margin: 3rem 0 2.8rem;
+      background: linear-gradient(to right, var(--accent) 0 3.5rem, var(--rule) 3.5rem 100%);
     }
 
     p { margin: 0 0 1rem; }
 
     .lede {
-      max-width: 51rem;
-      margin-bottom: 3.2rem;
-      font-size: clamp(1.12rem, 2.2vw, 1.28rem);
-      line-height: 1.52;
+      max-width: 54rem;
+      margin-bottom: 3.8rem;
+      font-size: clamp(1.16rem, 2.25vw, 1.34rem);
+      line-height: 1.58;
     }
 
     h2 {
@@ -90,25 +158,45 @@
       font-weight: 600;
       letter-spacing: 0.14em;
       text-transform: uppercase;
-      color: var(--muted);
+      color: var(--secondary);
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
     }
 
     h3 {
       margin: 0 0 0.5rem;
-      font-size: 1.22rem;
+      font-size: 1.25rem;
       line-height: 1.3;
       font-weight: 600;
     }
 
-    section {
-      display: grid;
-      grid-template-columns: 7rem minmax(0, 1fr);
-      gap: 0 2rem;
-      margin-bottom: 3rem;
+    h3 a {
+      text-decoration-color: var(--accent-soft);
+      text-decoration-thickness: 0.12em;
+      transition: color 150ms ease, text-decoration-color 150ms ease;
     }
 
-    section > h2 { grid-column: 1; }
+    h3 a:hover { text-decoration-color: var(--secondary); }
+
+    section {
+      display: grid;
+      grid-template-columns: 7.5rem minmax(0, 1fr);
+      gap: 0 2.25rem;
+      margin-bottom: 3.5rem;
+    }
+
+    section > h2 {
+      grid-column: 1;
+    }
+
+    section > h2::before {
+      display: block;
+      width: 1.7rem;
+      height: 2px;
+      margin: 0 0 0.62rem;
+      border-radius: 999px;
+      background: linear-gradient(to right, var(--accent), var(--secondary));
+      content: "";
+    }
 
     .section-body {
       grid-column: 2;
@@ -135,8 +223,18 @@
       grid-template-columns: minmax(0, 1fr) auto;
       align-items: center;
       gap: 0.7rem 1rem;
-      padding: 0.95rem 0;
+      margin: 0 -0.8rem;
+      padding: 0.95rem 0.8rem;
       border-bottom: 1px solid var(--rule);
+      border-radius: 0.55rem;
+      transition: background 150ms ease, box-shadow 150ms ease;
+    }
+
+    .talk-event:hover,
+    .item:hover,
+    .project-links li:hover {
+      background: var(--row-hover);
+      box-shadow: inset 3px 0 var(--accent);
     }
 
     .talk-event strong {
@@ -161,13 +259,30 @@
       white-space: nowrap;
     }
 
+    .talk-event-links a {
+      padding: 0.18rem 0.48rem;
+      border: 1px solid var(--rule);
+      border-radius: 999px;
+      background: var(--surface);
+      text-decoration: none;
+      transition: border-color 150ms ease, color 150ms ease, background 150ms ease;
+    }
+
+    .talk-event-links a:hover {
+      border-color: var(--secondary);
+      background: var(--paper);
+    }
+
     .item-list {
       border-top: 1px solid var(--rule);
     }
 
     .item {
-      padding: 1.05rem 0 0.2rem;
+      margin: 0 -0.8rem;
+      padding: 1.05rem 0.8rem 0.2rem;
       border-bottom: 1px solid var(--rule);
+      border-radius: 0.55rem;
+      transition: background 150ms ease, box-shadow 150ms ease;
     }
 
     .item p { color: var(--muted); }
@@ -183,8 +298,11 @@
       display: grid;
       grid-template-columns: 9.5rem minmax(0, 1fr);
       gap: 1rem;
-      padding: 0.85rem 0;
+      margin: 0 -0.8rem;
+      padding: 0.85rem 0.8rem;
       border-bottom: 1px solid var(--rule);
+      border-radius: 0.55rem;
+      transition: background 150ms ease, box-shadow 150ms ease;
     }
 
     .project-links a {
@@ -206,7 +324,7 @@
       padding: 0;
       overflow: hidden;
       border: 1px solid var(--rule);
-      border-radius: 0.4rem;
+      border-radius: 1rem;
       background: var(--paper);
       color: var(--ink);
       box-shadow: 0 1.2rem 4rem rgb(0 0 0 / 25%);
@@ -228,6 +346,7 @@
       gap: 1rem;
       padding: 0.8rem 1rem;
       border-bottom: 1px solid var(--rule);
+      background: var(--surface);
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
       font-size: 0.86rem;
     }
@@ -257,6 +376,13 @@
     @media (max-width: 44rem) {
       main { padding: 3.5rem 1.35rem 4rem; }
 
+      header { padding-left: 1rem; }
+
+      nav {
+        justify-content: center;
+        border-radius: 1rem;
+      }
+
       .lede { margin-bottom: 2.6rem; }
 
       section {
@@ -265,9 +391,14 @@
       }
 
       section > h2 {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
         margin-bottom: 0.7rem;
         padding-top: 0;
       }
+
+      section > h2::before { margin: 0; }
     }
 
     @media (max-width: 34rem) {
@@ -285,10 +416,11 @@
     }
 
     footer {
-      margin: 3.5rem 0 0 9rem;
-      padding-top: 1.2rem;
+      margin: 3.8rem 0 0 9.75rem;
+      padding: 1.3rem 0 0;
       border-top: 1px solid var(--rule);
       color: var(--muted);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
       font-size: 0.92rem;
     }
 
@@ -298,13 +430,24 @@
 
     @media (prefers-color-scheme: dark) {
       :root {
-        --ink: #efe9dc;
-        --muted: #b3ab9c;
-        --rule: #3a362f;
-        --bg: #16140f;
-        --paper: #1c1a14;
-        --accent: #e08a9a;
+        --ink: #edf2ee;
+        --muted: #a9b3ad;
+        --rule: #37443f;
+        --bg: #111815;
+        --paper: #19221f;
+        --surface: rgb(25 34 31 / 80%);
+        --accent: #dc8399;
+        --accent-strong: #c96f88;
+        --accent-soft: rgb(220 131 153 / 16%);
+        --secondary: #7bb8ac;
+        --row-hover: rgb(123 184 172 / 8%);
+        --shadow: rgb(0 0 0 / 28%);
+        --glow-one: rgb(220 131 153 / 10%);
+        --glow-two: rgb(123 184 172 / 10%);
+        --on-accent: #fffaf8;
       }
+
+      html { color-scheme: dark; }
     }
   </style>
 </head>
@@ -317,8 +460,8 @@
         <a href="#blogs">Blogs</a>
         <a href="#talks">Talks</a>
         <a href="#projects">Projects</a>
-        <a href="https://github.com/behinddwalls">GitHub</a>
-        <a href="https://www.linkedin.com/in/behinddwalls/">LinkedIn</a>
+        <a href="https://github.com/behinddwalls" target="_blank" rel="noopener">GitHub</a>
+        <a href="https://www.linkedin.com/in/behinddwalls/" target="_blank" rel="noopener">LinkedIn</a>
         <a id="contact-link" href="https://docs.google.com/forms/d/e/1FAIpQLSdo54nPDOGMVUVlW6gkXtczBYxrKqrJkyEnIz-Y_3MU12BcZg/viewform" target="_blank" rel="noopener" aria-haspopup="dialog" aria-controls="contact-dialog">Contact</a>
       </nav>
     </header>
