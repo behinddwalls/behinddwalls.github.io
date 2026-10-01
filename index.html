@@ -198,6 +198,62 @@
       font-size: 0.96rem;
     }
 
+    .contact-dialog {
+      width: min(46rem, calc(100% - 2rem));
+      height: min(50rem, calc(100vh - 2rem));
+      height: min(50rem, calc(100dvh - 2rem));
+      margin: auto;
+      padding: 0;
+      overflow: hidden;
+      border: 1px solid var(--rule);
+      border-radius: 0.4rem;
+      background: var(--paper);
+      color: var(--ink);
+      box-shadow: 0 1.2rem 4rem rgb(0 0 0 / 25%);
+    }
+
+    .contact-dialog[open] {
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr);
+    }
+
+    .contact-dialog::backdrop {
+      background: rgb(20 18 14 / 65%);
+      backdrop-filter: blur(2px);
+    }
+
+    .contact-dialog-header {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 0.8rem 1rem;
+      border-bottom: 1px solid var(--rule);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+      font-size: 0.86rem;
+    }
+
+    .contact-dialog-header strong { margin-right: auto; }
+
+    .contact-dialog-close {
+      padding: 0;
+      border: 0;
+      background: transparent;
+      color: var(--accent);
+      font: inherit;
+      text-decoration: underline;
+      text-underline-offset: 0.18em;
+      cursor: pointer;
+    }
+
+    .contact-dialog-close:hover { color: var(--ink); }
+
+    .contact-frame {
+      width: 100%;
+      height: 100%;
+      border: 0;
+      background: #fff;
+    }
+
     @media (max-width: 44rem) {
       main { padding: 3.5rem 1.35rem 4rem; }
 
@@ -261,6 +317,7 @@
         <a href="#blogs">Blogs</a>
         <a href="#talks">Talks</a>
         <a href="#projects">Projects</a>
+        <a id="contact-link" href="https://docs.google.com/forms/d/e/1FAIpQLSdo54nPDOGMVUVlW6gkXtczBYxrKqrJkyEnIz-Y_3MU12BcZg/viewform" target="_blank" rel="noopener" aria-haspopup="dialog" aria-controls="contact-dialog">Contact</a>
         <a href="https://github.com/behinddwalls">GitHub</a>
         <a href="https://www.linkedin.com/in/behinddwalls/">LinkedIn</a>
         <a href="https://arxiv.org/abs/2604.11977">GitFarm (arXiv)</a>
@@ -351,5 +408,40 @@
       Open to conversations about developer platforms, build and merge infrastructure, and large-scale CI.
     </footer>
   </main>
+
+  <dialog class="contact-dialog" id="contact-dialog" aria-label="Contact Preetam Dwivedi">
+    <div class="contact-dialog-header">
+      <strong>Contact</strong>
+      <a href="https://docs.google.com/forms/d/e/1FAIpQLSdo54nPDOGMVUVlW6gkXtczBYxrKqrJkyEnIz-Y_3MU12BcZg/viewform" target="_blank" rel="noopener">Open in new tab</a>
+      <button class="contact-dialog-close" id="contact-close" type="button">Close</button>
+    </div>
+    <iframe
+      class="contact-frame"
+      title="Contact Preetam Dwivedi"
+      data-src="https://docs.google.com/forms/d/e/1FAIpQLSdo54nPDOGMVUVlW6gkXtczBYxrKqrJkyEnIz-Y_3MU12BcZg/viewform?embedded=true"
+      loading="lazy"
+    ></iframe>
+  </dialog>
+
+  <script>
+    const contactLink = document.querySelector("#contact-link");
+    const contactDialog = document.querySelector("#contact-dialog");
+    const contactClose = document.querySelector("#contact-close");
+    const contactFrame = contactDialog.querySelector(".contact-frame");
+
+    contactLink.addEventListener("click", (event) => {
+      if (typeof contactDialog.showModal !== "function") return;
+
+      event.preventDefault();
+      if (!contactFrame.src) contactFrame.src = contactFrame.dataset.src;
+      contactDialog.showModal();
+    });
+
+    contactClose.addEventListener("click", () => contactDialog.close());
+
+    contactDialog.addEventListener("click", (event) => {
+      if (event.target === contactDialog) contactDialog.close();
+    });
+  </script>
 </body>
 </html>
