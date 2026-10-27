@@ -7,7 +7,7 @@
 | Slide | Start | Length | Title |
 | --- | --- | --- | --- |
 | 01 | 00:00 | 00:20 | Merging at AI Scale |
-| 02 | 00:20 | 00:35 | Preetam Dwivedi |
+| 02 | 00:20 | 00:35 | About us |
 | 03 | 00:55 | 00:40 | Uber builds in monorepos |
 | 04 | 01:35 | 00:40 | Two green PRs. One untested combination. |
 | 05 | 02:15 | 00:40 | A lands green. B turns main red. |
@@ -47,13 +47,13 @@
 - Follow three interventions, then the shift to post-merge confidence.
 - Correctness still matters. When and where we validate is what changed.
 
-### 02 · Preetam Dwivedi
+### 02 · About us
 
 00:20–00:55
 
-- Staff Software Engineer, Developer Platform, Uber.
-- Focus: source control systems, merge queues, code review, and CI.
-- Outside work: hiking, camping, skiing. LinkedIn QR for connecting.
+- Preetam Dwivedi: Staff Software Engineer.
+- Manjari Akella: Senior Engineer.
+- Both on Developer Platform at Uber.
 
 ### 03 · Uber builds in monorepos
 
