@@ -377,8 +377,7 @@
         line(65,190,65,285,muted,3)+line(65,285,270,285,muted,3)+circle(305,285,"B",green,31,C.dark)+text(375,295,"H + B passes",30,green)+
         text(810,35,"POST-MERGE · ONE POSSIBLE OUTCOME",20,muted)+
         line(845,210,1295,210,muted,3)+circle(850,210,"H",fg,31,C.dark)+circle(1060,210,"A",green,31,C.dark)+circle(1290,210,"B","#ff9a82",31,C.dark)+
-        text(1070,305,"H + A + B fails",34,"#ff9a82","middle")+
-        text(0,420,"The omitted dependency edge was a real interaction.",31,fg),1416,450,
+        text(1070,305,"H + A + B fails",34,"#ff9a82","middle"),1416,450,
         "Illustrative possible failure: A and B pass separately; after relaxing their dependency edge, the landed combination fails");
     }
     function conflictChain(relaxed=false) {
@@ -405,19 +404,19 @@
         text(185,165,"Smaller change",29,C.ink,"middle")+
         `<rect x="45" y="285" width="280" height="80" fill="none" stroke="${C.ink}" stroke-width="2"/>`+
         text(185,335,"Expensive change",29,C.ink,"middle")+
-        text(640,48,"Peak-hours gate",31,C.ink,"middle",550)+
+        text(640,48,"Peak-hour gate",31,C.ink,"middle",550)+
         line(640,85,640,400,C.line,5)+line(640,120,640,190,C.green,8)+line(640,290,640,360,C.red,8)+
         arrowRight(325,155,1015,C.green)+text(815,120,"Admit",28,C.green,"middle")+
         arrowRight(325,325,615,C.red)+
-        text(770,325,"Rejected at peak",30,C.red)+text(770,367,"Developer retries off peak",25,C.muted)+
+        text(770,325,"Rejected during peak hours",30,C.red)+text(770,367,"Developer retries outside peak hours",25,C.muted)+
         text(1210,88,"Active SQ",31,C.ink,"middle",550)+line(1045,155,1375,155,C.line,3)+
         circle(1080,155,"A",C.ink,28)+circle(1200,155,"B",C.ink,28)+circle(1320,155,"S",C.green,28)+
         text(1200,225,"Build + test",25,C.muted,"middle"),
-        1416,450,"During peak hours, a smaller change passes the admission gate into active SubmitQueue. An expensive change is rejected and the developer must retry later");
+        1416,450,"During peak hours, a smaller change passes the admission gate into active SubmitQueue. An expensive change is rejected during peak hours and the developer must retry later");
     }
     function deferralDiagram() {
       return svg(
-        text(0,40,"AT PEAK",21,C.muted)+
+        text(0,40,"DURING PEAK HOURS",21,C.muted)+
         `<rect x="40" y="85" width="240" height="80" fill="none" stroke="${C.ink}" stroke-width="2"/>`+
         text(160,136,"Request R",31,C.ink,"middle")+
         arrowRight(280,125,480,C.ink)+
@@ -433,7 +432,7 @@
         line(860,305,860,375,C.green,6)+text(860,292,"Release",26,C.green,"middle")+
         text(1230,270,"Active SQ",31,C.ink,"middle",550)+line(1065,340,1380,340,C.line,3)+
         circle(1120,340,"A",C.ink,28)+circle(1230,340,"B",C.ink,28)+circle(1340,340,"R",C.green,28),
-        1416,450,"An expensive request is accepted into durable deferral at peak. The platform re-evaluates release gates, then admits the same request to active SubmitQueue without developer resubmission");
+        1416,450,"An expensive request is accepted into durable deferral during peak hours. The platform re-evaluates release gates, then admits the same request to active SubmitQueue without developer resubmission");
     }
     function stovepipeTimeline() {
       const xs=[100,295,490,685,880,1075,1270];
@@ -442,8 +441,7 @@
       b+=text(100,180,"last green",24,C.green,"middle")+text(685,180,"observed heads keep arriving",24,C.muted,"middle");
       b+=line(100,260,685,260,C.red,5)+text(390,245,"validate D relative to A",25,C.red,"middle")+text(685,300,"D fails",25,C.red,"middle");
       b+=line(100,365,1270,365,C.green,5)+text(690,352,"next validation still starts from A",25,C.green,"middle")+text(1270,410,"G passes",25,C.green,"middle");
-      b+=text(0,475,"A failed run does not advance the baseline; later validation includes the unverified range.",25,C.ink);
-      return svg(b,1416,510,"A is last green. D fails validation, so G is validated relative to A. Intermediate heads may be coalesced rather than built individually");
+      return svg(b,1416,450,"A is last green. D fails validation, so G is validated relative to A. Intermediate heads may be coalesced rather than built individually");
     }
     function currentVolumeChart() {
       const W=1416,H=290,L=65,R=15,T=18,B=36, pw=W-L-R, ph=H-T-B;
@@ -453,20 +451,6 @@
       points.forEach((p,i)=>{if(p.v!==null){const x=L+i/points.length*pw, y=T+ph-p.v/max*ph; b+=`<rect x="${x.toFixed(2)}" y="${y.toFixed(2)}" width="${(pw/points.length*.8).toFixed(2)}" height="${(T+ph-y).toFixed(2)}" fill="${C.green}" opacity=".72"/>`;}});
       b+=text(W-R,H-4,"Time →",20,C.muted,"end");
       return svg(b,W,H,"Hourly successful PR and diff land-request volume, with a peak of approximately three hundred per hour. Branch requests excluded");
-    }
-    function ossDiagram() {
-      return svg(
-        text(0,30,"SUBMITQUEUE",21,C.muted)+text(920,30,"STOVEPIPE",21,C.muted)+
-        text(0,125,"Accept",37,C.ink,"start",550)+line(185,113,245,113,C.ink,3)+
-        text(275,125,"Validate",37,C.ink,"start",550)+line(535,113,595,113,C.ink,3)+
-        text(625,125,"Merge",37,C.ink,"start",550)+
-        text(0,180,"ready changes",25,C.muted)+text(275,180,"speculative futures",25,C.muted)+text(625,180,"passing changes",25,C.muted)+
-        line(835,80,835,300,C.line,2,"8 8")+
-        text(925,125,"Post-land validation",37,C.green,"start",550)+text(925,180,"facts + known-good refs",25,C.muted)+
-        line(0,285,1405,285,C.line,2)+
-        text(0,350,"Shared extension boundaries",29,C.ink,"start",550)+
-        text(0,405,"Source control · build runners · storage · message queues · hooks",30,C.muted),
-        1416,450,"Open-source platform: SubmitQueue accepts, speculatively validates, and merges changes; Stovepipe validates landed states, with shared extension points");
     }
     const slides = [];
     function add(title,chapter,seconds,body,notes,refs=[],opts={}) {
@@ -512,23 +496,27 @@
       `${scaleMilestones()}<p class="bottom-line">March was the tipping point.</p>`,
       "- January: about 90 changes per hour at peak.\n- March: about 130. Growth arrived in months, not years.\n- March was the tipping point. What did that feel like for developers?",
       []);
-    add("Green trunk. Hours to land","The developer impact",40,
-      `<p class="body" style="font-size:31px;margin-bottom:45px">March 2026 · go-code · ~130 changes/hour at peak</p><div class="split"><div><div class="wait-time"><span>3</span><span class="range-word">to</span><span>4</span></div><p class="body" style="margin-top:30px">hours to land at peak</p></div><div style="padding-top:25px"><p style="font-size:56px;line-height:1.13;letter-spacing:-.025em">We were protecting main<br>by making<br>developers wait.</p></div></div>`,
-      "- At March’s peak load, landing could take 3 to 4 hours.\n- The cost was developer waiting, despite existing optimizations.\n- Before changing the merge model, first control the incoming load.",
+    add("Green trunk. Hours to land","The developer impact",35,
+      `<div class="split" style="margin-top:45px"><div><div class="wait-time"><span>3</span><span class="range-word">to</span><span>4</span></div><p class="body" style="margin-top:30px">hours to land at peak</p></div><div style="padding-top:25px"><p style="font-size:56px;line-height:1.13;letter-spacing:-.025em">We were protecting main<br>by making<br>developers wait.</p></div></div>`,
+      "- Landing at peak could take 3 to 4 hours.\n- The cost was developer waiting, despite existing optimizations.\n- Our response: manage the load first, then change the merge model.",
       [],{"theme": "red"});
-    add("Admission gating","Intervention 1",65,
-      `${admissionGateDiagram()}<p class="bottom-line">First, control what enters the active queue during peak load</p>`,
-      "- Keep expensive submissions out during peak load.\n- Smaller changes enter; rejected authors must resubmit later.\n- This protects active capacity, but puts scheduling onto developers.",
+    add("What we changed","The response",30,
+      `<div class="three" style="margin-top:65px"><div><p class="compare-label">01</p><h3 style="font-size:38px">Shape the traffic</h3><p class="body muted" style="margin-top:25px">Admission gating</p></div><div><p class="compare-label">02</p><h3 style="font-size:38px">Automate the wait</h3><p class="body muted" style="margin-top:25px">Deferrals</p></div><div><p class="compare-label">03</p><h3 style="font-size:38px">Unlock parallelism</h3><p class="body muted" style="margin-top:25px">Conflict relaxation</p></div></div><p class="bottom-line">Manage demand first. Then change the merge model.</p>`,
+      "- First, shape incoming submission traffic with admission gating.\n- Then, make the platform own waiting and release through deferrals.\n- Finally, relax conflict constraints to unlock more independent merge progress.",
       []);
-    add("Admission gating: the tradeoff","Intervention 1",55,
-      `<div class="split tradeoff" style="margin-top:18px"><div><h3 class="green">Observed after gating</h3><p class="intervention-gain">+23%</p><p class="intervention-outcome">Business-hour landing throughput</p><p class="intervention-rates"><strong>~130 → ~160</strong> diffs/hour, on average</p></div><div><h3 class="red-text">Developer cost</h3><p class="claim">Developers become<br>the schedulers</p><p class="explanation">“Submit early. Or try again tonight.”</p><p class="small muted" style="margin-top:28px">Expensive changes require<br>off-peak resubmission.</p></div></div><p class="bottom-line">We protected peak capacity, but made developers manage the wait</p>`,
+    add("Admission gating","Intervention 1",55,
+      `${admissionGateDiagram()}<p class="bottom-line">First, control what enters the active queue during peak hours</p>`,
+      "- First, keep expensive submissions out during peak hours.\n- Smaller changes enter; rejected authors must resubmit later.\n- This protects active capacity, but puts scheduling onto developers.",
+      []);
+    add("Admission gating: the tradeoff","Intervention 1",50,
+      `<div class="split tradeoff" style="margin-top:18px"><div><h3 class="green">After peak-hour gating</h3><p class="intervention-gain">+23%</p><p class="intervention-outcome">Average business-hour throughput</p><p class="intervention-rates"><strong>~130 → ~160</strong> diffs/hour, on average</p></div><div><h3 class="red-text">Developer cost</h3><p class="claim">Developers become<br>the schedulers</p><p class="explanation">“Submit early. Or try again tonight.”</p><p class="small muted" style="margin-top:28px">Resubmit expensive changes<br>outside peak hours.</p></div></div><p class="bottom-line">We protected capacity during peak hours, but made developers manage the wait</p>`,
       "- Business-hour average landing rate: about 130 → 160 diffs/hour; +23% after gating.\n- These are business-hour averages, not peak landing rates. The percentage uses unrounded values.\n- The cost: developers must return and resubmit. Deferrals automate that waiting.",
       []);
-    add("Deferrals","Intervention 2",65,
+    add("Deferrals","Intervention 2",60,
       `${deferralDiagram()}<p class="bottom-line">Submit once. Release automatically when capacity allows.</p>`,
       "- Accept the costly request once and hold it durably.\n- Recheck release conditions and admit it when eligible.\n- The platform owns waiting and release, not the developer.",
       []);
-    add("Deferrals: the tradeoff","Intervention 2",50,
+    add("Deferrals: the tradeoff","Intervention 2",45,
       `<div class="split tradeoff" style="margin-top:30px"><div><h3 class="green">Good</h3><p class="claim">Submit once.<br>Release automatically.</p><p class="explanation">The platform holds and releases eligible work without developer resubmission.</p></div><div><h3 class="red-text">Bad</h3><p class="claim">The waiting<br>still exists</p><p class="explanation">Demand moves to another time. Validation cost and dependency coupling remain.</p></div></div><p class="bottom-line">We moved the wait. We had not removed serialization.</p>`,
       "- Submit once; release automatically.\n- The waiting and validation cost still exist.\n- When deferred work enters the active queue, its dependencies still constrain progress.",
       []);
@@ -579,20 +567,20 @@
       "- A is known green. Validation at D fails, so the baseline stays at A.\n- Next validate G relative to A, including the still-unverified range.\n- If G passes, advance the baseline. That does not certify every intermediate state.",
       []);
     add("Separate the integration tip from the trusted ref","Post-merge confidence",85,
-      `<div class="split" style="margin-top:12px"><div><p class="compare-label">main</p><p class="contract">Newest<br>integrated state</p><p class="under">May be pending validation<br>or known broken</p></div><div><p class="compare-label">verified-main</p><p class="contract green">Latest eligible<br>known-good state</p><p class="under">Advances after green validation<br>Broken outcomes do not promote</p></div></div><p class="bottom-line">Pending ≠ green · Superseded ≠ tested · Detection ≠ recovery</p>`,
+      `<div class="split" style="margin-top:12px"><div><p class="compare-label">main</p><p class="contract">Newest<br>integrated state</p><p class="under">May be pending validation<br>or known broken</p></div><div><p class="compare-label">verified-main</p><p class="contract green">Latest eligible<br>known-good state</p><p class="under">Advances after green validation<br>Broken outcomes do not promote</p></div></div>`,
       "- Main is the newest integrated state; a verified ref is the latest eligible known-good state.\n- Failed or pending validation does not advance the trusted ref.\n- Consumers must choose to honor that confidence signal.",
       []);
     add("Detection is only the start of recovery","Post-merge confidence",80,
-      `<div class="split"><div class="stack"><p class="compare-label">Stovepipe’s responsibility</p><p class="contract green">Detect<br>Record<br>Surface known-good</p><p class="small muted">Validation events + last-green state + promotion ref</p></div><div><p class="compare-label">Operating response</p><ol style="font-size:29px;line-height:1.5;padding-left:30px"><li>Bound impact with a verified state</li><li>Triage the failing validation</li><li>Revert or fix the responsible change</li><li>Validate again; observe recovery</li></ol></div></div>`,
-      "- Detect failure, record evidence, and preserve a known-good state.\n- Own triage, fixes or reverts, and validation of recovery; measure time and impact.\n- This is the new integration contract. What does it buy in throughput and developer waiting time?",
+      `<div class="split"><div class="stack"><p class="compare-label">Stovepipe’s responsibility</p><p class="contract green">Detect<br>Record<br>Surface known-good</p></div><div><p class="compare-label">When main breaks</p><ol style="font-size:29px;line-height:1.5;padding-left:30px"><li>On-call is alerted</li><li>On-call prepares a fix or revert</li><li>Get approvals and land the change</li><li>Stovepipe keeps validating and records greenness</li></ol></div></div>`,
+      "- A broken mainline triggers an on-call alert.\n- On-call prepares a fix or revert, gets approvals, and lands the change.\n- Stovepipe keeps validating and records when main is green again.",
       []);
     add("More throughput. Shorter waits.","Results · as of October 2026",120,
       `<div class="results-metrics"><div><p class="results-number">~300</p><p class="results-label">Peak successful lands / hour</p></div><div><p class="results-number">~30<span class="unit">min</span></p><p class="results-label">Land-time p95 outside incidents</p></div></div><div class="results-chart">${currentVolumeChart()}</div>`,
       "- As of October 2026: around 300 successful lands per hour at peak, excluding branch requests.\n- Land-time p95 is around 30 minutes outside incidents, not a guaranteed upper bound.\n- The next step is making this approach reusable and available in the open.",
       []);
-    add("The next platform is being built in the open","Open source & next",65,
-      `${ossDiagram()}<p class="bottom-line"><a href="https://github.com/uber/submitqueue" target="_blank" rel="noopener">github.com/uber/submitqueue</a></p>`,
-      "- SubmitQueue and Stovepipe are being developed in the open.\n- SubmitQueue coordinates pre-merge validation; Stovepipe validates landed states.\n- Extension points connect source control, CI, storage, and hooks.",
+    add("SubmitQueue and Stovepipe in the open","Open source",65,
+      `<div class="split" style="margin-top:45px"><div><p class="compare-label">Pre-merge</p><p class="contract green">SubmitQueue</p><p class="under">Validate speculative futures.<br>Land passing changes.</p></div><div><p class="compare-label">Post-merge</p><p class="contract green">Stovepipe</p><p class="under">Validate landed states.<br>Track known-good states.</p></div></div><p class="bottom-line"><a href="https://github.com/uber/submitqueue" target="_blank" rel="noopener">github.com/uber/submitqueue</a></p>`,
+      "- Both SubmitQueue and Stovepipe are being built in the open.\n- SubmitQueue handles pre-merge validation; Stovepipe handles post-merge validation.\n- The open-source repository contains both systems.",
       ["repository"]);
     add("What comes next","Open source & next",70,
       `<div class="three" style="margin-top:20px">

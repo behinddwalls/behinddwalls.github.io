@@ -1,6 +1,6 @@
 # Merging at AI Scale — speaker cues
 
-30-minute prerecorded talk · 30 slides. Three short cues per slide.
+30-minute prerecorded talk · 31 slides. Three short cues per slide.
 
 ## Run of show
 
@@ -15,27 +15,28 @@
 | 07 | 03:50 | 01:20 | How SubmitQueue scales |
 | 08 | 05:10 | 00:15 | Then the arrival rate changed. |
 | 09 | 05:25 | 00:45 | AI changed the pace of integration |
-| 10 | 06:10 | 00:40 | Green trunk. Hours to land |
-| 11 | 06:50 | 01:05 | Admission gating |
-| 12 | 07:55 | 00:55 | Admission gating: the tradeoff |
-| 13 | 08:50 | 01:05 | Deferrals |
-| 14 | 09:55 | 00:50 | Deferrals: the tradeoff |
-| 15 | 10:45 | 01:15 | Any target overlap could serialize work |
-| 16 | 12:00 | 00:55 | Conflict relaxation |
-| 17 | 12:55 | 01:20 | Jaccard scoring for dependency overlap |
-| 18 | 14:15 | 01:40 | Buy parallelism by dropping the weakest bridges |
-| 19 | 15:55 | 00:45 | Assign new arrivals. Leave in-flight work alone. |
-| 20 | 16:40 | 00:55 | Conflict relaxation: the tradeoff |
-| 21 | 17:35 | 00:45 | The cost: trunk can turn red |
-| 22 | 18:20 | 01:50 | Stovepipe: post-merge validation |
-| 23 | 20:10 | 02:00 | Validate from the last known-good baseline |
-| 24 | 22:10 | 01:25 | Separate the integration tip from the trusted ref |
-| 25 | 23:35 | 01:20 | Detection is only the start of recovery |
-| 26 | 24:55 | 02:00 | More throughput. Shorter waits. |
-| 27 | 26:55 | 01:05 | The next platform is being built in the open |
-| 28 | 28:00 | 01:10 | What comes next |
-| 29 | 29:10 | 00:30 | Keep confidence green, even when trunk isn’t |
-| 30 | 29:40 | 00:20 | Thank you |
+| 10 | 06:10 | 00:35 | Green trunk. Hours to land |
+| 11 | 06:45 | 00:30 | What we changed |
+| 12 | 07:15 | 00:55 | Admission gating |
+| 13 | 08:10 | 00:50 | Admission gating: the tradeoff |
+| 14 | 09:00 | 01:00 | Deferrals |
+| 15 | 10:00 | 00:45 | Deferrals: the tradeoff |
+| 16 | 10:45 | 01:15 | Any target overlap could serialize work |
+| 17 | 12:00 | 00:55 | Conflict relaxation |
+| 18 | 12:55 | 01:20 | Jaccard scoring for dependency overlap |
+| 19 | 14:15 | 01:40 | Buy parallelism by dropping the weakest bridges |
+| 20 | 15:55 | 00:45 | Assign new arrivals. Leave in-flight work alone. |
+| 21 | 16:40 | 00:55 | Conflict relaxation: the tradeoff |
+| 22 | 17:35 | 00:45 | The cost: trunk can turn red |
+| 23 | 18:20 | 01:50 | Stovepipe: post-merge validation |
+| 24 | 20:10 | 02:00 | Validate from the last known-good baseline |
+| 25 | 22:10 | 01:25 | Separate the integration tip from the trusted ref |
+| 26 | 23:35 | 01:20 | Detection is only the start of recovery |
+| 27 | 24:55 | 02:00 | More throughput. Shorter waits. |
+| 28 | 26:55 | 01:05 | SubmitQueue and Stovepipe in the open |
+| 29 | 28:00 | 01:10 | What comes next |
+| 30 | 29:10 | 00:30 | Keep confidence green, even when trunk isn’t |
+| 31 | 29:40 | 00:20 | Thank you |
 
 ## Speaking cues
 
@@ -113,45 +114,53 @@
 
 ### 10 · Green trunk. Hours to land
 
-06:10–06:50
+06:10–06:45
 
-- At March’s peak load, landing could take 3 to 4 hours.
+- Landing at peak could take 3 to 4 hours.
 - The cost was developer waiting, despite existing optimizations.
-- Before changing the merge model, first control the incoming load.
+- Our response: manage the load first, then change the merge model.
 
-### 11 · Admission gating
+### 11 · What we changed
 
-06:50–07:55
+06:45–07:15
 
-- Keep expensive submissions out during peak load.
+- First, shape incoming submission traffic with admission gating.
+- Then, make the platform own waiting and release through deferrals.
+- Finally, relax conflict constraints to unlock more independent merge progress.
+
+### 12 · Admission gating
+
+07:15–08:10
+
+- First, keep expensive submissions out during peak hours.
 - Smaller changes enter; rejected authors must resubmit later.
 - This protects active capacity, but puts scheduling onto developers.
 
-### 12 · Admission gating: the tradeoff
+### 13 · Admission gating: the tradeoff
 
-07:55–08:50
+08:10–09:00
 
 - Business-hour average landing rate: about 130 → 160 diffs/hour; +23% after gating.
 - These are business-hour averages, not peak landing rates. The percentage uses unrounded values.
 - The cost: developers must return and resubmit. Deferrals automate that waiting.
 
-### 13 · Deferrals
+### 14 · Deferrals
 
-08:50–09:55
+09:00–10:00
 
 - Accept the costly request once and hold it durably.
 - Recheck release conditions and admit it when eligible.
 - The platform owns waiting and release, not the developer.
 
-### 14 · Deferrals: the tradeoff
+### 15 · Deferrals: the tradeoff
 
-09:55–10:45
+10:00–10:45
 
 - Submit once; release automatically.
 - The waiting and validation cost still exist.
 - When deferred work enters the active queue, its dependencies still constrain progress.
 
-### 15 · Any target overlap could serialize work
+### 16 · Any target overlap could serialize work
 
 10:45–12:00
 
@@ -159,7 +168,7 @@
 - One bridge can couple otherwise separate groups of changes.
 - We needed to distinguish strong dependency signals from weak ones.
 
-### 16 · Conflict relaxation
+### 17 · Conflict relaxation
 
 12:00–12:55
 
@@ -167,7 +176,7 @@
 - Retain stronger links and relax selected weaker links.
 - The overlap score helps choose which groups can make independent progress.
 
-### 17 · Jaccard scoring for dependency overlap
+### 18 · Jaccard scoring for dependency overlap
 
 12:55–14:15
 
@@ -175,7 +184,7 @@
 - Direct overlap has weight 1; new dependency-edge overlaps have weight 0.5 in each direction.
 - Take the strongest signal. This ranks overlap; it is not a failure probability.
 
-### 18 · Buy parallelism by dropping the weakest bridges
+### 19 · Buy parallelism by dropping the weakest bridges
 
 14:15–15:55
 
@@ -183,7 +192,7 @@
 - Retain the strong links: 0.90, 0.80, and 0.70. Drop the weak bridges: 0.08 and 0.04.
 - This is a graph-level choice, not one universal score cutoff.
 
-### 19 · Assign new arrivals. Leave in-flight work alone.
+### 20 · Assign new arrivals. Leave in-flight work alone.
 
 15:55–16:40
 
@@ -191,7 +200,7 @@
 - Preserve placement for work already being validated.
 - Avoid reshuffling useful speculative builds. This is not a fixed global merge order.
 
-### 20 · Conflict relaxation: the tradeoff
+### 21 · Conflict relaxation: the tradeoff
 
 16:40–17:35
 
@@ -199,7 +208,7 @@
 - More independent progress, but some combinations land without being validated together.
 - Checks are not waived. We need confidence in the states that actually land.
 
-### 21 · The cost: trunk can turn red
+### 22 · The cost: trunk can turn red
 
 17:35–18:20
 
@@ -207,7 +216,7 @@
 - The combined state can leave trunk red even though both PRs passed.
 - Stovepipe validates landed states and tracks which ones are known good.
 
-### 22 · Stovepipe: post-merge validation
+### 23 · Stovepipe: post-merge validation
 
 18:20–20:10
 
@@ -215,7 +224,7 @@
 - Validate from a known-good baseline; update it only after a passing result.
 - The question: at which commit do we know this branch is green?
 
-### 23 · Validate from the last known-good baseline
+### 24 · Validate from the last known-good baseline
 
 20:10–22:10
 
@@ -223,7 +232,7 @@
 - Next validate G relative to A, including the still-unverified range.
 - If G passes, advance the baseline. That does not certify every intermediate state.
 
-### 24 · Separate the integration tip from the trusted ref
+### 25 · Separate the integration tip from the trusted ref
 
 22:10–23:35
 
@@ -231,15 +240,15 @@
 - Failed or pending validation does not advance the trusted ref.
 - Consumers must choose to honor that confidence signal.
 
-### 25 · Detection is only the start of recovery
+### 26 · Detection is only the start of recovery
 
 23:35–24:55
 
-- Detect failure, record evidence, and preserve a known-good state.
-- Own triage, fixes or reverts, and validation of recovery; measure time and impact.
-- This is the new integration contract. What does it buy in throughput and developer waiting time?
+- A broken mainline triggers an on-call alert.
+- On-call prepares a fix or revert, gets approvals, and lands the change.
+- Stovepipe keeps validating and records when main is green again.
 
-### 26 · More throughput. Shorter waits.
+### 27 · More throughput. Shorter waits.
 
 24:55–26:55
 
@@ -247,15 +256,15 @@
 - Land-time p95 is around 30 minutes outside incidents, not a guaranteed upper bound.
 - The next step is making this approach reusable and available in the open.
 
-### 27 · The next platform is being built in the open
+### 28 · SubmitQueue and Stovepipe in the open
 
 26:55–28:00
 
-- SubmitQueue and Stovepipe are being developed in the open.
-- SubmitQueue coordinates pre-merge validation; Stovepipe validates landed states.
-- Extension points connect source control, CI, storage, and hooks.
+- Both SubmitQueue and Stovepipe are being built in the open.
+- SubmitQueue handles pre-merge validation; Stovepipe handles post-merge validation.
+- The open-source repository contains both systems.
 
-### 28 · What comes next
+### 29 · What comes next
 
 28:00–29:10
 
@@ -263,7 +272,7 @@
 - Move toward project-scoped confidence instead of one global status.
 - Invest in automated diagnosis, fixes, and reverts. These are future directions.
 
-### 29 · Keep confidence green, even when trunk isn’t
+### 30 · Keep confidence green, even when trunk isn’t
 
 29:10–29:40
 
@@ -271,7 +280,7 @@
 - Spend serialization on the strongest dependency signals.
 - Make known-good state explicit. Confidence still needs an owner.
 
-### 30 · Thank you
+### 31 · Thank you
 
 29:40–30:00
 

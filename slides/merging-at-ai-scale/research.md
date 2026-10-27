@@ -6,11 +6,12 @@
 2. Two individually green PRs can produce a broken integrated build.
 3. SubmitQueue validates speculative futures; target analysis, probabilistic speculation, and bypassing make that practical.
 4. AI-assisted development increases the arrival rate. March’s growth exposes long landing waits.
+   A brief overview introduces the response: shape the traffic, automate the wait, and unlock parallelism.
 5. Admission gating protects capacity but makes developers schedule around peak hours.
 6. Deferral automates waiting and release without removing dependency constraints.
 7. Conflict relaxation creates independent progress by retaining stronger overlap signals and dropping selected weaker links.
-8. Post-merge validation detects failures and establishes known-good states. Recovery still needs ownership.
-9. Results and the open-source platform.
+8. Post-merge validation detects failures and establishes known-good states. On-call is alerted, prepares a fix/revert, gets approvals, and lands it while Stovepipe continues validation.
+9. Results and the open-source SubmitQueue (pre-merge) and Stovepipe (post-merge) systems.
 10. Future investments: SubmitQueue batching, project-scoped confidence, and automated fixes/reverts.
 
 ## Interpreting the figures

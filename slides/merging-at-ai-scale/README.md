@@ -4,7 +4,7 @@
 
 Speakers: Preetam Dwivedi and Manjari Akella.
 
-A self-contained HTML presentation for a 30-minute prerecorded talk, with 30 slides and a Thank you ending.
+A self-contained HTML presentation for a 30-minute prerecorded talk, with 31 slides and a Thank you ending.
 
 ## Files
 
@@ -33,7 +33,7 @@ Slide position is stored in the URL hash, for example `#slide=15`. Presenter nav
 
 ## Content
 
-The speaker introduction presents both speakers with matching portraits, names, and roles. The story moves from monorepo integration and speculative validation to AI-driven workload growth, admission gating, deferral, conflict relaxation, post-merge confidence, and results.
+The speaker introduction presents both speakers with matching portraits, names, and roles. A short intervention overview bridges developer impact and the detailed mechanisms. The story moves from monorepo integration and speculative validation to AI-driven workload growth, admission gating, deferral, conflict relaxation, post-merge confidence, and results.
 
 The notes are prompts for the speaker, not a full narration script. The tactical interventions are paced more briskly so post-merge validation begins earlier. The July throughput milestone is shown after relaxation; the final peak result remains in the results section. Numerical distinctions, such as averages versus peaks, are retained where they matter. See `research.md` for a concise outline and interpretation guide.
 
