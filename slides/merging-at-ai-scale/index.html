@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="light dark">
-  <title>Merging at AI Scale — Preetam Dwivedi</title>
+  <title>Merging at AI Scale — Preetam Dwivedi &amp; Manjari Akella</title>
   <meta name="description" content="A 30-minute technical talk about SubmitQueue, conflict relaxation, and post-merge validation with Stovepipe.">
   <style>
     :root {
@@ -75,8 +75,7 @@
     .cover-sub { font-size: 43px; line-height: 1.16; margin-top: 33px; letter-spacing: -.025em; }
     .cover-title + .cover-sub { font-size: 48px; line-height: 1.18; margin-top: 30px; }
     .cover-author { position: absolute; left: 0; bottom: 58px; max-width: 780px; }
-    .cover-name { font-size: 30px; font-weight: 500; color: var(--paper); }
-    .cover-role { margin-top: 10px; font-size: 25px; line-height: 1.4; color: var(--muted); }
+    .cover-name { font-size: 30px; font-weight: 500; line-height: 1.5; color: var(--paper); }
     .cover-track { position: absolute; right: 0; bottom: 20px; width: 760px; height: 330px; }
     .repo-scale { display: grid; grid-template-columns: 610px 1fr; gap: 105px; margin-top: 25px; }
     .repo-landscape { width: 580px; height: 440px; }
@@ -480,7 +479,7 @@
       slides.push({title,chapter,seconds,body,notes,refs,...opts});
     }
     add("Merging at AI Scale","Opening",20,
-      `<h1 class="cover-title">Merging at AI Scale</h1><p class="cover-sub">From Green Mainline to Broken Trunks</p><div class="content"><div class="cover-author"><p class="cover-name">Preetam Dwivedi</p><p class="cover-role">Staff Software Engineer<br>Developer Platform, Uber</p></div><div class="cover-track">${coverMergeStream()}</div></div>`,
+      `<h1 class="cover-title">Merging at AI Scale</h1><p class="cover-sub">From Green Mainline to Broken Trunks</p><div class="content"><div class="cover-author"><p class="cover-name">Preetam Dwivedi<br>Manjari Akella</p></div><div class="cover-track">${coverMergeStream()}</div></div>`,
       "- AI-driven change volume forced us to rethink merging.\n- Follow three interventions, then the shift to post-merge confidence.\n- Correctness still matters. When and where we validate is what changed.",
       [],{"theme": "dark", "custom": true});
     add("Preetam Dwivedi","About me",35,

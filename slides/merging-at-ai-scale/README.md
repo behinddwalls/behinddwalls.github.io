@@ -2,6 +2,8 @@
 
 **From Green Mainline to Broken Trunks**
 
+Speakers: Preetam Dwivedi and Manjari Akella.
+
 A self-contained HTML presentation for a 30-minute prerecorded talk, with 30 slides and a Thank you ending.
 
 ## Files
