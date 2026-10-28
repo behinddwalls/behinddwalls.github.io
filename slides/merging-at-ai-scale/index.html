@@ -77,6 +77,11 @@
     .cover-author { position: absolute; left: 0; bottom: 58px; max-width: 780px; }
     .cover-name { font-size: 30px; font-weight: 500; line-height: 1.5; color: var(--paper); }
     .cover-track { position: absolute; right: 0; bottom: 20px; width: 760px; height: 330px; }
+    .ai-transition-title { font-size: 104px; line-height: 1.05; letter-spacing: -.05em; }
+    .ai-transition-title > span { display: block; }
+    .ai-transition-title .ai-word { margin-top: 10px; font-size: 220px; line-height: .95; letter-spacing: -.07em; color: var(--lime); }
+    .ai-word .ai-letter-i { font-family: Menlo, Consolas, "Liberation Mono", monospace; margin-left: .04em; letter-spacing: -.04em; }
+    .ai-transition-copy { margin-top: 48px; max-width: 1180px; font-size: 42px; line-height: 1.35; color: var(--muted); }
     .repo-scale { display: grid; grid-template-columns: 610px 1fr; gap: 105px; margin-top: 25px; }
     .repo-landscape { width: 580px; height: 440px; }
     .repo-statistics { display: grid; grid-template-columns: 1fr 1fr; gap: 65px 55px; padding-top: 15px; }
@@ -569,9 +574,9 @@
       </div>`,
       "- A target is a build or test unit; target analysis separates independent work.\n- Probabilistic speculation prioritizes likely futures.\n- Bypassing lets ready work pass slow predecessors when required results agree.",
       []);
-    add("Then the arrival rate changed.","The workload changes",15,
-      `<div class="content" style="display:flex;flex-direction:column;justify-content:center;margin-top:0"><h1 style="font-size:112px;line-height:1.05;letter-spacing:-.05em">Then the<br>arrival rate changed.</h1><p style="font-size:42px;line-height:1.4;margin-top:58px;color:var(--muted)">We had optimized how changes land.<br><span style="color:var(--lime)">AI changed how quickly they arrive.</span></p></div>`,
-      "- We had optimized how changes land.\n- AI changed how quickly they arrive.\n- The same integration machinery faced a very different workload.",
+    add("Then came AI","The workload changes",15,
+      `<div class="content" style="display:flex;flex-direction:column;justify-content:center;margin-top:0"><h1 class="ai-transition-title"><span>Then came</span><span class="ai-word">A<span class="ai-letter-i">I</span></span></h1><p class="ai-transition-copy">Changes arrived faster than we could land them.</p></div>`,
+      "- AI-assisted development accelerated code production.\n- Changes arrived faster than SubmitQueue could land them.\n- More arrivals exposed the limits of the existing integration model.",
       [],{"theme": "dark", "custom": true});
     add("AI changed the pace of integration","January to March 2026",45,
       `${scaleMilestones()}<p class="body" style="margin-top:50px;text-align:center"><span class="red-text" style="font-size:64px;font-weight:500">~44%</span> increase in two months</p><p class="bottom-line">March was the tipping point.</p>`,

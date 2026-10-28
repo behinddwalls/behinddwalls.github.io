@@ -14,7 +14,7 @@
 | 06 | 02:35 | 00:40 | A lands green. B turns main red. |
 | 07 | 03:15 | 00:55 | SubmitQueue speculates over futures |
 | 08 | 04:10 | 01:20 | How SubmitQueue scales |
-| 09 | 05:30 | 00:15 | Then the arrival rate changed. |
+| 09 | 05:30 | 00:15 | Then came AI |
 | 10 | 05:45 | 00:45 | AI changed the pace of integration |
 | 11 | 06:30 | 00:35 | Green trunk. Hours to land |
 | 12 | 07:05 | 00:30 | What we changed |
@@ -103,13 +103,13 @@
 - Probabilistic speculation prioritizes likely futures.
 - Bypassing lets ready work pass slow predecessors when required results agree.
 
-### 09 · Then the arrival rate changed.
+### 09 · Then came AI
 
 05:30–05:45
 
-- We had optimized how changes land.
-- AI changed how quickly they arrive.
-- The same integration machinery faced a very different workload.
+- AI-assisted development accelerated code production.
+- Changes arrived faster than SubmitQueue could land them.
+- More arrivals exposed the limits of the existing integration model.
 
 ### 10 · AI changed the pace of integration
 
