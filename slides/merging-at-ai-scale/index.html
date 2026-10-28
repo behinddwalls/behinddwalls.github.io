@@ -143,6 +143,24 @@
     .talk-outline { list-style: disc; margin: 38px 0 0; padding-left: 48px; display: grid; gap: 44px; }
     .talk-outline li { font-size: 48px; line-height: 1.2; letter-spacing: -.025em; }
     .talk-outline li::marker { font-size: .65em; }
+    .hybrid-close { max-width: 1416px; margin-top: 48px; display: grid; gap: 48px; font-size: 44px; line-height: 1.3; letter-spacing: -.02em; }
+    .hybrid-close p { text-wrap: balance; }
+    .commit-build-live { margin-top: 24px; height: 460px; }
+    .commit-graph { width: 100%; height: 100%; }
+    .moving-ref { transition: transform .5s ease; }
+    .commit-node, .commit-link { transition: opacity .3s ease; }
+    .commit-build-print { display: none; }
+    .build-print-summary { list-style: none; padding: 0; margin: 15px 0 0; display: grid; grid-template-columns: repeat(4,1fr); gap: 30px; font-size: 21px; line-height: 1.35; color: var(--muted); }
+    .build-print-summary strong { font-weight: 550; color: var(--ink); }
+    .recovery-flow { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 64px; list-style: none; margin: 64px 0 0; padding: 0; }
+    .recovery-step { position: relative; border-top: 4px solid var(--ink); padding-top: 26px; }
+    .recovery-step:first-child { border-color: var(--red); }
+    .recovery-step:last-child { border-color: var(--green); }
+    .recovery-step:not(:last-child)::after { content: "→"; position: absolute; top: -28px; right: -47px; font-size: 36px; color: var(--muted); }
+    .recovery-owner { font-size: 20px; line-height: 1.3; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+    .recovery-step h3 { margin-top: 24px; font-size: 32px; line-height: 1.2; }
+    .recovery-description { margin-top: 24px; font-size: 28px; line-height: 1.4; color: var(--muted); }
+    .recovery-description .mono { font-size: 25px; color: var(--green); }
     .closing-header { display: flex; align-items: baseline; justify-content: space-between; gap: 40px; }
     .closing-header h1 { font-size: 96px; line-height: 1; letter-spacing: -.055em; }
     a[href="https://github.com/uber/submitqueue"] { text-decoration: none; }
@@ -151,6 +169,19 @@
     .results-number { font-size: 100px; font-weight: 500; line-height: 1; letter-spacing: -.055em; color: var(--green); }
     .results-number .unit { font-size: 54px; letter-spacing: -.03em; margin-left: 12px; }
     .results-label { margin-top: 18px; font-size: 26px; line-height: 1.3; }
+    .results-growth { margin-top: 18px; font-size: 27px; line-height: 1.3; color: var(--muted); }
+    .results-growth strong { font-size: 36px; font-weight: 500; color: var(--green); }
+    .oss-layout { display: grid; grid-template-columns: 1fr 420px; gap: 100px; align-items: center; height: 100%; padding-bottom: 45px; }
+    .oss-systems { display: grid; gap: 28px; }
+    .oss-system + .oss-system { border-top: 1px solid var(--line); padding-top: 34px; }
+    .oss-phase { font-size: 20px; line-height: 1.3; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+    .oss-name { margin-top: 12px; font-size: 58px; line-height: 1.05; font-weight: 500; letter-spacing: -.035em; }
+    .oss-description { margin-top: 14px; font-size: 28px; line-height: 1.35; color: var(--muted); }
+    .oss-project { text-align: center; }
+    .oss-project-title { margin-bottom: 24px; font-size: 30px; font-weight: 500; }
+    .oss-qr, .oss-qr svg { display: block; width: 360px; height: 360px; }
+    .oss-qr { margin: 0 auto; background: white; }
+    .oss-url { margin-top: 24px; font-size: 27px; line-height: 1.3; letter-spacing: -.025em; white-space: nowrap; }
     .results-chart { margin-top: 32px; height: 290px; }
     .results-chart svg { width: 100%; height: 100%; }
     .label-line { display: flex; justify-content: space-between; border-top: 1px solid var(--line); padding: 18px 0; font-size: 25px; }
@@ -233,6 +264,9 @@
       .toolbar, .notes-panel, #progress, dialog, .sr-only { display: none !important; }
       body.blackout .workspace { visibility: visible; }
       body.presenter .workspace { margin: 0; }
+      .commit-build-live { display: none !important; }
+      .commit-build-print { display: block !important; margin-top: 15px; }
+      .commit-build-print .commit-graph { height: 355px; }
     }
   </style>
 </head>
@@ -247,6 +281,7 @@
     <button id="prev" aria-label="Previous slide" title="Previous (←)">←</button>
     <span id="position" class="position"></span>
     <button id="next" aria-label="Next slide" title="Next (→)">→</button>
+    <span id="build-position" class="position optional" aria-label="Current build" hidden></span>
     <select id="jump" aria-label="Jump to slide"></select>
     <span class="spacer"></span>
     <span id="elapsed" class="timer optional" title="Click to start or pause timer" role="timer">00:00</span>
@@ -267,7 +302,7 @@
     <button class="close-panel" data-close="help" aria-label="Close shortcuts">Close</button>
     <h2 id="help-title">Presenting</h2>
     <div class="help-grid">
-      <kbd>← → / Space / PgUp PgDn</kbd><span>Previous / next slide</span>
+      <kbd>← → / Space / PgUp PgDn</kbd><span>Previous / next build or slide</span>
       <kbd>Home / End</kbd><span>First slide / Thank you</span>
       <kbd>N</kbd><span>Speaker cues, timing, and public resources</span>
       <kbd>O</kbd><span>Slide overview</span>
@@ -345,9 +380,9 @@
     }
     function scaleMilestones() {
       return `<div class="milestone-track">
-        <div><p class="date">January 2026</p><p class="value">~90</p><p class="detail">Peak changes / hour</p></div>
+        <div><p class="date">January 2026</p><p class="value">~90</p><p class="detail">Peak lands / hour</p></div>
         <span class="connector" aria-hidden="true">→</span>
-        <div><p class="date">March 2026</p><p class="value red-text">~130</p><p class="detail">Peak changes / hour</p></div>
+        <div><p class="date">March 2026</p><p class="value red-text">~130</p><p class="detail">Peak lands / hour</p></div>
       </div>`;
     }
     function prIntegrationDiagram(landed=false) {
@@ -437,14 +472,50 @@
         circle(1120,340,"A",C.ink,28)+circle(1230,340,"B",C.ink,28)+circle(1340,340,"R",C.green,28),
         1416,450,"An expensive request is accepted into durable deferral during peak hours. The platform re-evaluates release gates, then admits the same request to active SubmitQueue without developer resubmission");
     }
-    function stovepipeTimeline() {
-      const xs=[100,295,490,685,880,1075,1270];
-      let b=text(0,25,"TRUNK",20,C.muted)+line(95,110,1295,110,C.ink,3);
-      xs.forEach((x,i)=>b+=circle(x,110,String.fromCharCode(65+i),i===0||i===6?C.green:C.ink,29));
-      b+=text(100,180,"last green",24,C.green,"middle")+text(685,180,"observed heads keep arriving",24,C.muted,"middle");
-      b+=line(100,260,685,260,C.red,5)+text(390,245,"validate D relative to A",25,C.red,"middle")+text(685,300,"D fails",25,C.red,"middle");
-      b+=line(100,365,1270,365,C.green,5)+text(690,352,"next validation still starts from A",25,C.green,"middle")+text(1270,410,"G passes",25,C.green,"middle");
-      return svg(b,1416,450,"A is last green. D fails validation, so G is validated relative to A. Intermediate heads may be coalesced rather than built individually");
+    const commitPositions=[160,340,520,700,880,1060,1240];
+    const commitBuilds=[
+      {label:"A is known green",detail:"Both refs point to the known-good baseline.",head:0,verified:0,outcome:"baseline",rangeEnd:0,cue:"A is the known-good starting point for both refs."},
+      {label:"D fails validation",detail:"main reaches D. verified/main stays at A.",head:3,verified:0,outcome:"failed",rangeEnd:3,cue:"The A–D validation fails, so the known-good ref does not advance."},
+      {label:"G lands, validation pending",detail:"main reaches G. Validation still starts from A.",head:6,verified:0,outcome:"pending",rangeEnd:6,cue:"Later heads can be coalesced. Validate A–G while verified/main stays at A."},
+      {label:"G passes validation",detail:"verified/main advances to the passing state at G.",head:6,verified:6,outcome:"passed",rangeEnd:6,cue:"Promote G after it passes. Earlier intermediate states are not retroactively certified."}
+    ];
+    function commitColor(index,state) {
+      if(index===0)return C.green;
+      if(index===3&&state.head>=3)return C.red;
+      if(index===6&&state.head===6)return state.outcome==="passed"?C.green:C.amber;
+      return C.ink;
+    }
+    function validationColor(state) {
+      return state.outcome==="failed"?C.red:state.outcome==="pending"?C.amber:C.green;
+    }
+    function validationLabel(state) {
+      if(state.outcome==="baseline")return "";
+      return `Validate A–${String.fromCharCode(65+state.rangeEnd)}: ${state.outcome}`;
+    }
+    function commitRefGraph(state) {
+      const y=215,color=validationColor(state),end=commitPositions[state.rangeEnd];
+      let b=text(0,42,state.label,36,color,"start",550).replace("<text ",'<text data-build-label ')+
+        text(0,87,state.detail,27,C.muted).replace("<text ",'<text data-build-detail ');
+      for(let i=1;i<commitPositions.length;i++)b+=`<g class="commit-link" data-link="${i}" style="opacity:${i<=state.head?1:.14}">${line(commitPositions[i-1],y,commitPositions[i],y,C.ink,3)}</g>`;
+      commitPositions.forEach((x,i)=>{
+        b+=`<g class="commit-node" data-commit="${i}" style="opacity:${i<=state.head?1:.14}">${circle(x,y,String.fromCharCode(65+i),commitColor(i,state),30)}</g>`;
+      });
+      b+=`<g class="moving-ref" data-ref="main" data-commit="${String.fromCharCode(65+state.head)}" style="transform:translateX(${commitPositions[state.head]}px)">`+
+        text(0,140,"main HEAD",28,C.ink,"middle",550)+line(0,154,0,175,C.ink,3)+
+        `<path d="M-7 175L0 185L7 175" fill="none" stroke="${C.ink}" stroke-width="3"/></g>`;
+      b+=`<g class="moving-ref" data-ref="verified" data-commit="${String.fromCharCode(65+state.verified)}" style="transform:translateX(${commitPositions[state.verified]}px)">`+
+        line(0,255,0,271,C.green,3)+`<path d="M-7 255L0 245L7 255" fill="none" stroke="${C.green}" stroke-width="3"/>`+
+        text(0,307,"verified/main HEAD",27,C.green,"middle",550)+`</g>`;
+      b+=`<g data-validation-range ${state.outcome==="baseline"?'hidden=""':""}>`+
+        `<path data-range-bracket d="M${commitPositions[0]} 348V364H${end}V348" fill="none" stroke="${color}" stroke-width="4"/>`+
+        text((commitPositions[0]+end)/2,408,validationLabel(state),29,color,"middle",500).replace("<text ",'<text data-range-label ')+`</g>`;
+      return svg(b,1416,440,`${state.label}. ${state.detail} ${validationLabel(state)}. Commit positions stay fixed while main and verified/main advance.`).replace('<svg ','<svg class="commit-graph" ');
+    }
+    function commitBuildBody() {
+      return `<p class="body muted" style="font-size:30px"><span class="mono">main</span> advances on landing. <span class="mono">verified/main</span> advances on passing validation.</p>`+
+        `<div class="commit-build-live">${commitRefGraph(commitBuilds[0])}</div>`+
+        `<div class="commit-build-print">${commitRefGraph(commitBuilds[3])}<ol class="build-print-summary">`+
+        commitBuilds.map(state=>`<li><strong>${esc(state.label)}</strong><br>${esc(state.detail)}</li>`).join("")+`</ol></div>`;
     }
     function currentVolumeChart() {
       const W=1416,H=290,L=65,R=15,T=18,B=36, pw=W-L-R, ph=H-T-B;
@@ -455,6 +526,7 @@
       b+=text(W-R,H-4,"Time →",20,C.muted,"end");
       return svg(b,W,H,"Hourly successful PR and diff land-request volume, with a peak of approximately three hundred per hour. Branch requests excluded");
     }
+    const repositoryQrSvg = "<svg role=\"img\" aria-label=\"QR code for the SubmitQueue and Stovepipe GitHub project\" xmlns=\"http://www.w3.org/2000/svg\" width=\"360\" height=\"360\" viewBox=\"0 0 37 37\" shape-rendering=\"crispEdges\"><path fill=\"#ffffff\" d=\"M0 0h37v37H0z\"/><path stroke=\"#000000\" d=\"M4 4.5h7m1 0h2m1 0h2m2 0h2m2 0h2m1 0h7M4 5.5h1m5 0h1m1 0h1m1 0h2m2 0h2m6 0h1m5 0h1M4 6.5h1m1 0h3m1 0h1m2 0h1m3 0h3m3 0h2m1 0h1m1 0h3m1 0h1M4 7.5h1m1 0h3m1 0h1m1 0h1m2 0h1m5 0h2m3 0h1m1 0h3m1 0h1M4 8.5h1m1 0h3m1 0h1m3 0h1m2 0h1m5 0h1m2 0h1m1 0h3m1 0h1M4 9.5h1m5 0h1m2 0h2m1 0h1m1 0h1m2 0h3m2 0h1m5 0h1M4 10.5h7m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h7M12 11.5h3m1 0h3m1 0h5M4 12.5h1m1 0h2m1 0h3m1 0h1m1 0h4m1 0h4m2 0h1m2 0h1m1 0h2M6 13.5h3m3 0h1m3 0h1m3 0h1m2 0h2m1 0h3m3 0h1M4 14.5h3m2 0h3m2 0h3m1 0h1m1 0h1m4 0h1m1 0h1m2 0h2M4 15.5h2m2 0h2m2 0h1m1 0h1m1 0h3m3 0h5m1 0h1m3 0h1M4 16.5h3m2 0h4m2 0h1m3 0h3m2 0h1m4 0h2M5 17.5h1m1 0h1m3 0h3m3 0h1m1 0h5m2 0h1m3 0h3M4 18.5h1m1 0h1m3 0h2m2 0h2m2 0h1m3 0h3m1 0h1m3 0h3M4 19.5h1m1 0h3m2 0h1m3 0h1m1 0h1m1 0h2m2 0h6m2 0h1M4 20.5h1m3 0h3m2 0h2m1 0h1m5 0h3m3 0h2m1 0h1M6 21.5h2m3 0h1m1 0h2m1 0h2m1 0h1m7 0h1m1 0h3M4 22.5h1m3 0h1m1 0h2m1 0h1m1 0h1m3 0h4m1 0h1m1 0h3m1 0h1M7 23.5h1m1 0h1m3 0h1m1 0h2m3 0h2m4 0h3m1 0h1M5 24.5h3m1 0h2m1 0h2m2 0h2m3 0h2m1 0h7M12 25.5h7m1 0h3m1 0h1m3 0h5M4 26.5h7m1 0h2m1 0h1m1 0h1m2 0h5m1 0h1m1 0h2m1 0h1M4 27.5h1m5 0h1m1 0h1m2 0h2m3 0h1m1 0h1m1 0h1m3 0h2m1 0h1M4 28.5h1m1 0h3m1 0h1m2 0h1m4 0h4m2 0h5m1 0h2M4 29.5h1m1 0h3m1 0h1m1 0h1m3 0h1m1 0h3m2 0h1m1 0h1m1 0h3m2 0h1M4 30.5h1m1 0h3m1 0h1m1 0h2m2 0h1m3 0h1m3 0h1m2 0h1m2 0h1m1 0h1M4 31.5h1m5 0h1m2 0h1m1 0h1m1 0h1m1 0h2m3 0h2m1 0h1m1 0h1m1 0h1M4 32.5h7m1 0h4m4 0h1m1 0h5m4 0h1\"/></svg>";
     const slides = [];
     function add(title,chapter,seconds,body,notes,refs=[],opts={}) {
       slides.push({title,chapter,seconds,body,notes,refs,...opts});
@@ -476,7 +548,7 @@
       "- Six major monorepos span Go, Java, Web, Python, iOS, and Android.\n- 5K+ contributors, 36K+ commits/week, 27K PRs/week, and 440M+ lines of code.\n- Shared code enables collaboration, but integration has a shared cost.",
       [],{"eyebrow": false});
     add("Two green PRs. One untested combination.","The integration problem",40,
-      `<p class="body muted">Both PRs pass CI against the same base. Neither has landed.</p><div style="margin-top:12px;height:475px">${prIntegrationDiagram()}</div><p class="bottom-line">Green PRs don’t guarantee a green mainline</p>`,
+      `<p class="body muted">Both PRs pass CI against the same base. Neither has landed.</p><div style="margin-top:12px;height:475px">${prIntegrationDiagram()}</div>`,
       "- A and B branch from the same base H.\n- Both PRs pass their own CI. Neither has landed.\n- Green results in isolation do not establish that the changes work together.",
       []);
     add("A lands green. B turns main red.","The integration failure",40,
@@ -492,7 +564,7 @@
         <div><p class="compare-label">01</p><h3>Target analysis</h3><p class="body" style="margin-top:26px">Separate independent work</p><p class="small muted" style="margin-top:22px">Build-target relationships split work into virtual queues.</p></div>
         <div><p class="compare-label">02</p><h3>Probabilistic speculation</h3><p class="body" style="margin-top:26px">Build likely futures first</p><p class="small muted" style="margin-top:22px">Prioritize speculative states most likely to be needed.</p></div>
         <div><p class="compare-label">03</p><h3>Bypass large changes</h3><p class="body" style="margin-top:26px">Let ready work move ahead</p><p class="small muted" style="margin-top:22px">Finalize later work when all required speculative outcomes agree.</p></div>
-      </div><p class="bottom-line">The new pressure arrived after these optimizations were already in place</p>`,
+      </div>`,
       "- A target is a build or test unit; target analysis separates independent work.\n- Probabilistic speculation prioritizes likely futures.\n- Bypassing lets ready work pass slow predecessors when required results agree.",
       []);
     add("Then the arrival rate changed.","The workload changes",15,
@@ -500,12 +572,12 @@
       "- We had optimized how changes land.\n- AI changed how quickly they arrive.\n- The same integration machinery faced a very different workload.",
       [],{"theme": "dark", "custom": true});
     add("AI changed the pace of integration","January to March 2026",45,
-      `${scaleMilestones()}<p class="bottom-line">March was the tipping point.</p>`,
-      "- January: about 90 changes per hour at peak.\n- March: about 130. Growth arrived in months, not years.\n- March was the tipping point. What did that feel like for developers?",
+      `${scaleMilestones()}<p class="body" style="margin-top:50px;text-align:center"><span class="red-text" style="font-size:64px;font-weight:500">~44%</span> increase in two months</p><p class="bottom-line">March was the tipping point.</p>`,
+      "- January: about 90 lands per hour at peak.\n- March: about 130, roughly 44% above January.\n- March was the tipping point. What did that feel like for developers?",
       []);
     add("Green trunk. Hours to land","The developer impact",35,
-      `<div class="split" style="margin-top:45px"><div><div class="wait-time"><span>3</span><span class="range-word">to</span><span>4</span></div><p class="body" style="margin-top:30px">hours to land at peak</p></div><div style="padding-top:25px"><p style="font-size:56px;line-height:1.13;letter-spacing:-.025em">We were protecting main<br>by making<br>developers wait.</p></div></div>`,
-      "- Landing at peak could take 3 to 4 hours.\n- The cost was developer waiting, despite existing optimizations.\n- Our response: manage the load first, then change the merge model.",
+      `<p class="body" style="font-size:36px">Land-time p95</p><div style="display:grid;grid-template-columns:1fr 110px 1fr;align-items:center;gap:40px;margin:55px auto 0;max-width:1250px;text-align:center"><div><p class="big">~30</p><p class="body" style="margin-top:30px">minutes</p></div><p class="muted" style="font-size:64px" aria-hidden="true">→</p><div><div class="wait-time" style="justify-content:center"><span>3</span><span class="range-word">to</span><span>4</span></div><p class="body" style="margin-top:30px">hours at peak</p></div></div><p class="bottom-line">We were protecting main by making developers wait.</p>`,
+      "- Land-time p95 was around 30 minutes before the growth.\n- During peak periods, p95 stretched to 3 to 4 hours.\n- Protecting main meant developers waited. Next, shape traffic and change the merge model.",
       [],{"theme": "red"});
     add("What we changed","The response",30,
       `<div class="three" style="margin-top:65px"><div><p class="compare-label">01</p><h3 style="font-size:38px">Shape the traffic</h3><p class="body muted" style="margin-top:25px">Admission gating</p></div><div><p class="compare-label">02</p><h3 style="font-size:38px">Automate the wait</h3><p class="body muted" style="margin-top:25px">Deferrals</p></div><div><p class="compare-label">03</p><h3 style="font-size:38px">Unlock parallelism</h3><p class="body muted" style="margin-top:25px">Conflict relaxation</p></div></div><p class="bottom-line">Manage demand first. Then change the merge model.</p>`,
@@ -516,8 +588,8 @@
       "- First, keep expensive submissions out during peak hours.\n- Smaller changes enter; rejected authors must resubmit later.\n- This protects active capacity, but puts scheduling onto developers.",
       []);
     add("Admission gating: the tradeoff","Intervention 1",50,
-      `<div class="split tradeoff" style="margin-top:18px"><div><h3 class="green">After peak-hour gating</h3><p class="intervention-gain">+23%</p><p class="intervention-outcome">Average business-hour throughput</p><p class="intervention-rates"><strong>~130 → ~160</strong> diffs/hour, on average</p></div><div><h3 class="red-text">Developer cost</h3><p class="claim">Developers become<br>the schedulers</p><p class="explanation">“Submit early. Or try again tonight.”</p><p class="small muted" style="margin-top:28px">Resubmit expensive changes<br>outside peak hours.</p></div></div><p class="bottom-line">We protected capacity during peak hours, but made developers manage the wait</p>`,
-      "- Business-hour average landing rate: about 130 → 160 diffs/hour; +23% after gating.\n- These are business-hour averages, not peak landing rates. The percentage uses unrounded values.\n- The cost: developers must return and resubmit. Deferrals automate that waiting.",
+      `<div class="split tradeoff" style="margin-top:18px"><div><h3 class="green">After peak-hour gating</h3><p class="intervention-gain" style="font-size:88px;white-space:nowrap">~130 → ~160</p><p class="intervention-outcome">Lands / hour</p><p class="caption" style="margin-top:12px">Business hours</p><p class="intervention-rates"><strong class="green" style="font-size:43px">+23%</strong> observed increase</p></div><div><h3 class="red-text">Developer cost</h3><p class="claim">Developers become<br>the schedulers</p><p class="explanation">“Submit early. Or try again tonight.”</p><p class="small muted" style="margin-top:28px">Resubmit expensive changes<br>outside peak hours.</p></div></div><p class="bottom-line">We protected capacity during peak hours, but made developers manage the wait</p>`,
+      "- Business-hour average landing rate: about 130 → 160 lands/hour; +23% after gating.\n- These are business-hour averages, not peak landing rates. The percentage uses unrounded values.\n- The cost: developers must return and resubmit. Deferrals automate that waiting.",
       []);
     add("Deferrals","Intervention 2",60,
       `${deferralDiagram()}<p class="bottom-line">Submit once. Release automatically when capacity allows.</p>`,
@@ -553,53 +625,40 @@
       "- Assign each new arrival using the conflict policy.\n- Preserve placement for work already being validated.\n- Avoid reshuffling useful speculative builds. This is not a fixed global merge order.",
       []);
     add("Conflict relaxation: the tradeoff","Intervention 3",55,
-      `<div class="split tradeoff" style="margin-top:18px"><div><h3 class="green">Early throughput</h3><p class="intervention-gain">~250</p><p class="intervention-outcome">Landed requests / hour</p><p class="intervention-rates">July 2026, after relaxation</p></div><div><h3 class="red-text">The tradeoff</h3><p class="claim">Some combinations<br>land untested</p><p class="explanation">Individually green changes can interact after landing. Trunk can turn red.</p></div></div><p class="bottom-line">Higher throughput creates a new obligation: validate what actually lands</p>`,
-      "- After relaxation in July, throughput was roughly 240 to 250 landed requests/hour.\n- More independent progress, but some combinations land without being validated together.\n- Checks are not waived. We need confidence in the states that actually land.",
+      `<div class="split tradeoff" style="margin-top:18px"><div><h3 class="green">Early throughput</h3><p class="intervention-gain" style="font-size:88px;white-space:nowrap">~160 → ~250</p><p class="intervention-outcome">Lands / hour</p><p class="caption" style="margin-top:12px">Business hours, July 2026</p><p class="intervention-rates"><strong class="green" style="font-size:43px">~56%</strong> observed increase</p></div><div><h3 class="red-text">The tradeoff</h3><p class="claim">Some combinations<br>land untested</p><p class="explanation">Individually green changes can interact after landing. Trunk can turn red.</p></div></div><p class="bottom-line">Higher throughput creates a new obligation: validate what actually lands</p>`,
+      "- July business-hour average after relaxation: about 160 to 250 lands/hour, roughly 56% observed growth.\n- More independent progress, but some combinations land without being validated together.\n- Checks are not waived. We need confidence in the states that actually land.",
       []);
     add("The cost: trunk can turn red","The consequence",45,
       `${relaxedMergeDiagram()}<p class="bottom-line" style="color:var(--lime)">Which landed state can we actually trust?</p>`,
       "- Individually green changes can still fail together after landing.\n- The combined state can leave trunk red even though both PRs passed.\n- Stovepipe validates landed states and tracks which ones are known good.",
       [],{"theme": "dark"});
-    add("Stovepipe: post-merge validation","Post-merge confidence",110,
-      `<div class="pipeline" style="margin-top:25px">
-        <div class="step"><strong>Observe</strong><p>Notice a new landed head.<br>Avoid duplicate work.</p></div><span class="arrow">→</span>
-        <div class="step"><strong>Plan</strong><p>Choose the head to validate.<br>Select baseline and scope.</p></div><span class="arrow">→</span>
-        <div class="step"><strong>Validate</strong><p>Build + test landed code.<br>Track it to completion.</p></div><span class="arrow">→</span>
-        <div class="step"><strong>Record</strong><p>Record the outcome.<br>Update known-good if green.</p></div>
-      </div><p class="bottom-line green">“At which commit do we know this branch is green?”</p>`,
-      "- Observe landed states, choose the head and baseline, build and test, and record the result.\n- Validate from a known-good baseline; update it only after a passing result.\n- The question: at which commit do we know this branch is green?",
-      []);
-    add("Validate from the last known-good baseline","Post-merge confidence",120,
-      `${stovepipeTimeline()}`,
-      "- A is known green. Validation at D fails, so the baseline stays at A.\n- Next validate G relative to A, including the still-unverified range.\n- If G passes, advance the baseline. That does not certify every intermediate state.",
-      []);
-    add("Separate the integration tip from the trusted ref","Post-merge confidence",85,
-      `<div class="split" style="margin-top:12px"><div><p class="compare-label">main</p><p class="contract">Newest<br>integrated state</p><p class="under">May be pending validation<br>or known broken</p></div><div><p class="compare-label">verified-main</p><p class="contract green">Latest eligible<br>known-good state</p><p class="under">Advances after green validation<br>Broken outcomes do not promote</p></div></div>`,
-      "- Main is the newest integrated state; a verified ref is the latest eligible known-good state.\n- Failed or pending validation does not advance the trusted ref.\n- Consumers must choose to honor that confidence signal.",
-      []);
-    add("Detection is only the start of recovery","Post-merge confidence",80,
-      `<div class="split"><div class="stack"><p class="compare-label">Stovepipe’s responsibility</p><p class="contract green">Detect<br>Record<br>Surface known-good</p></div><div><p class="compare-label">When main breaks</p><ol style="font-size:29px;line-height:1.5;padding-left:30px"><li>On-call is alerted</li><li>On-call prepares a fix or revert</li><li>Get approvals and land the change</li><li>Stovepipe keeps validating and records greenness</li></ol></div></div>`,
-      "- A broken mainline triggers an on-call alert.\n- On-call prepares a fix or revert, gets approvals, and lands the change.\n- Stovepipe keeps validating and records when main is green again.",
+    add("Stovepipe: one history, two moving refs","Post-merge confidence",315,
+      commitBuildBody(),
+      "- A is known green. Main advances to D, but failed validation keeps verified/main at A.\n- Main reaches G. Validate the A–G range while verified/main still points to A.\n- When G passes, advance verified/main to G. Passing G does not certify every intermediate state.",
+      [],{builds:commitBuilds});
+    add("Recovering a broken trunk","Post-merge confidence",80,
+      `<ol class="recovery-flow"><li class="recovery-step"><p class="recovery-owner">Stovepipe</p><h3 class="red-text">Detect and alert</h3><p class="recovery-description">D fails validation.<br>On-call is alerted.</p></li><li class="recovery-step"><p class="recovery-owner">On-call</p><h3>Prepare a repair</h3><p class="recovery-description">Create a fix or revert.</p></li><li class="recovery-step"><p class="recovery-owner">On-call</p><h3>Review and land</h3><p class="recovery-description">Get approvals and land the repair through SubmitQueue.</p></li><li class="recovery-step"><p class="recovery-owner">Stovepipe</p><h3 class="green">Verify recovery</h3><p class="recovery-description">Validate the repaired state. A passing result advances <span class="mono">verified/main</span>.</p></li></ol>`,
+      "- D fails validation. Stovepipe alerts on-call.\n- On-call prepares a fix or revert, gets approvals, and lands it through SubmitQueue.\n- Stovepipe validates the repaired state and advances verified/main only after validation passes.",
       []);
     add("More throughput. Shorter waits.","Results · as of October 2026",100,
-      `<div class="results-metrics"><div><p class="results-number">~300</p><p class="results-label">Peak successful lands / hour</p></div><div><p class="results-number">~30<span class="unit">min</span></p><p class="results-label">Land-time p95 outside incidents</p></div></div><div class="results-chart">${currentVolumeChart()}</div>`,
-      "- As of October 2026: around 300 successful lands per hour at peak, excluding branch requests.\n- Land-time p95 is around 30 minutes outside incidents, not a guaranteed upper bound.\n- The next step is making this approach reusable and available in the open.",
+      `<div class="results-metrics"><div><p class="results-number">~300</p><p class="results-label">Peak lands / hour</p><p class="results-growth"><strong>~233%</strong> increase from January’s ~90/hour</p></div><div><p class="results-number">~30<span class="unit">min</span></p><p class="results-label">Land-time p95</p></div></div><div class="results-chart">${currentVolumeChart()}</div>`,
+      "- As of October 2026: ~300 successful lands/hour at peak versus January’s ~90, about 233% growth. Branch requests excluded.\n- Land-time p95 is around 30 minutes outside incidents, not a guaranteed upper bound.\n- The next step is making this approach reusable and available in the open.",
       []);
     add("SubmitQueue and Stovepipe in the open","Open source",65,
-      `<div class="split" style="margin-top:45px"><div><p class="compare-label">Pre-merge</p><p class="contract green">SubmitQueue</p><p class="under">Validate speculative futures.<br>Land passing changes.</p></div><div><p class="compare-label">Post-merge</p><p class="contract green">Stovepipe</p><p class="under">Validate landed states.<br>Track known-good states.</p></div></div><p class="bottom-line"><a href="https://github.com/uber/submitqueue" target="_blank" rel="noopener">github.com/uber/submitqueue</a></p>`,
-      "- Both SubmitQueue and Stovepipe are being built in the open.\n- SubmitQueue handles pre-merge validation; Stovepipe handles post-merge validation.\n- The open-source repository contains both systems.",
-      ["repository"]);
+      `<div class="oss-layout"><div class="oss-systems"><section class="oss-system"><p class="oss-phase">Pre-merge</p><h3 class="oss-name green">SubmitQueue</h3><p class="oss-description">Validate speculative futures.<br>Land passing changes.</p></section><section class="oss-system"><p class="oss-phase">Post-merge</p><h3 class="oss-name green">Stovepipe</h3><p class="oss-description">Validate landed states.<br>Track known-good states.</p></section></div><div class="oss-project" data-project="submitqueue"><p class="oss-project-title">Explore the project</p><a class="oss-qr" href="https://github.com/uber/submitqueue" target="_blank" rel="noopener" aria-label="Open the SubmitQueue and Stovepipe GitHub project">${repositoryQrSvg}</a><p class="oss-url"><a href="https://github.com/uber/submitqueue" target="_blank" rel="noopener">github.com/uber/submitqueue</a></p></div></div>`,
+      "- Both SubmitQueue and Stovepipe are being built in the open.\n- SubmitQueue handles pre-merge validation; Stovepipe handles post-merge validation.\n- Explore the code through the project link or QR code.",
+      ["repository"],{"theme": "dark"});
     add("What comes next","Open source & next",70,
       `<div class="three" style="margin-top:20px">
         <div><p class="compare-label">Better throughput</p><h3>Batching for SubmitQueue</h3><p class="body muted" style="margin-top:25px">Validate groups of changes together to reduce repeated work.</p></div>
         <div><p class="compare-label">Better confidence</p><h3>Validate project scope</h3><p class="body muted" style="margin-top:25px">Answer “is my project green?” without treating every failure as global.</p></div>
         <div><p class="compare-label">Faster recovery</p><h3>Automate fixes and reverts</h3><p class="body muted" style="margin-top:25px">Invest in automated diagnosis and corrective actions to restore trunk health faster.</p></div>
-      </div><p class="bottom-line">Evolve SubmitQueue and Stovepipe together, not as independent optimizations</p>`,
+      </div>`,
       "- Batch submissions in SubmitQueue to reduce repeated validation and merge work.\n- Move toward project-scoped confidence instead of one global status.\n- Invest in automated diagnosis, fixes, and reverts. These are future directions.",
       []);
-    add("Keep confidence green, even when trunk isn’t","Closing",30,
-      `<div class="stack" style="margin-top:55px"><p class="body" style="font-size:44px">Shape demand when capacity is scarce.</p><p class="body" style="font-size:44px">Spend serialization on the strongest conflicts.</p><p class="body" style="font-size:44px;color:var(--lime)">Make known-good state explicit.</p></div><p class="bottom-line muted">AI changed the arrival rate. We changed the integration contract.</p>`,
-      "- Shape demand when validation capacity is scarce.\n- Spend serialization on the strongest dependency signals.\n- Make known-good state explicit. Confidence still needs an owner.",
+    add("A hybrid approach to validation","Closing",30,
+      `<div class="hybrid-close"><p>We retain required checks and stronger dependency constraints before merge, while continuously validating integrated trunk states after merge.</p><p class="green">This gives us the flexibility to support higher landing throughput while keeping land times reasonable.</p></div>`,
+      "- Keep required checks and stronger dependency constraints before merge.\n- Continuously validate integrated trunk states after merge.\n- The hybrid model supports higher landing throughput with reasonable land times.",
       [],{"theme": "dark"});
     add("Thank you","Closing",20,
       `<div class="closing-header"><h1>Thank you</h1></div><p class="subtitle"><a href="https://github.com/uber/submitqueue" target="_blank" rel="noopener" style="color:var(--lime)">github.com/uber/submitqueue</a></p><div class="content"><div class="talk-resources"><section class="talk-resource" data-talk="wearedevelopers"><h3>WeAreDevelopers</h3><div class="talk-resource-body"><a class="talk-qr" href="https://www.youtube.com/watch?v=mPssttsZknY&amp;t=144s" target="_blank" rel="noopener" aria-label="Watch the WeAreDevelopers talk"><svg role="img" aria-label="QR code for WeAreDevelopers recording" xmlns="http://www.w3.org/2000/svg" width="328" height="328" viewBox="0 0 41 41" shape-rendering="crispEdges"><path fill="#ffffff" d="M0 0h41v41H0z"/><path stroke="#000000" d="M4 4.5h7m3 0h1m2 0h2m2 0h5m1 0h1m2 0h7M4 5.5h1m5 0h1m2 0h7m1 0h1m2 0h3m3 0h1m5 0h1M4 6.5h1m1 0h3m1 0h1m1 0h1m1 0h1m1 0h2m1 0h1m1 0h3m1 0h1m2 0h1m1 0h1m1 0h3m1 0h1M4 7.5h1m1 0h3m1 0h1m1 0h1m2 0h1m2 0h1m1 0h1m3 0h1m2 0h1m2 0h1m1 0h3m1 0h1M4 8.5h1m1 0h3m1 0h1m1 0h2m2 0h2m1 0h1m1 0h2m3 0h2m2 0h1m1 0h3m1 0h1M4 9.5h1m5 0h1m1 0h1m3 0h6m2 0h1m1 0h1m1 0h1m1 0h1m5 0h1M4 10.5h7m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h7M12 11.5h2m1 0h2m1 0h2m5 0h3M4 12.5h1m1 0h5m2 0h3m1 0h3m1 0h1m4 0h1m3 0h5M4 13.5h2m2 0h1m2 0h2m2 0h2m1 0h1m1 0h1m1 0h3m1 0h2m2 0h2m1 0h3M5 14.5h2m2 0h3m2 0h2m3 0h2m1 0h1m2 0h2m1 0h1m3 0h1m1 0h2M4 15.5h1m1 0h1m5 0h2m1 0h2m1 0h1m4 0h5m1 0h2m1 0h4M7 16.5h1m2 0h4m1 0h2m2 0h1m2 0h2m3 0h3m2 0h2m1 0h2M4 17.5h3m1 0h2m3 0h1m1 0h2m1 0h4m2 0h6m4 0h3M5 18.5h1m2 0h1m1 0h2m5 0h1m5 0h1m1 0h2m2 0h3m2 0h2M6 19.5h1m1 0h1m2 0h2m1 0h1m1 0h1m3 0h1m2 0h4m1 0h3m2 0h2M8 20.5h3m2 0h2m3 0h1m2 0h3m2 0h4m1 0h3m2 0h1M4 21.5h1m1 0h1m1 0h2m3 0h1m6 0h4m1 0h7m1 0h2m1 0h1M5 22.5h1m3 0h2m1 0h2m1 0h1m2 0h2m1 0h1m2 0h2m4 0h3m1 0h2M4 23.5h2m1 0h1m1 0h1m2 0h3m3 0h5m1 0h4m2 0h6M4 24.5h1m5 0h3m1 0h1m1 0h1m1 0h3m8 0h1m2 0h2m1 0h2M4 25.5h3m4 0h1m3 0h1m1 0h1m1 0h1m1 0h2m2 0h2m3 0h1m3 0h1m1 0h1M4 26.5h1m1 0h1m3 0h3m1 0h2m2 0h4m2 0h3m1 0h2m1 0h1m1 0h1m1 0h1M4 27.5h1m1 0h1m2 0h1m2 0h1m1 0h2m3 0h1m3 0h1m1 0h1m1 0h1m1 0h2m2 0h2m1 0h1M4 28.5h1m1 0h7m2 0h7m4 0h8M12 29.5h1m2 0h1m4 0h1m2 0h6m3 0h1m1 0h3M4 30.5h7m4 0h1m2 0h3m1 0h1m2 0h4m1 0h1m1 0h1m1 0h1M4 31.5h1m5 0h1m1 0h1m2 0h5m3 0h1m1 0h1m1 0h2m3 0h3m1 0h1M4 32.5h1m1 0h3m1 0h1m1 0h1m2 0h1m3 0h1m2 0h1m1 0h1m3 0h6m1 0h1M4 33.5h1m1 0h3m1 0h1m1 0h6m1 0h2m2 0h5m1 0h1m2 0h1m1 0h3M4 34.5h1m1 0h3m1 0h1m1 0h4m1 0h2m2 0h1m3 0h7m1 0h1M4 35.5h1m5 0h1m2 0h1m2 0h1m3 0h1m3 0h3m3 0h1m1 0h3M4 36.5h7m1 0h3m1 0h3m2 0h1m4 0h6m1 0h1m1 0h1"/></svg>
@@ -612,14 +671,19 @@
     document.getElementById("overview-meta").textContent = `${secondsTotal/60}-minute prerecorded talk · ${mainCount} slides`;
     const deck = document.getElementById("deck");
     const jump = document.getElementById("jump");
-    let current = 0, presenterWindow = null;
+    let current = 0, currentBuild = 0, presenterWindow = null;
     let running = false, timerBase = 0, timerStart = 0, touchStart = null;
     const isPresenter = new URLSearchParams(location.search).get("presenter") === "1";
     const formatTime = s => `${Math.floor(s/60).toString().padStart(2,"0")}:${Math.floor(s%60).toString().padStart(2,"0")}`;
     const elapsedSeconds = () => Math.floor(timerBase + (running ? (performance.now()-timerStart)/1000 : 0));
-    function getHashIndex() {
-      const match = location.hash.match(/^#(?:slide=)?(\d+)$/);
-      return match ? Math.min(slides.length-1,Math.max(0,Number(match[1])-1)) : 0;
+    function buildCount(index) {
+      return slides[index]?.builds?.length||1;
+    }
+    function getHashState() {
+      const match = location.hash.match(/^#(?:slide=)?(\d+)(?:&step=(\d+))?$/);
+      const index=match?Math.min(slides.length-1,Math.max(0,Number(match[1])-1)):0;
+      const build=match?.[2]?Math.max(0,Math.min(buildCount(index)-1,Number(match[2])-1)):0;
+      return {index,build};
     }
     slides.forEach((s,i) => {
       const el = document.createElement("section");
@@ -641,6 +705,35 @@
       document.getElementById("overview-grid").appendChild(button);
     });
     const slideElements = Array.from(deck.children);
+    function renderCommitBuild() {
+      const state=slides[current].builds?.[currentBuild];
+      if(!state)return;
+      const graph=slideElements[current].querySelector(".commit-build-live .commit-graph");
+      graph.querySelector("[data-build-label]").textContent=state.label;
+      graph.querySelector("[data-build-label]").setAttribute("fill",validationColor(state));
+      graph.querySelector("[data-build-detail]").textContent=state.detail;
+      graph.setAttribute("aria-label",`${state.label}. ${state.detail} ${validationLabel(state)}. Commit positions stay fixed while main and verified/main advance.`);
+      graph.querySelectorAll(".commit-node").forEach(group=>{
+        const index=Number(group.dataset.commit),color=commitColor(index,state);
+        group.style.opacity=index<=state.head?"1":".14";
+        group.querySelector("circle").setAttribute("stroke",color);
+        group.querySelector("text").setAttribute("fill",color);
+      });
+      graph.querySelectorAll(".commit-link").forEach(group=>group.style.opacity=Number(group.dataset.link)<=state.head?"1":".14");
+      for(const [ref,index] of [["main",state.head],["verified",state.verified]]) {
+        const pointer=graph.querySelector(`[data-ref="${ref}"]`);
+        pointer.style.transform=`translateX(${commitPositions[index]}px)`;
+        pointer.dataset.commit=String.fromCharCode(65+index);
+      }
+      const range=graph.querySelector("[data-validation-range]"),color=validationColor(state),end=commitPositions[state.rangeEnd];
+      range.toggleAttribute("hidden",state.outcome==="baseline");
+      range.querySelector("[data-range-bracket]").setAttribute("d",`M${commitPositions[0]} 348V364H${end}V348`);
+      range.querySelector("[data-range-bracket]").setAttribute("stroke",color);
+      const label=range.querySelector("[data-range-label]");
+      label.textContent=validationLabel(state);
+      label.setAttribute("x",(commitPositions[0]+end)/2);
+      label.setAttribute("fill",color);
+    }
     function resize() {
       const box = document.querySelector(".stage").getBoundingClientRect();
       document.documentElement.style.setProperty("--scale", Math.min(box.width/1600,box.height/900));
@@ -654,6 +747,7 @@
         <h2>${esc(s.title)}</h2>
         <div class="notes-meta">Planned ${formatTime(s.seconds)} · talk ${formatTime(before)}–${formatTime(before+s.seconds)}<br>
         ${slides[current+1]?`Next: ${esc(slides[current+1].title)}`:"End of talk"}</div>
+        ${s.builds?`<div class="notes-meta">BUILD ${currentBuild+1} / ${s.builds.length}: ${esc(s.builds[currentBuild].label)}<br>${esc(s.builds[currentBuild].cue)}</div>`:""}
         <ul class="speaker-cues">${s.notes.split("\n").map(cue=>`<li>${esc(cue.replace(/^-\s*/,""))}</li>`).join("")}</ul>
         ${s.refs.length?`<h3>Public resources</h3><ul>${s.refs.map(key=>`<li><a href="${esc(sources[key].url)}" target="_blank" rel="noopener">${esc(sources[key].label)}</a></li>`).join("")}</ul>`:""}`;
       const close = document.getElementById("notes-close");
@@ -661,23 +755,41 @@
     }
     function render() {
       slideElements.forEach((el,i)=>{el.hidden=i!==current;el.inert=i!==current;});
+      renderCommitBuild();
       jump.value = current;
       document.getElementById("position").textContent = `${current+1} / ${mainCount}`;
-      document.getElementById("prev").disabled = current===0;
-      document.getElementById("next").disabled = current===slides.length-1;
+      const count=buildCount(current),stepCounter=document.getElementById("build-position");
+      stepCounter.hidden=count===1;
+      stepCounter.textContent=count>1?`Step ${currentBuild+1} / ${count}`:"";
+      document.getElementById("prev").disabled = current===0&&currentBuild===0;
+      document.getElementById("next").disabled = current===slides.length-1&&currentBuild===count-1;
+      document.getElementById("prev").setAttribute("aria-label",currentBuild>0?"Previous build":"Previous slide");
+      document.getElementById("next").setAttribute("aria-label",currentBuild<count-1?"Next build":"Next slide");
       document.getElementById("progress").style.width = `${Math.min(1,(current+1)/mainCount)*100}%`;
-      document.getElementById("announcement").textContent = `Slide ${current+1}: ${slides[current].title}`;
+      document.getElementById("announcement").textContent = `Slide ${current+1}: ${slides[current].title}${count>1?`. Build ${currentBuild+1} of ${count}: ${slides[current].builds[currentBuild].label}`:""}`;
       document.querySelectorAll("#overview-grid button").forEach((button,i)=>button.setAttribute("aria-current",String(i===current)));
       document.title = `${current+1} · ${slides[current].title} — Merging at AI Scale`;
       updateNotes(); resize();
-      if(presenterWindow&&!presenterWindow.closed)presenterWindow.postMessage({kind:"ai-scale-slide",index:current},"*");
+      if(presenterWindow&&!presenterWindow.closed)presenterWindow.postMessage({kind:"ai-scale-slide",index:current,build:currentBuild},"*");
     }
-    function go(index,remote=false) {
+    function go(index,remote=false,build=0) {
+      if(!Number.isInteger(index))return;
       const next = Math.max(0,Math.min(slides.length-1,index));
-      if(isPresenter&&window.opener&&!remote)window.opener.postMessage({kind:"ai-scale-navigate",index:next},"*");
+      const step=Number.isInteger(build)?Math.max(0,Math.min(buildCount(next)-1,build)):0;
+      if(isPresenter&&window.opener&&!remote)window.opener.postMessage({kind:"ai-scale-navigate",index:next,build:step},"*");
       current=next;
-      history.replaceState(null,"",`${location.pathname}${location.search}#slide=${current+1}`);
+      currentBuild=step;
+      history.replaceState(null,"",`${location.pathname}${location.search}#slide=${current+1}${buildCount(current)>1?`&step=${currentBuild+1}`:""}`);
       render();
+    }
+    function advance(direction) {
+      if(direction>0) {
+        if(currentBuild<buildCount(current)-1)go(current,false,currentBuild+1);
+        else go(current+1);
+      } else if(direction<0) {
+        if(currentBuild>0)go(current,false,currentBuild-1);
+        else {const previous=Math.max(0,current-1);go(previous,false,buildCount(previous)-1);}
+      }
     }
     function toggleNotes() {
       if(isPresenter)return;
@@ -697,8 +809,8 @@
       if(document.fullscreenElement)await document.exitFullscreen();
       else if(document.documentElement.requestFullscreen)await document.documentElement.requestFullscreen();
     }
-    document.getElementById("prev").addEventListener("click",()=>go(current-1));
-    document.getElementById("next").addEventListener("click",()=>go(current+1));
+    document.getElementById("prev").addEventListener("click",()=>advance(-1));
+    document.getElementById("next").addEventListener("click",()=>advance(1));
     jump.addEventListener("change",()=>go(Number(jump.value)));
     document.getElementById("notes-toggle").addEventListener("click",toggleNotes);
     document.getElementById("overview-open").addEventListener("click",()=>document.getElementById("overview").showModal());
@@ -707,15 +819,15 @@
     document.getElementById("timer-toggle").addEventListener("click",()=>toggleTimer());
     document.getElementById("elapsed").addEventListener("click",()=>toggleTimer());
     document.getElementById("presenter-open").addEventListener("click",()=>{
-      presenterWindow=window.open(`${location.pathname}?presenter=1#slide=${current+1}`,"ai-scale-presenter","popup,width=1400,height=850");
+      presenterWindow=window.open(`${location.pathname}?presenter=1#slide=${current+1}${buildCount(current)>1?`&step=${currentBuild+1}`:""}`,"ai-scale-presenter","popup,width=1400,height=850");
     });
     document.querySelectorAll("[data-close]").forEach(b=>b.addEventListener("click",()=>document.getElementById(b.dataset.close).close()));
     document.addEventListener("keydown",event=>{
       const active=document.activeElement;
       if(event.altKey||event.ctrlKey||event.metaKey||active?.matches("input,textarea,select")||document.querySelector("dialog[open]"))return;
       const key=event.key.toLowerCase();
-      if(["arrowright","pagedown"," "].includes(key)){event.preventDefault();go(current+1);}
-      else if(["arrowleft","pageup"].includes(key)){event.preventDefault();go(current-1);}
+      if(["arrowright","pagedown"," "].includes(key)){event.preventDefault();advance(1);}
+      else if(["arrowleft","pageup"].includes(key)){event.preventDefault();advance(-1);}
       else if(key==="home"){event.preventDefault();go(0);}
       else if(key==="end"){event.preventDefault();go(mainCount-1);}
       else if(key==="n")toggleNotes();
@@ -730,21 +842,22 @@
     document.querySelector(".stage").addEventListener("touchend",event=>{
       if(touchStart===null)return;
       const delta=event.changedTouches[0].clientX-touchStart;touchStart=null;
-      if(Math.abs(delta)>65)go(current+(delta<0?1:-1));
+      if(Math.abs(delta)>65)advance(delta<0?1:-1);
     },{passive:true});
     window.addEventListener("message",event=>{
       if(!event.data||!Number.isInteger(event.data.index))return;
-      if(isPresenter&&event.source===window.opener&&event.data.kind==="ai-scale-slide")go(event.data.index,true);
-      else if(event.source===presenterWindow&&event.data.kind==="ai-scale-navigate")go(event.data.index,true);
+      if(isPresenter&&event.source===window.opener&&event.data.kind==="ai-scale-slide")go(event.data.index,true,event.data.build);
+      else if(event.source===presenterWindow&&event.data.kind==="ai-scale-navigate")go(event.data.index,true,event.data.build);
     });
-    window.addEventListener("hashchange",()=>go(getHashIndex(),true));
+    window.addEventListener("hashchange",()=>{const state=getHashState();go(state.index,true,state.build);});
     window.addEventListener("resize",resize);
     document.addEventListener("fullscreenchange",()=>{document.body.classList.toggle("immersive",!!document.fullscreenElement);resize();});
     setInterval(()=>{document.getElementById("elapsed").textContent=formatTime(elapsedSeconds());},1000);
     if(isPresenter){document.body.classList.add("presenter");document.getElementById("notes").hidden=false;}
     // Exposed read-only content makes rendering, accessibility checks, and note export straightforward.
-    window.presentation = { slides, sources, metrics, mainCount, secondsTotal, go, get current(){return current;} };
-    go(getHashIndex(),true);
+    window.presentation = { slides, sources, metrics, mainCount, secondsTotal, go, advance, get current(){return current;}, get currentBuild(){return currentBuild;} };
+    const initialState=getHashState();
+    go(initialState.index,true,initialState.build);
   </script>
 </body>
 </html>

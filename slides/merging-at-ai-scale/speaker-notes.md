@@ -1,6 +1,6 @@
 # Merging at AI Scale — speaker cues
 
-30-minute prerecorded talk · 32 slides. Three short cues per slide.
+30-minute prerecorded talk · 30 slides. Three short cues per slide.
 
 ## Run of show
 
@@ -29,15 +29,13 @@
 | 21 | 16:15 | 00:45 | Assign new arrivals. Leave in-flight work alone. |
 | 22 | 17:00 | 00:55 | Conflict relaxation: the tradeoff |
 | 23 | 17:55 | 00:45 | The cost: trunk can turn red |
-| 24 | 18:40 | 01:50 | Stovepipe: post-merge validation |
-| 25 | 20:30 | 02:00 | Validate from the last known-good baseline |
-| 26 | 22:30 | 01:25 | Separate the integration tip from the trusted ref |
-| 27 | 23:55 | 01:20 | Detection is only the start of recovery |
-| 28 | 25:15 | 01:40 | More throughput. Shorter waits. |
-| 29 | 26:55 | 01:05 | SubmitQueue and Stovepipe in the open |
-| 30 | 28:00 | 01:10 | What comes next |
-| 31 | 29:10 | 00:30 | Keep confidence green, even when trunk isn’t |
-| 32 | 29:40 | 00:20 | Thank you |
+| 24 | 18:40 | 05:15 | Stovepipe: one history, two moving refs |
+| 25 | 23:55 | 01:20 | Recovering a broken trunk |
+| 26 | 25:15 | 01:40 | More throughput. Shorter waits. |
+| 27 | 26:55 | 01:05 | SubmitQueue and Stovepipe in the open |
+| 28 | 28:00 | 01:10 | What comes next |
+| 29 | 29:10 | 00:30 | A hybrid approach to validation |
+| 30 | 29:40 | 00:20 | Thank you |
 
 ## Speaking cues
 
@@ -117,17 +115,17 @@
 
 05:45–06:30
 
-- January: about 90 changes per hour at peak.
-- March: about 130. Growth arrived in months, not years.
+- January: about 90 lands per hour at peak.
+- March: about 130, roughly 44% above January.
 - March was the tipping point. What did that feel like for developers?
 
 ### 11 · Green trunk. Hours to land
 
 06:30–07:05
 
-- Landing at peak could take 3 to 4 hours.
-- The cost was developer waiting, despite existing optimizations.
-- Our response: manage the load first, then change the merge model.
+- Land-time p95 was around 30 minutes before the growth.
+- During peak periods, p95 stretched to 3 to 4 hours.
+- Protecting main meant developers waited. Next, shape traffic and change the merge model.
 
 ### 12 · What we changed
 
@@ -149,7 +147,7 @@
 
 08:30–09:20
 
-- Business-hour average landing rate: about 130 → 160 diffs/hour; +23% after gating.
+- Business-hour average landing rate: about 130 → 160 lands/hour; +23% after gating.
 - These are business-hour averages, not peak landing rates. The percentage uses unrounded values.
 - The cost: developers must return and resubmit. Deferrals automate that waiting.
 
@@ -213,7 +211,7 @@
 
 17:00–17:55
 
-- After relaxation in July, throughput was roughly 240 to 250 landed requests/hour.
+- July business-hour average after relaxation: about 160 to 250 lands/hour, roughly 56% observed growth.
 - More independent progress, but some combinations land without being validated together.
 - Checks are not waived. We need confidence in the states that actually land.
 
@@ -225,55 +223,39 @@
 - The combined state can leave trunk red even though both PRs passed.
 - Stovepipe validates landed states and tracks which ones are known good.
 
-### 24 · Stovepipe: post-merge validation
+### 24 · Stovepipe: one history, two moving refs
 
-18:40–20:30
+18:40–23:55
 
-- Observe landed states, choose the head and baseline, build and test, and record the result.
-- Validate from a known-good baseline; update it only after a passing result.
-- The question: at which commit do we know this branch is green?
+- A is known green. Main advances to D, but failed validation keeps verified/main at A.
+- Main reaches G. Validate the A–G range while verified/main still points to A.
+- When G passes, advance verified/main to G. Passing G does not certify every intermediate state.
 
-### 25 · Validate from the last known-good baseline
-
-20:30–22:30
-
-- A is known green. Validation at D fails, so the baseline stays at A.
-- Next validate G relative to A, including the still-unverified range.
-- If G passes, advance the baseline. That does not certify every intermediate state.
-
-### 26 · Separate the integration tip from the trusted ref
-
-22:30–23:55
-
-- Main is the newest integrated state; a verified ref is the latest eligible known-good state.
-- Failed or pending validation does not advance the trusted ref.
-- Consumers must choose to honor that confidence signal.
-
-### 27 · Detection is only the start of recovery
+### 25 · Recovering a broken trunk
 
 23:55–25:15
 
-- A broken mainline triggers an on-call alert.
-- On-call prepares a fix or revert, gets approvals, and lands the change.
-- Stovepipe keeps validating and records when main is green again.
+- D fails validation. Stovepipe alerts on-call.
+- On-call prepares a fix or revert, gets approvals, and lands it through SubmitQueue.
+- Stovepipe validates the repaired state and advances verified/main only after validation passes.
 
-### 28 · More throughput. Shorter waits.
+### 26 · More throughput. Shorter waits.
 
 25:15–26:55
 
-- As of October 2026: around 300 successful lands per hour at peak, excluding branch requests.
+- As of October 2026: ~300 successful lands/hour at peak versus January’s ~90, about 233% growth. Branch requests excluded.
 - Land-time p95 is around 30 minutes outside incidents, not a guaranteed upper bound.
 - The next step is making this approach reusable and available in the open.
 
-### 29 · SubmitQueue and Stovepipe in the open
+### 27 · SubmitQueue and Stovepipe in the open
 
 26:55–28:00
 
 - Both SubmitQueue and Stovepipe are being built in the open.
 - SubmitQueue handles pre-merge validation; Stovepipe handles post-merge validation.
-- The open-source repository contains both systems.
+- Explore the code through the project link or QR code.
 
-### 30 · What comes next
+### 28 · What comes next
 
 28:00–29:10
 
@@ -281,15 +263,15 @@
 - Move toward project-scoped confidence instead of one global status.
 - Invest in automated diagnosis, fixes, and reverts. These are future directions.
 
-### 31 · Keep confidence green, even when trunk isn’t
+### 29 · A hybrid approach to validation
 
 29:10–29:40
 
-- Shape demand when validation capacity is scarce.
-- Spend serialization on the strongest dependency signals.
-- Make known-good state explicit. Confidence still needs an owner.
+- Keep required checks and stronger dependency constraints before merge.
+- Continuously validate integrated trunk states after merge.
+- The hybrid model supports higher landing throughput with reasonable land times.
 
-### 32 · Thank you
+### 30 · Thank you
 
 29:40–30:00
 
