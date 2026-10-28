@@ -2,6 +2,8 @@
 
 ## Story
 
+The speaker introductions lead into a high-level outline of the talk.
+
 1. Uber’s monorepo scale and the shared integration problem.
 2. Two individually green PRs can produce a broken integrated build.
 3. SubmitQueue validates speculative futures; target analysis, probabilistic speculation, and bypassing make that practical.
