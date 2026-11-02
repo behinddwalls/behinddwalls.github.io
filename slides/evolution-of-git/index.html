@@ -1,0 +1,1302 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <title>Evolution of Git — Preetam Dwivedi</title>
+  <meta name="description" content="A 30–45 minute systems talk: Git's data model, what fetch and push do on the wire, how Git servers evolved from one box to RAID pairs, Spokes, blob storage, and WAL-based storage, and GitFarm, Git as an execution service.">
+  <style>
+    :root {
+      --paper: #f5f2ec; --ink: #1f1d1a; --muted: #6b665e; --line: #d3cdc2;
+      --accent: #c2410c; --accent-soft: #fbe3d4; --green: #2f7a4c; --red: #b3362b;
+      --amber: #946200; --blue: #2d5c9e; --night: #1b1916; --peach: #ffb38a;
+      font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+      color: var(--ink); background: #0f0e0c; font-synthesis: none;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; overflow: hidden; }
+    button, select { font: inherit; }
+    button { cursor: pointer; }
+    button:focus-visible, a:focus-visible, select:focus-visible { outline: 3px solid #ffb38a; outline-offset: 4px; }
+    a { color: inherit; text-underline-offset: .18em; }
+    [hidden] { display: none !important; }
+    .workspace { position: fixed; inset: 0 0 50px; }
+    .stage { position: absolute; inset: 0; overflow: hidden; }
+    #deck { position: absolute; inset: 0; }
+    .slide {
+      position: absolute; top: 50%; left: 50%; width: 1600px; height: 900px;
+      transform: translate(-50%, -50%) scale(var(--scale, .7)); transform-origin: center;
+      overflow: hidden; padding: 74px 92px 68px; background: var(--paper);
+      display: flex; flex-direction: column;
+      -webkit-print-color-adjust: exact; print-color-adjust: exact;
+    }
+    .slide.dark { background: var(--night); color: var(--paper); --muted: #b3aa9c; --line: #4a443b; }
+    .eyebrow { margin: 0 0 25px; font-size: 17px; letter-spacing: .17em; text-transform: uppercase; font-weight: 650; color: var(--accent); }
+    .dark .eyebrow { color: var(--peach); }
+    h1, h2, h3, p { margin: 0; }
+    h1 { font-size: 116px; line-height: .99; letter-spacing: -.065em; font-weight: 650; }
+    h2 { font-size: 62px; line-height: 1.07; letter-spacing: -.045em; font-weight: 550; max-width: 1380px; }
+    h3 { font-size: 30px; line-height: 1.2; font-weight: 550; letter-spacing: -.02em; }
+    .content { flex: 1; min-height: 0; position: relative; margin-top: 38px; }
+    .foot {
+      position: absolute; bottom: 27px; left: 92px; right: 92px; display: flex; gap: 35px;
+      align-items: end; justify-content: space-between; color: var(--muted); font-size: 15px; line-height: 1.35;
+    }
+    .folio { font-variant-numeric: tabular-nums; white-space: nowrap; margin-left: auto; }
+    .build-print-summary { display: none; }
+    .foot .src { font-size: 15px; color: var(--muted); }
+    .foot .src a { color: inherit; text-decoration: underline; text-decoration-color: var(--line); }
+    .accent { color: var(--accent); } .dark .accent { color: var(--peach); }
+    .green { color: var(--green); } .red-text { color: var(--red); } .muted { color: var(--muted); }
+    .mono, code, pre { font-family: "SFMono-Regular", Menlo, Consolas, "Liberation Mono", monospace; }
+    .body { font-size: 32px; line-height: 1.35; }
+    .small { font-size: 25px; line-height: 1.4; }
+    .caption { font-size: 21px; color: var(--muted); line-height: 1.35; }
+    .bottom-line { position: absolute; bottom: 4px; left: 0; right: 0; font-size: 30px; font-weight: 500; letter-spacing: -.01em; }
+    .split { display: grid; grid-template-columns: 1fr 1fr; gap: 80px; }
+    .three { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 55px; }
+    .split > *, .three > * { min-width: 0; }
+    .list { list-style: none; margin: 0; padding: 0; }
+    .list li { padding: 22px 0; border-top: 1px solid var(--line); font-size: 28px; line-height: 1.3; }
+    .list li strong { font-weight: 600; }
+    .list.tight li { padding: 12px 0; font-size: 25px; }
+    .skim-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 26px 48px; margin-top: 6px; }
+    .skim { border-top: 3px solid var(--accent); padding-top: 14px; }
+    .skim h3 { font-size: 28px; }
+    .skim p { margin-top: 8px; font-size: 22px; line-height: 1.35; color: var(--muted); }
+    .list li span { display: block; color: var(--muted); font-size: 23px; margin-top: 8px; }
+    svg { display: block; max-width: 100%; }
+    svg text { font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; }
+    svg text.m { font-family: "SFMono-Regular", Menlo, Consolas, monospace; letter-spacing: -.02em; white-space: pre; }
+    .diagram { width: 100%; height: 100%; }
+    .compare-label { font-size: 18px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); margin-bottom: 18px; font-weight: 600; }
+    .codeblock { font-size: 25px; line-height: 1.5; padding: 20px 24px; white-space: pre; margin: 0 0 30px; background: #ebe6dc; border-left: 4px solid var(--accent); overflow: hidden; }
+    .codeblock .c { color: var(--muted); }
+    .codeblock .hl-out { color: var(--accent); }
+    .contract { font-size: 54px; line-height: 1.12; letter-spacing: -.035em; }
+    .under { margin-top: 30px; padding-top: 24px; border-top: 1px solid var(--line); font-size: 28px; color: var(--muted); line-height: 1.4; }
+    .statement { font-size: 92px; line-height: 1.06; letter-spacing: -.05em; max-width: 1380px; margin-top: 60px; }
+    .statement-sub { margin-top: 44px; font-size: 38px; line-height: 1.35; color: var(--muted); max-width: 1200px; }
+    .table { width: 100%; border-collapse: collapse; text-align: left; font-size: 23px; line-height: 1.25; }
+    .table th { font-size: 16px; font-weight: 600; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); padding: 0 18px 14px 0; }
+    .table td { border-top: 1px solid var(--line); padding: 16px 20px 16px 0; vertical-align: top; }
+    .table td:first-child { font-weight: 600; white-space: nowrap; }
+    .table tr.chosen td { color: var(--accent); }
+    .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 44px 70px; }
+    .stat .num { font-size: 84px; font-weight: 500; line-height: 1; letter-spacing: -.05em; color: var(--accent); }
+    .stat .num small { font-size: 40px; letter-spacing: -.02em; margin-left: 8px; }
+    .stat .label { margin-top: 14px; font-size: 25px; line-height: 1.35; }
+    .stat .label span { display: block; color: var(--muted); font-size: 21px; margin-top: 4px; }
+    .metrics-strip { display: flex; gap: 60px; margin-top: 26px; padding-top: 20px; border-top: 1px solid var(--line); font-size: 23px; color: var(--muted); }
+    .metrics-strip strong { display: block; font-size: 40px; font-weight: 500; color: var(--accent); letter-spacing: -.03em; }
+    .col h3 { margin-bottom: 18px; }
+    .col p { font-size: 25px; line-height: 1.42; color: var(--muted); }
+    .col p + p { margin-top: 16px; }
+    .col p strong { color: var(--ink); font-weight: 550; }
+    .tag { display: inline-block; font-size: 15px; letter-spacing: .1em; text-transform: uppercase; font-weight: 650; padding: 4px 10px; border: 1.5px solid currentColor; border-radius: 3px; vertical-align: middle; }
+    .steps-list { list-style: none; margin: 0; padding: 0; counter-reset: step; }
+    .steps-list li { counter-increment: step; position: relative; padding: 13px 0 13px 54px; font-size: 24px; line-height: 1.32; color: var(--muted); border-top: 1px solid var(--line); transition: color .3s ease; }
+    .steps-list li::before { content: counter(step); position: absolute; left: 0; top: 11px; width: 34px; height: 34px; border-radius: 50%; border: 2px solid currentColor; text-align: center; line-height: 31px; font-size: 18px; font-weight: 650; }
+    .steps-list li strong { color: var(--ink); font-weight: 550; }
+    .steps-list li.hl { color: var(--ink); }
+    .steps-list li.hl::before { background: var(--accent); border-color: var(--accent); color: #fff; }
+    .result-pair { display: grid; grid-template-columns: 1fr 120px 1fr; align-items: end; gap: 30px; margin-top: 50px; }
+    .result-pair .when { font-size: 22px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); font-weight: 600; margin-bottom: 18px; }
+    .result-pair .value { font-size: 150px; font-weight: 500; line-height: 1; letter-spacing: -.055em; }
+    .result-pair .value small { font-size: 60px; margin-left: 10px; letter-spacing: -.02em; }
+    .result-pair .arrow { font-size: 70px; color: var(--muted); text-align: center; padding-bottom: 30px; }
+    .cover-title { font-size: 168px; line-height: 1; letter-spacing: -.065em; font-weight: 600; margin-top: 70px; }
+    .cover-sub { font-size: 46px; line-height: 1.2; margin-top: 30px; letter-spacing: -.025em; color: var(--peach); }
+    .cover-author { position: absolute; left: 92px; bottom: 82px; }
+    .cover-name { font-size: 32px; font-weight: 550; line-height: 1.45; }
+    .cover-event { font-size: 24px; color: var(--muted); line-height: 1.45; }
+    .cover-art { position: absolute; right: 70px; bottom: 70px; width: 780px; height: 360px; }
+    .close-lines { margin-top: 56px; display: grid; gap: 34px; max-width: 1380px; }
+    .close-lines p { font-size: 40px; line-height: 1.3; letter-spacing: -.02em; }
+    .close-lines p span { color: var(--muted); }
+    .thanks-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 80px; margin-top: 40px; }
+    .thanks-item { display: grid; grid-template-columns: 250px 1fr; gap: 34px; align-items: center; }
+    .qr, .qr svg { display: block; width: 250px; height: 250px; }
+    .qr { background: #fff; }
+    .thanks-item h3 { font-size: 32px; }
+    .thanks-item p { margin-top: 12px; font-size: 22px; color: var(--muted); line-height: 1.4; }
+    .thanks-item a { display: inline-block; margin-top: 16px; font-size: 22px; color: var(--peach); }
+    .thanks-more { margin-top: 44px; font-size: 22px; color: var(--muted); line-height: 1.6; }
+    /* Builds: elements opt in with data-show / data-hl / data-dim step specs such as "2", "2-", "1-3", "1,4". */
+    [data-show], [data-dim] { transition: opacity .35s ease; }
+    [data-show].off { opacity: 0; }
+    [data-dim].dim { opacity: .28; }
+    g.hl rect { stroke: var(--accent); stroke-width: 4.5px; fill: var(--accent-soft); }
+    g.hl text { fill: #8f2f08; }
+    g.hl line, g.hl path.edge { stroke: var(--accent); }
+    g.hl polygon { fill: var(--accent); }
+    g.hl circle { stroke: var(--accent); }
+    .code-hl { transition: background .3s ease, color .3s ease; display: inline-block; width: 100%; }
+    .code-hl.hl { background: var(--accent-soft); color: #8f2f08; }
+    .notes-panel {
+      position: fixed; z-index: 50; right: 0; top: 0; bottom: 50px; width: min(560px, 95vw);
+      background: #22201c; color: #eee9df; padding: 28px; overflow: auto; box-shadow: -20px 0 70px #0007;
+      font-size: 16px; line-height: 1.55;
+    }
+    .notes-panel h2 { font-size: 25px; letter-spacing: -.02em; line-height: 1.2; padding-right: 20px; }
+    .notes-panel h3 { font-size: 17px; margin-top: 28px; margin-bottom: 12px; }
+    .notes-panel ul { padding-left: 20px; overflow-wrap: anywhere; }
+    .notes-panel .speaker-cues { font-size: 17px; line-height: 1.55; }
+    .notes-panel .speaker-cues li { padding-bottom: 14px; }
+    .notes-panel a { color: #ffc8a8; }
+    .notes-meta { color: #bdb3a4; margin: 12px 0; font-size: 14px; }
+    .close-panel { float: right; color: inherit; background: none; border: 1px solid #6b6255; border-radius: 3px; padding: 5px 10px; }
+    .toolbar {
+      position: fixed; z-index: 80; bottom: 0; left: 0; right: 0; height: 50px; display: flex;
+      align-items: center; gap: 6px; background: #12110f; color: #e9e4da; padding: 6px 18px;
+      border-top: 1px solid #3b362f; font-size: 13px;
+    }
+    .toolbar button, .toolbar select { background: transparent; border: 1px solid transparent; color: inherit; padding: 6px 9px; border-radius: 3px; }
+    .toolbar button:hover, .toolbar select:hover { background: #312c25; border-color: #5a5247; }
+    .toolbar button[aria-pressed=true] { border-color: #ffb38a; }
+    .toolbar select { max-width: 420px; }
+    .toolbar select option { background: #1d1b18; }
+    .toolbar .spacer { flex: 1; }
+    #progress { position: fixed; z-index: 90; height: 3px; bottom: 50px; left: 0; background: #ff8a4c; transition: width .12s; }
+    .position { min-width: 65px; text-align: center; font-variant-numeric: tabular-nums; color: #c9c0b2; }
+    .timer { font-variant-numeric: tabular-nums; color: #c9c0b2; min-width: 42px; }
+    dialog { border: 1px solid #6b6255; border-radius: 5px; background: #1d1b18; color: #f3efe7; width: min(1280px, 95vw); max-height: 88vh; padding: 30px; }
+    dialog::backdrop { background: #000c; }
+    dialog h2 { font-size: 30px; line-height: 1.2; }
+    .overview-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 10px; margin-top: 25px; }
+    .overview-grid button { background: none; color: inherit; border: 1px solid #4f483e; text-align: left; padding: 18px; min-height: 116px; line-height: 1.3; font-size: 16px; }
+    .overview-grid button:hover { background: #3a342c; }
+    .overview-grid button[aria-current=true] { border-color: #ffb38a; background: #352c22; }
+    .overview-grid .ordinal { display: block; color: #ffb38a; font-size: 12px; margin-bottom: 8px; }
+    .help-grid { display: grid; grid-template-columns: 200px 1fr; gap: 16px; margin: 30px 0; line-height: 1.5; font-size: 17px; }
+    .help-grid kbd { color: #ffb38a; }
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; }
+    body.presenter .workspace { right: 480px; }
+    body.presenter .notes-panel { display: block !important; width: 480px; box-shadow: none; border-left: 1px solid #4f483e; }
+    body.presenter #notes-toggle, body.presenter #presenter-open { display: none; }
+    body.blackout .workspace { visibility: hidden; }
+    body.blackout { background: #000; }
+    body.immersive .toolbar, body.immersive #progress { opacity: 0; transition: opacity .2s; }
+    body.immersive .toolbar:hover, body.immersive .toolbar:focus-within { opacity: 1; }
+    body.immersive .workspace { bottom: 0; }
+    @media (max-width: 900px) {
+      .toolbar { padding: 6px; gap: 2px; }
+      .toolbar .optional { display: none; }
+      .toolbar select { max-width: 250px; width: 30vw; }
+      body.presenter .workspace { right: 0; bottom: 45vh; }
+      body.presenter .notes-panel { width: 100%; top: 55vh; bottom: 50px; border-left: 0; }
+      .overview-grid { grid-template-columns: repeat(2,1fr); }
+    }
+    @media (max-width: 600px) {
+      .toolbar { font-size: 12px; }
+      .toolbar button { padding: 6px; }
+      .toolbar #jump, .toolbar #fullscreen { display: none; }
+      .position { min-width: 50px; }
+    }
+    @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+    @page { size: 16in 9in; margin: 0; }
+    @media print {
+      :root { background: white; }
+      body { overflow: visible; }
+      .workspace, .stage, #deck { position: static; overflow: visible; }
+      .slide, .slide[hidden] {
+        display: flex !important; position: relative; top: auto; left: auto;
+        transform: none; width: 1600px; height: 900px; break-after: page; break-inside: avoid; zoom: .96;
+      }
+      .toolbar, .notes-panel, #progress, dialog, .sr-only { display: none !important; }
+      body.blackout .workspace { visibility: visible; }
+      .build-print-summary { display: block; max-width: 1250px; font-size: 14px; line-height: 1.35; }
+      [data-show], [data-dim] { transition: none; }
+    }
+  </style>
+</head>
+<body>
+  <main class="workspace" aria-label="Presentation">
+    <div class="stage"><div id="deck"></div></div>
+  </main>
+  <div id="announcement" class="sr-only" aria-live="polite"></div>
+  <aside id="notes" class="notes-panel" aria-label="Speaker notes and sources" hidden></aside>
+  <div id="progress" aria-hidden="true"></div>
+  <nav class="toolbar" aria-label="Slide controls">
+    <button id="prev" aria-label="Previous slide" title="Previous (←)">←</button>
+    <span id="position" class="position"></span>
+    <button id="next" aria-label="Next slide" title="Next (→)">→</button>
+    <span id="build-position" class="position optional" aria-label="Current build" hidden></span>
+    <select id="jump" aria-label="Jump to slide"></select>
+    <span class="spacer"></span>
+    <span id="elapsed" class="timer optional" title="Click to start or pause timer" role="timer">00:00</span>
+    <button id="timer-toggle" class="optional" title="Start or pause timer (T)">Start timer</button>
+    <button id="overview-open" title="Slide overview (O)">Overview</button>
+    <button id="notes-toggle" aria-pressed="false" title="Speaker notes & sources (N)">Notes</button>
+    <button id="presenter-open" class="optional" title="Open a second window with speaker notes">Presenter ↗</button>
+    <button id="fullscreen" title="Fullscreen (F)">Fullscreen</button>
+    <button id="help-open" aria-label="Keyboard shortcuts" title="Keyboard shortcuts (?)">?</button>
+  </nav>
+  <dialog id="overview" aria-labelledby="overview-title">
+    <button class="close-panel" data-close="overview" aria-label="Close overview">Close</button>
+    <h2 id="overview-title">Evolution of Git</h2>
+    <p id="overview-meta" style="margin-top:12px;color:#bdb3a4"></p>
+    <div class="overview-grid" id="overview-grid"></div>
+  </dialog>
+  <dialog id="help" aria-labelledby="help-title">
+    <button class="close-panel" data-close="help" aria-label="Close shortcuts">Close</button>
+    <h2 id="help-title">Presenting</h2>
+    <div class="help-grid">
+      <kbd>← → / Space / PgUp PgDn</kbd><span>Previous / next build or slide</span>
+      <kbd>Home / End</kbd><span>First slide / Thank you</span>
+      <kbd>N</kbd><span>Speaker cues, timing, and public resources</span>
+      <kbd>O</kbd><span>Slide overview</span>
+      <kbd>F</kbd><span>Fullscreen; controls reappear on hover</span>
+      <kbd>B</kbd><span>Black out the screen</span>
+      <kbd>T / Shift + T</kbd><span>Start or pause / reset the rehearsal timer</span>
+      <kbd>?</kbd><span>Show these shortcuts</span>
+      <kbd>Esc</kbd><span>Close notes or dialogs; leave fullscreen</span>
+    </div>
+    <p>Presenter opens a second window with notes. Leave that window on your laptop and put the original on the projector. The deck works offline. Use the browser’s Print command for a slide-only PDF; build slides print in their final state.</p>
+  </dialog>
+  <script>
+    "use strict";
+    const sources = {
+      paper: { label: "GitFarm: Git as a Service for Large-Scale Monorepos (arXiv 2604.11977)", url: "https://arxiv.org/abs/2604.11977" },
+      cursor: { label: "Cursor · Git at any scale (Vicent Martí, Aug 2026)", url: "https://cursor.com/blog/git-at-any-scale" },
+      dgit: { label: "GitHub · Introducing DGit (2016)", url: "https://github.blog/engineering/architecture-optimization/introducing-dgit/" },
+      objects: { label: "Pro Git · Git Objects", url: "https://git-scm.com/book/en/v2/Git-Internals-Git-Objects" },
+      refs: { label: "Pro Git · Git References", url: "https://git-scm.com/book/en/v2/Git-Internals-Git-References" },
+      packformat: { label: "Git docs · pack format", url: "https://git-scm.com/docs/gitformat-pack" },
+      protocolv2: { label: "Git docs · protocol v2", url: "https://git-scm.com/docs/gitprotocol-v2" },
+      packprotocol: { label: "Git docs · pack protocol", url: "https://git-scm.com/docs/gitprotocol-pack" },
+      receivepack: { label: "Git docs · git-receive-pack (quarantine, hooks)", url: "https://git-scm.com/docs/git-receive-pack" },
+      jgitdfs: { label: "JGit · DFS storage layer", url: "https://github.com/eclipse-jgit/jgit/tree/master/org.eclipse.jgit/src/org/eclipse/jgit/internal/storage/dfs" },
+      codecommit: { label: "AWS CodeCommit features (S3 + DynamoDB storage)", url: "https://aws.amazon.com/codecommit/features/" },
+      walgit: { label: "walgit · open-source Git server on object storage (Continuity design)", url: "https://github.com/tobi/walgit" },
+      mesh: { label: "Atlassian · Bitbucket Mesh (replaces NFS for Git storage)", url: "https://confluence.atlassian.com/display/BitbucketServer/Bitbucket+Mesh" },
+      uberblog: { label: "Uber Engineering · GitFarm as a Service (Jul 2026)", url: "https://www.uber.com/blog/gitfarm-as-a-service/" },
+      stretching: { label: "GitHub · Stretching Spokes (2017)", url: "https://github.blog/engineering/infrastructure/stretching-spokes/" },
+      linkedin: { label: "Preetam Dwivedi · LinkedIn", url: "https://www.linkedin.com/in/behinddwalls/" }
+    };
+    // Short labels for the on-slide "Sources:" footer line.
+    const shortSource = { paper:"GitFarm paper (arXiv 2604.11977)", uberblog:"Uber blog: GitFarm as a Service", cursor:"Cursor: Git at any scale", walgit:"walgit (GitHub)", dgit:"GitHub: Introducing DGit", stretching:"GitHub: Stretching Spokes", mesh:"Atlassian: Bitbucket Mesh", jgitdfs:"JGit DFS", codecommit:"AWS CodeCommit" };
+    const sourceLine = keys => `<span class="src">Sources: ${keys.map(k=>`<a href="${esc(sources[k].url)}" target="_blank" rel="noopener">${esc(shortSource[k])}</a>`).join(" · ")}</span>`;
+    const qr = {"paper": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 33 33\" shape-rendering=\"crispEdges\" role=\"img\" aria-label=\"QR code for https://arxiv.org/abs/2604.11977\"><path fill=\"#fff\" d=\"M0 0h33v33H0z\"/><path fill=\"#000\" d=\"M2 2h1v1h-1zM3 2h1v1h-1zM4 2h1v1h-1zM5 2h1v1h-1zM6 2h1v1h-1zM7 2h1v1h-1zM8 2h1v1h-1zM12 2h1v1h-1zM13 2h1v1h-1zM17 2h1v1h-1zM18 2h1v1h-1zM19 2h1v1h-1zM22 2h1v1h-1zM24 2h1v1h-1zM25 2h1v1h-1zM26 2h1v1h-1zM27 2h1v1h-1zM28 2h1v1h-1zM29 2h1v1h-1zM30 2h1v1h-1zM2 3h1v1h-1zM8 3h1v1h-1zM10 3h1v1h-1zM14 3h1v1h-1zM15 3h1v1h-1zM16 3h1v1h-1zM18 3h1v1h-1zM19 3h1v1h-1zM20 3h1v1h-1zM22 3h1v1h-1zM24 3h1v1h-1zM30 3h1v1h-1zM2 4h1v1h-1zM4 4h1v1h-1zM5 4h1v1h-1zM6 4h1v1h-1zM8 4h1v1h-1zM10 4h1v1h-1zM12 4h1v1h-1zM13 4h1v1h-1zM14 4h1v1h-1zM15 4h1v1h-1zM17 4h1v1h-1zM20 4h1v1h-1zM21 4h1v1h-1zM22 4h1v1h-1zM24 4h1v1h-1zM26 4h1v1h-1zM27 4h1v1h-1zM28 4h1v1h-1zM30 4h1v1h-1zM2 5h1v1h-1zM4 5h1v1h-1zM5 5h1v1h-1zM6 5h1v1h-1zM8 5h1v1h-1zM10 5h1v1h-1zM11 5h1v1h-1zM13 5h1v1h-1zM18 5h1v1h-1zM19 5h1v1h-1zM20 5h1v1h-1zM21 5h1v1h-1zM22 5h1v1h-1zM24 5h1v1h-1zM26 5h1v1h-1zM27 5h1v1h-1zM28 5h1v1h-1zM30 5h1v1h-1zM2 6h1v1h-1zM4 6h1v1h-1zM5 6h1v1h-1zM6 6h1v1h-1zM8 6h1v1h-1zM13 6h1v1h-1zM14 6h1v1h-1zM17 6h1v1h-1zM18 6h1v1h-1zM21 6h1v1h-1zM24 6h1v1h-1zM26 6h1v1h-1zM27 6h1v1h-1zM28 6h1v1h-1zM30 6h1v1h-1zM2 7h1v1h-1zM8 7h1v1h-1zM11 7h1v1h-1zM13 7h1v1h-1zM17 7h1v1h-1zM19 7h1v1h-1zM22 7h1v1h-1zM24 7h1v1h-1zM30 7h1v1h-1zM2 8h1v1h-1zM3 8h1v1h-1zM4 8h1v1h-1zM5 8h1v1h-1zM6 8h1v1h-1zM7 8h1v1h-1zM8 8h1v1h-1zM10 8h1v1h-1zM12 8h1v1h-1zM14 8h1v1h-1zM16 8h1v1h-1zM18 8h1v1h-1zM20 8h1v1h-1zM22 8h1v1h-1zM24 8h1v1h-1zM25 8h1v1h-1zM26 8h1v1h-1zM27 8h1v1h-1zM28 8h1v1h-1zM29 8h1v1h-1zM30 8h1v1h-1zM10 9h1v1h-1zM11 9h1v1h-1zM12 9h1v1h-1zM16 9h1v1h-1zM17 9h1v1h-1zM18 9h1v1h-1zM20 9h1v1h-1zM21 9h1v1h-1zM2 10h1v1h-1zM8 10h1v1h-1zM10 10h1v1h-1zM11 10h1v1h-1zM18 10h1v1h-1zM19 10h1v1h-1zM20 10h1v1h-1zM22 10h1v1h-1zM23 10h1v1h-1zM24 10h1v1h-1zM27 10h1v1h-1zM28 10h1v1h-1zM29 10h1v1h-1zM2 11h1v1h-1zM3 11h1v1h-1zM5 11h1v1h-1zM6 11h1v1h-1zM15 11h1v1h-1zM18 11h1v1h-1zM21 11h1v1h-1zM23 11h1v1h-1zM25 11h1v1h-1zM26 11h1v1h-1zM28 11h1v1h-1zM29 11h1v1h-1zM3 12h1v1h-1zM4 12h1v1h-1zM5 12h1v1h-1zM7 12h1v1h-1zM8 12h1v1h-1zM9 12h1v1h-1zM10 12h1v1h-1zM11 12h1v1h-1zM12 12h1v1h-1zM13 12h1v1h-1zM15 12h1v1h-1zM16 12h1v1h-1zM17 12h1v1h-1zM18 12h1v1h-1zM20 12h1v1h-1zM25 12h1v1h-1zM26 12h1v1h-1zM2 13h1v1h-1zM3 13h1v1h-1zM4 13h1v1h-1zM5 13h1v1h-1zM6 13h1v1h-1zM10 13h1v1h-1zM12 13h1v1h-1zM14 13h1v1h-1zM15 13h1v1h-1zM20 13h1v1h-1zM21 13h1v1h-1zM24 13h1v1h-1zM27 13h1v1h-1zM2 14h1v1h-1zM3 14h1v1h-1zM4 14h1v1h-1zM5 14h1v1h-1zM7 14h1v1h-1zM8 14h1v1h-1zM9 14h1v1h-1zM15 14h1v1h-1zM17 14h1v1h-1zM18 14h1v1h-1zM20 14h1v1h-1zM21 14h1v1h-1zM22 14h1v1h-1zM23 14h1v1h-1zM24 14h1v1h-1zM25 14h1v1h-1zM30 14h1v1h-1zM2 15h1v1h-1zM3 15h1v1h-1zM6 15h1v1h-1zM7 15h1v1h-1zM9 15h1v1h-1zM18 15h1v1h-1zM21 15h1v1h-1zM22 15h1v1h-1zM24 15h1v1h-1zM25 15h1v1h-1zM26 15h1v1h-1zM29 15h1v1h-1zM30 15h1v1h-1zM3 16h1v1h-1zM4 16h1v1h-1zM8 16h1v1h-1zM10 16h1v1h-1zM12 16h1v1h-1zM13 16h1v1h-1zM14 16h1v1h-1zM22 16h1v1h-1zM24 16h1v1h-1zM26 16h1v1h-1zM27 16h1v1h-1zM28 16h1v1h-1zM4 17h1v1h-1zM7 17h1v1h-1zM14 17h1v1h-1zM17 17h1v1h-1zM20 17h1v1h-1zM22 17h1v1h-1zM28 17h1v1h-1zM30 17h1v1h-1zM4 18h1v1h-1zM5 18h1v1h-1zM8 18h1v1h-1zM9 18h1v1h-1zM10 18h1v1h-1zM12 18h1v1h-1zM14 18h1v1h-1zM19 18h1v1h-1zM20 18h1v1h-1zM25 18h1v1h-1zM27 18h1v1h-1zM28 18h1v1h-1zM2 19h1v1h-1zM9 19h1v1h-1zM10 19h1v1h-1zM11 19h1v1h-1zM13 19h1v1h-1zM14 19h1v1h-1zM15 19h1v1h-1zM16 19h1v1h-1zM19 19h1v1h-1zM20 19h1v1h-1zM21 19h1v1h-1zM22 19h1v1h-1zM24 19h1v1h-1zM25 19h1v1h-1zM26 19h1v1h-1zM28 19h1v1h-1zM29 19h1v1h-1zM30 19h1v1h-1zM2 20h1v1h-1zM3 20h1v1h-1zM5 20h1v1h-1zM6 20h1v1h-1zM8 20h1v1h-1zM10 20h1v1h-1zM11 20h1v1h-1zM12 20h1v1h-1zM17 20h1v1h-1zM21 20h1v1h-1zM25 20h1v1h-1zM27 20h1v1h-1zM30 20h1v1h-1zM2 21h1v1h-1zM5 21h1v1h-1zM6 21h1v1h-1zM9 21h1v1h-1zM12 21h1v1h-1zM14 21h1v1h-1zM15 21h1v1h-1zM17 21h1v1h-1zM18 21h1v1h-1zM20 21h1v1h-1zM21 21h1v1h-1zM22 21h1v1h-1zM23 21h1v1h-1zM24 21h1v1h-1zM26 21h1v1h-1zM2 22h1v1h-1zM4 22h1v1h-1zM6 22h1v1h-1zM8 22h1v1h-1zM9 22h1v1h-1zM16 22h1v1h-1zM17 22h1v1h-1zM18 22h1v1h-1zM19 22h1v1h-1zM20 22h1v1h-1zM21 22h1v1h-1zM22 22h1v1h-1zM23 22h1v1h-1zM24 22h1v1h-1zM25 22h1v1h-1zM26 22h1v1h-1zM28 22h1v1h-1zM29 22h1v1h-1zM30 22h1v1h-1zM10 23h1v1h-1zM11 23h1v1h-1zM14 23h1v1h-1zM16 23h1v1h-1zM17 23h1v1h-1zM18 23h1v1h-1zM22 23h1v1h-1zM26 23h1v1h-1zM27 23h1v1h-1zM2 24h1v1h-1zM3 24h1v1h-1zM4 24h1v1h-1zM5 24h1v1h-1zM6 24h1v1h-1zM7 24h1v1h-1zM8 24h1v1h-1zM14 24h1v1h-1zM17 24h1v1h-1zM18 24h1v1h-1zM20 24h1v1h-1zM21 24h1v1h-1zM22 24h1v1h-1zM24 24h1v1h-1zM26 24h1v1h-1zM27 24h1v1h-1zM28 24h1v1h-1zM2 25h1v1h-1zM8 25h1v1h-1zM11 25h1v1h-1zM12 25h1v1h-1zM13 25h1v1h-1zM14 25h1v1h-1zM16 25h1v1h-1zM17 25h1v1h-1zM18 25h1v1h-1zM22 25h1v1h-1zM26 25h1v1h-1zM2 26h1v1h-1zM4 26h1v1h-1zM5 26h1v1h-1zM6 26h1v1h-1zM8 26h1v1h-1zM11 26h1v1h-1zM14 26h1v1h-1zM15 26h1v1h-1zM16 26h1v1h-1zM17 26h1v1h-1zM20 26h1v1h-1zM21 26h1v1h-1zM22 26h1v1h-1zM23 26h1v1h-1zM24 26h1v1h-1zM25 26h1v1h-1zM26 26h1v1h-1zM27 26h1v1h-1zM29 26h1v1h-1zM30 26h1v1h-1zM2 27h1v1h-1zM4 27h1v1h-1zM5 27h1v1h-1zM6 27h1v1h-1zM8 27h1v1h-1zM11 27h1v1h-1zM12 27h1v1h-1zM13 27h1v1h-1zM14 27h1v1h-1zM15 27h1v1h-1zM16 27h1v1h-1zM17 27h1v1h-1zM21 27h1v1h-1zM22 27h1v1h-1zM23 27h1v1h-1zM25 27h1v1h-1zM27 27h1v1h-1zM28 27h1v1h-1zM30 27h1v1h-1zM2 28h1v1h-1zM4 28h1v1h-1zM5 28h1v1h-1zM6 28h1v1h-1zM8 28h1v1h-1zM12 28h1v1h-1zM17 28h1v1h-1zM18 28h1v1h-1zM20 28h1v1h-1zM21 28h1v1h-1zM24 28h1v1h-1zM25 28h1v1h-1zM26 28h1v1h-1zM27 28h1v1h-1zM28 28h1v1h-1zM29 28h1v1h-1zM2 29h1v1h-1zM8 29h1v1h-1zM15 29h1v1h-1zM18 29h1v1h-1zM24 29h1v1h-1zM25 29h1v1h-1zM26 29h1v1h-1zM27 29h1v1h-1zM28 29h1v1h-1zM30 29h1v1h-1zM2 30h1v1h-1zM3 30h1v1h-1zM4 30h1v1h-1zM5 30h1v1h-1zM6 30h1v1h-1zM7 30h1v1h-1zM8 30h1v1h-1zM10 30h1v1h-1zM11 30h1v1h-1zM12 30h1v1h-1zM13 30h1v1h-1zM18 30h1v1h-1zM19 30h1v1h-1zM20 30h1v1h-1zM21 30h1v1h-1zM23 30h1v1h-1zM24 30h1v1h-1zM26 30h1v1h-1zM28 30h1v1h-1z\"/></svg>", "cursor": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 33 33\" shape-rendering=\"crispEdges\" role=\"img\" aria-label=\"QR code for https://cursor.com/blog/git-at-any-scale\"><path fill=\"#fff\" d=\"M0 0h33v33H0z\"/><path fill=\"#000\" d=\"M2 2h1v1h-1zM3 2h1v1h-1zM4 2h1v1h-1zM5 2h1v1h-1zM6 2h1v1h-1zM7 2h1v1h-1zM8 2h1v1h-1zM10 2h1v1h-1zM11 2h1v1h-1zM12 2h1v1h-1zM13 2h1v1h-1zM14 2h1v1h-1zM15 2h1v1h-1zM16 2h1v1h-1zM19 2h1v1h-1zM20 2h1v1h-1zM24 2h1v1h-1zM25 2h1v1h-1zM26 2h1v1h-1zM27 2h1v1h-1zM28 2h1v1h-1zM29 2h1v1h-1zM30 2h1v1h-1zM2 3h1v1h-1zM8 3h1v1h-1zM10 3h1v1h-1zM12 3h1v1h-1zM13 3h1v1h-1zM16 3h1v1h-1zM18 3h1v1h-1zM19 3h1v1h-1zM21 3h1v1h-1zM24 3h1v1h-1zM30 3h1v1h-1zM2 4h1v1h-1zM4 4h1v1h-1zM5 4h1v1h-1zM6 4h1v1h-1zM8 4h1v1h-1zM10 4h1v1h-1zM13 4h1v1h-1zM15 4h1v1h-1zM16 4h1v1h-1zM18 4h1v1h-1zM22 4h1v1h-1zM24 4h1v1h-1zM26 4h1v1h-1zM27 4h1v1h-1zM28 4h1v1h-1zM30 4h1v1h-1zM2 5h1v1h-1zM4 5h1v1h-1zM5 5h1v1h-1zM6 5h1v1h-1zM8 5h1v1h-1zM11 5h1v1h-1zM14 5h1v1h-1zM15 5h1v1h-1zM19 5h1v1h-1zM20 5h1v1h-1zM21 5h1v1h-1zM22 5h1v1h-1zM24 5h1v1h-1zM26 5h1v1h-1zM27 5h1v1h-1zM28 5h1v1h-1zM30 5h1v1h-1zM2 6h1v1h-1zM4 6h1v1h-1zM5 6h1v1h-1zM6 6h1v1h-1zM8 6h1v1h-1zM10 6h1v1h-1zM12 6h1v1h-1zM16 6h1v1h-1zM18 6h1v1h-1zM20 6h1v1h-1zM21 6h1v1h-1zM24 6h1v1h-1zM26 6h1v1h-1zM27 6h1v1h-1zM28 6h1v1h-1zM30 6h1v1h-1zM2 7h1v1h-1zM8 7h1v1h-1zM12 7h1v1h-1zM24 7h1v1h-1zM30 7h1v1h-1zM2 8h1v1h-1zM3 8h1v1h-1zM4 8h1v1h-1zM5 8h1v1h-1zM6 8h1v1h-1zM7 8h1v1h-1zM8 8h1v1h-1zM10 8h1v1h-1zM12 8h1v1h-1zM14 8h1v1h-1zM16 8h1v1h-1zM18 8h1v1h-1zM20 8h1v1h-1zM22 8h1v1h-1zM24 8h1v1h-1zM25 8h1v1h-1zM26 8h1v1h-1zM27 8h1v1h-1zM28 8h1v1h-1zM29 8h1v1h-1zM30 8h1v1h-1zM11 9h1v1h-1zM13 9h1v1h-1zM15 9h1v1h-1zM18 9h1v1h-1zM21 9h1v1h-1zM2 10h1v1h-1zM5 10h1v1h-1zM6 10h1v1h-1zM7 10h1v1h-1zM8 10h1v1h-1zM9 10h1v1h-1zM10 10h1v1h-1zM12 10h1v1h-1zM14 10h1v1h-1zM16 10h1v1h-1zM18 10h1v1h-1zM19 10h1v1h-1zM23 10h1v1h-1zM26 10h1v1h-1zM28 10h1v1h-1zM29 10h1v1h-1zM30 10h1v1h-1zM3 11h1v1h-1zM4 11h1v1h-1zM5 11h1v1h-1zM6 11h1v1h-1zM7 11h1v1h-1zM10 11h1v1h-1zM11 11h1v1h-1zM13 11h1v1h-1zM14 11h1v1h-1zM15 11h1v1h-1zM16 11h1v1h-1zM17 11h1v1h-1zM18 11h1v1h-1zM20 11h1v1h-1zM21 11h1v1h-1zM25 11h1v1h-1zM26 11h1v1h-1zM28 11h1v1h-1zM29 11h1v1h-1zM2 12h1v1h-1zM5 12h1v1h-1zM8 12h1v1h-1zM10 12h1v1h-1zM12 12h1v1h-1zM13 12h1v1h-1zM17 12h1v1h-1zM18 12h1v1h-1zM22 12h1v1h-1zM24 12h1v1h-1zM28 12h1v1h-1zM4 13h1v1h-1zM6 13h1v1h-1zM7 13h1v1h-1zM9 13h1v1h-1zM10 13h1v1h-1zM12 13h1v1h-1zM13 13h1v1h-1zM14 13h1v1h-1zM18 13h1v1h-1zM19 13h1v1h-1zM21 13h1v1h-1zM23 13h1v1h-1zM25 13h1v1h-1zM26 13h1v1h-1zM27 13h1v1h-1zM30 13h1v1h-1zM2 14h1v1h-1zM3 14h1v1h-1zM4 14h1v1h-1zM7 14h1v1h-1zM8 14h1v1h-1zM13 14h1v1h-1zM21 14h1v1h-1zM22 14h1v1h-1zM24 14h1v1h-1zM30 14h1v1h-1zM3 15h1v1h-1zM4 15h1v1h-1zM6 15h1v1h-1zM12 15h1v1h-1zM14 15h1v1h-1zM15 15h1v1h-1zM16 15h1v1h-1zM17 15h1v1h-1zM18 15h1v1h-1zM19 15h1v1h-1zM20 15h1v1h-1zM23 15h1v1h-1zM24 15h1v1h-1zM25 15h1v1h-1zM26 15h1v1h-1zM27 15h1v1h-1zM28 15h1v1h-1zM29 15h1v1h-1zM30 15h1v1h-1zM3 16h1v1h-1zM6 16h1v1h-1zM8 16h1v1h-1zM15 16h1v1h-1zM16 16h1v1h-1zM17 16h1v1h-1zM18 16h1v1h-1zM20 16h1v1h-1zM21 16h1v1h-1zM22 16h1v1h-1zM23 16h1v1h-1zM24 16h1v1h-1zM28 16h1v1h-1zM30 16h1v1h-1zM3 17h1v1h-1zM4 17h1v1h-1zM5 17h1v1h-1zM6 17h1v1h-1zM7 17h1v1h-1zM10 17h1v1h-1zM11 17h1v1h-1zM14 17h1v1h-1zM17 17h1v1h-1zM21 17h1v1h-1zM26 17h1v1h-1zM28 17h1v1h-1zM30 17h1v1h-1zM5 18h1v1h-1zM6 18h1v1h-1zM8 18h1v1h-1zM11 18h1v1h-1zM12 18h1v1h-1zM16 18h1v1h-1zM21 18h1v1h-1zM22 18h1v1h-1zM23 18h1v1h-1zM27 18h1v1h-1zM2 19h1v1h-1zM5 19h1v1h-1zM6 19h1v1h-1zM10 19h1v1h-1zM12 19h1v1h-1zM15 19h1v1h-1zM17 19h1v1h-1zM19 19h1v1h-1zM21 19h1v1h-1zM26 19h1v1h-1zM28 19h1v1h-1zM29 19h1v1h-1zM2 20h1v1h-1zM3 20h1v1h-1zM4 20h1v1h-1zM8 20h1v1h-1zM9 20h1v1h-1zM10 20h1v1h-1zM11 20h1v1h-1zM17 20h1v1h-1zM19 20h1v1h-1zM21 20h1v1h-1zM26 20h1v1h-1zM27 20h1v1h-1zM30 20h1v1h-1zM2 21h1v1h-1zM3 21h1v1h-1zM7 21h1v1h-1zM9 21h1v1h-1zM10 21h1v1h-1zM13 21h1v1h-1zM16 21h1v1h-1zM20 21h1v1h-1zM21 21h1v1h-1zM24 21h1v1h-1zM25 21h1v1h-1zM26 21h1v1h-1zM27 21h1v1h-1zM28 21h1v1h-1zM2 22h1v1h-1zM3 22h1v1h-1zM4 22h1v1h-1zM6 22h1v1h-1zM7 22h1v1h-1zM8 22h1v1h-1zM10 22h1v1h-1zM11 22h1v1h-1zM14 22h1v1h-1zM15 22h1v1h-1zM16 22h1v1h-1zM17 22h1v1h-1zM18 22h1v1h-1zM19 22h1v1h-1zM20 22h1v1h-1zM22 22h1v1h-1zM23 22h1v1h-1zM24 22h1v1h-1zM25 22h1v1h-1zM26 22h1v1h-1zM27 22h1v1h-1zM28 22h1v1h-1zM29 22h1v1h-1zM10 23h1v1h-1zM16 23h1v1h-1zM17 23h1v1h-1zM19 23h1v1h-1zM20 23h1v1h-1zM22 23h1v1h-1zM26 23h1v1h-1zM27 23h1v1h-1zM2 24h1v1h-1zM3 24h1v1h-1zM4 24h1v1h-1zM5 24h1v1h-1zM6 24h1v1h-1zM7 24h1v1h-1zM8 24h1v1h-1zM10 24h1v1h-1zM11 24h1v1h-1zM12 24h1v1h-1zM16 24h1v1h-1zM17 24h1v1h-1zM18 24h1v1h-1zM19 24h1v1h-1zM21 24h1v1h-1zM22 24h1v1h-1zM24 24h1v1h-1zM26 24h1v1h-1zM27 24h1v1h-1zM2 25h1v1h-1zM8 25h1v1h-1zM10 25h1v1h-1zM11 25h1v1h-1zM12 25h1v1h-1zM13 25h1v1h-1zM16 25h1v1h-1zM19 25h1v1h-1zM21 25h1v1h-1zM22 25h1v1h-1zM26 25h1v1h-1zM30 25h1v1h-1zM2 26h1v1h-1zM4 26h1v1h-1zM5 26h1v1h-1zM6 26h1v1h-1zM8 26h1v1h-1zM10 26h1v1h-1zM11 26h1v1h-1zM12 26h1v1h-1zM15 26h1v1h-1zM16 26h1v1h-1zM18 26h1v1h-1zM21 26h1v1h-1zM22 26h1v1h-1zM23 26h1v1h-1zM24 26h1v1h-1zM25 26h1v1h-1zM26 26h1v1h-1zM27 26h1v1h-1zM29 26h1v1h-1zM2 27h1v1h-1zM4 27h1v1h-1zM5 27h1v1h-1zM6 27h1v1h-1zM8 27h1v1h-1zM10 27h1v1h-1zM11 27h1v1h-1zM13 27h1v1h-1zM14 27h1v1h-1zM17 27h1v1h-1zM20 27h1v1h-1zM23 27h1v1h-1zM25 27h1v1h-1zM30 27h1v1h-1zM2 28h1v1h-1zM4 28h1v1h-1zM5 28h1v1h-1zM6 28h1v1h-1zM8 28h1v1h-1zM12 28h1v1h-1zM15 28h1v1h-1zM17 28h1v1h-1zM18 28h1v1h-1zM20 28h1v1h-1zM22 28h1v1h-1zM23 28h1v1h-1zM25 28h1v1h-1zM26 28h1v1h-1zM28 28h1v1h-1zM29 28h1v1h-1zM30 28h1v1h-1zM2 29h1v1h-1zM8 29h1v1h-1zM12 29h1v1h-1zM13 29h1v1h-1zM14 29h1v1h-1zM15 29h1v1h-1zM24 29h1v1h-1zM25 29h1v1h-1zM27 29h1v1h-1zM28 29h1v1h-1zM30 29h1v1h-1zM2 30h1v1h-1zM3 30h1v1h-1zM4 30h1v1h-1zM5 30h1v1h-1zM6 30h1v1h-1zM7 30h1v1h-1zM8 30h1v1h-1zM10 30h1v1h-1zM11 30h1v1h-1zM13 30h1v1h-1zM17 30h1v1h-1zM18 30h1v1h-1zM21 30h1v1h-1zM22 30h1v1h-1zM24 30h1v1h-1zM25 30h1v1h-1zM26 30h1v1h-1z\"/></svg>"};
+    const C = { ink:"#1f1d1a", muted:"#6b665e", line:"#d3cdc2", paper:"#f5f2ec", white:"#fffdf9", accent:"#c2410c", soft:"#fbe3d4",
+      green:"#2f7a4c", greenSoft:"#dcefe2", red:"#b3362b", redSoft:"#f6dcd8", blue:"#2d5c9e", blueSoft:"#dfe8f5", amber:"#946200", peach:"#ffb38a", night:"#1b1916" };
+    const esc = value => String(value).replace(/[&<>"']/g, ch => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[ch]));
+    // SVG helpers. Coordinates are in a 1416 × 590 content box unless a diagram says otherwise.
+    const text = (x,y,label,size=24,fill=C.ink,anchor="start",weight=400) => `<text x="${x}" y="${y}" font-size="${size}" fill="${fill}" text-anchor="${anchor}" font-weight="${weight}">${esc(label)}</text>`;
+    const mono = (x,y,label,size=21,fill=C.ink,anchor="start",weight=400) => `<text class="m" x="${x}" y="${y}" font-size="${size}" fill="${fill}" text-anchor="${anchor}" font-weight="${weight}">${esc(label)}</text>`;
+    const lines = (x,y,rows,size=22,fill=C.ink,gap=1.38,anchor="start",weight=400) => rows.map((r,i)=>text(x,y+i*size*gap,r,size,fill,anchor,weight)).join("");
+    const line = (x1,y1,x2,y2,color=C.line,width=3,dash="") => `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${color}" stroke-width="${width}" ${dash?`stroke-dasharray="${dash}"`:""}/>`;
+    function arrow(x1,y1,x2,y2,color=C.ink,width=3,dash="") {
+      const a=Math.atan2(y2-y1,x2-x1),h=14,ex=x2-h*.7*Math.cos(a),ey=y2-h*.7*Math.sin(a);
+      const p=[[x2,y2],[x2-h*Math.cos(a-.42),y2-h*Math.sin(a-.42)],[x2-h*Math.cos(a+.42),y2-h*Math.sin(a+.42)]].map(q=>q.map(v=>v.toFixed(1)).join(",")).join(" ");
+      return line(x1,y1,ex.toFixed(1),ey.toFixed(1),color,width,dash)+`<polygon points="${p}" fill="${color}"/>`;
+    }
+    function box(x,y,w,h,title,sub="",o={}) {
+      const color=o.color||C.ink, fill=o.fill||C.white, size=o.size||24, t=o.mono?mono:text;
+      let b=`<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="6" fill="${fill}" stroke="${color}" stroke-width="${o.stroke||2.5}" ${o.dash?`stroke-dasharray="${o.dash}"`:""}/>`;
+      if(sub) b+=t(x+w/2,y+h/2-3,title,size,o.textColor||C.ink,"middle",550)+text(x+w/2,y+h/2+23,sub,o.subSize||18,C.muted,"middle");
+      else b+=t(x+w/2,y+h/2+size*.36,title,size,o.textColor||C.ink,"middle",550);
+      return b;
+    }
+    // Node centred at (cx,cy): used for object graphs.
+    const node = (cx,cy,title,sub,o={}) => box(cx-(o.w||150)/2,cy-27,o.w||150,54,title,sub,{size:21,subSize:16,...o});
+    const S = (spec,body) => `<g data-show="${spec}">${body}</g>`;
+    const H = (spec,body) => `<g data-hl="${spec}">${body}</g>`;
+    const D = (spec,body) => `<g data-dim="${spec}">${body}</g>`;
+    const svg = (body,label,w=1416,h=590) => `<svg class="diagram" viewBox="0 0 ${w} ${h}" role="img" aria-label="${esc(label)}">${body}</svg>`;
+    const dot = (cx,cy,filled,color=C.ink) => `<circle cx="${cx}" cy="${cy}" r="8" fill="${filled?color:C.paper}" stroke="${color}" stroke-width="2.5"/>`;
+
+    function coverArt() {
+      const P=C.peach, A="#ff8a4c";
+      let b="";
+      const main=[[20,180],[110,180],[200,180],[290,180],[380,180]], side=[[160,90],[250,90]];
+      b+=`<path d="M110 180C130 180 130 90 160 90H250C290 90 270 180 290 180" fill="none" stroke="${P}" stroke-width="3" opacity=".7"/>`;
+      b+=line(20,180,380,180,P,3);
+      [...main,...side].forEach(([x,y])=>b+=`<circle cx="${x}" cy="${y}" r="11" fill="${C.night}" stroke="${P}" stroke-width="3"/>`);
+      const nodes=[];
+      for(let r=0;r<3;r++)for(let c=0;c<4;c++)nodes.push([560+c*58,95+r*85]);
+      nodes.forEach(([x,y],i)=>{b+=`<path d="M380 180C470 180 470 ${y+18} ${x} ${y+18}" fill="none" stroke="${A}" stroke-width="1.6" opacity="${.25+(i%4)*.12}"/>`;});
+      nodes.forEach(([x,y],i)=>b+=`<rect x="${x}" y="${y}" width="40" height="36" rx="3" fill="${i%5===0?A:C.night}" stroke="${A}" stroke-width="2.5"/>`);
+      b+=text(380,240,"one history",20,"#b3aa9c","middle")+text(647,355,"many machines",20,"#b3aa9c","middle");
+      return svg(b,"A commit graph flowing into a grid of servers",780,360);
+    }
+    function peersDiagram() {
+      const pts=[[300,70],[520,200],[440,430],[160,430],[80,200]];
+      let b="";
+      pts.forEach((p,i)=>pts.slice(i+1).forEach(q=>b+=line(p[0],p[1],q[0],q[1],C.line,2)));
+      pts.forEach(([x,y],i)=>b+=box(x-80,y-32,160,64,["Linus","subsystem","driver dev","maintainer","contributor"][i],"full repo",{size:20,subSize:15}));
+      b+=text(300,265,"no central server",20,C.muted,"middle")+text(300,292,"patches + pulls between peers",18,C.muted,"middle");
+      return svg(b,"Five peers, each with a full repository, exchanging patches with no central server",600,480);
+    }
+    function treeDiagram() {
+      let b="";
+      b+=node(310,50,"tree /","f021…",{w:170});
+      b+=node(110,200,"README.md","blob ce01…",{w:170})+node(310,200,"src/","tree 6c81…",{w:170})+node(510,200,"docs/","tree 0db5…",{w:170});
+      b+=node(200,350,"server.ts","blob f7a9…",{w:160})+node(385,350,"pack.ts","blob b8e2…",{w:160});
+      b+=node(565,350,"README.md","→ same blob",{w:140,dash:"6 5",color:C.muted});
+      b+=arrow(270,77,140,173)+arrow(310,77,310,173)+arrow(350,77,480,173)+arrow(290,227,215,323)+arrow(330,227,375,323)+arrow(530,227,560,323,C.muted,2.5);
+      b+=`<path class="edge" d="M565 377C565 470 110 470 110 230" fill="none" stroke="${C.accent}" stroke-width="3" stroke-dasharray="8 6"/>`+`<polygon points="110,227 102,244 118,244" fill="${C.accent}"/>`;
+      b+=text(335,500,"identical bytes → identical SHA → stored once",22,C.accent,"middle",550);
+      return svg(b,"A root tree pointing at blobs and subtrees. Two README entries point at the same blob.",640,520);
+    }
+    function objectTypesDiagram() {
+      let b="";
+      b+=box(0,0,300,80,"ref","refs/heads/main",{size:28,subSize:17,color:C.accent,mono:true,dash:"8 6"});
+      b+=text(330,34,"a mutable pointer file, not an object",22,C.accent,"start",600)+text(330,62,"→ one commit; the only thing that changes",21,C.ink);
+      b+=arrow(150,82,150,124,C.accent,2.5);
+      b+=`<rect x="0" y="108" width="760" height="384" rx="10" fill="#eef3ea" stroke="${C.green}" stroke-width="2" stroke-dasharray="6 5"/>`;
+      const rows=[["commit","snapshot + history","→ one root tree, 0..n parent commits"],
+                  ["tree","a directory","→ blobs and subtrees, by name and mode"],
+                  ["blob","file bytes","→ nothing: no name, no mode, a leaf"]];
+      rows.forEach(([t,d,r],i)=>{const y=128+i*120;
+        b+=box(20,y,280,84,t,d,{size:28,subSize:18,mono:true});
+        b+=text(330,y+50,r,22,C.ink);
+        if(i<2)b+=arrow(160,y+86,160,y+116,C.ink,2.5);});
+      b+=text(20,478,"OBJECT STORE · immutable, append-only",16,C.green,"start",650);
+      b+=text(0,516,"+ tag: an annotated, signed pointer stored as an object (the fourth type)",19,C.muted);
+      return svg(b,"A ref, a mutable pointer file outside the object store, points to a commit; inside the immutable object store, the commit points to a tree and the tree to blobs. Tags are a fourth object type.",760,525);
+    }
+    const commitBuilds=[
+      {label:"One commit, one snapshot",cue:"A commit points to one root tree. Walk the tree and you have every file."},
+      {label:"Second commit shares structure",cue:"Edit server.ts. Only the path from root to that file gets new objects; README and pack.ts are reused."},
+      {label:"Count the new objects",cue:"One changed file means one blob, two trees, one commit: the new hash ripples up the path. Hashes of hashes make this a Merkle DAG, so one commit hash covers every file and all of history."}
+    ];
+    function commitDiagram() {
+      let b="";
+      b+=node(170,45,"commit D","9d2a…",{color:C.accent})+node(170,160,"tree /","e8c4…")+node(75,290,"README.md","blob ce01…")+node(280,290,"src/","tree 7a19…")+node(200,430,"server.ts","blob d431…")+node(370,430,"pack.ts","blob b8e2…");
+      b+=arrow(170,72,170,133)+arrow(150,187,95,263)+arrow(190,187,265,263)+arrow(265,317,215,403)+arrow(295,317,355,403);
+      b+=S("2-",
+        arrow(565,45,245,45,C.accent,3,"8 6")+text(405,32,"parent",19,C.accent,"middle",550)+
+        H("3",node(640,45,"commit E","c8f3…",{color:C.accent}))+H("3",node(640,160,"tree /","f021…"))+H("3",node(640,290,"src/","tree 6c81…"))+H("3",node(560,430,"server.ts","blob f7a9…"))+
+        arrow(640,72,640,133)+arrow(600,187,150,272,C.muted,2.5)+arrow(640,187,640,263)+arrow(625,317,575,403)+arrow(655,317,440,412,C.muted,2.5)+
+        text(75,330,"shared",17,C.muted,"middle")+text(370,470,"shared",17,C.muted,"middle"));
+      b+=`<g transform="translate(820,0)">`+
+        S("1",lines(0,40,["A commit stores a pointer to a","root tree, its parent commit(s),","author, committer, and message.","","It is a full snapshot,","not a diff."],27,C.ink,1.4))+
+        S("2-",`<rect x="0" y="0" width="596" height="250" rx="6" fill="#ebe6dc"/>`+
+          mono(22,40,"$ git cat-file -p c8f3",20,C.muted)+mono(22,78,"tree f021…",20)+mono(22,108,"parent 9d2a…",20,C.accent)+
+          mono(22,138,"author Ada <ada@x.dev> 1730400000",20)+mono(22,168,"committer Ada <ada@x.dev> 1730400000",20)+mono(22,215,"Speed up pack reads",20))+
+        S("3",text(0,330,"1 file changed →",34,C.ink,"start",550)+text(0,380,"1 blob + 2 trees + 1 commit",34,C.accent,"start",550)+
+          text(0,446,"Hashes of hashes: a Merkle DAG.",28,C.ink,"start",600)+lines(0,488,["One commit hash covers every file","and all of history."],24,C.muted))+`</g>`;
+      return svg(b,"Two commits. The second commit reuses unchanged blobs and trees and adds only a new blob, two trees, and a commit.");
+    }
+    const refBuilds=[
+      {label:"main points at D",cue:"A branch is a file holding one SHA. HEAD is a symbolic ref naming the branch."},
+      {label:"Commit E: main moves",cue:"Committing writes objects first, then rewrites one 41-byte file: main goes from D (9d2a) to E (c8f3). That rewrite is the whole 'update'."},
+      {label:"Reachability defines the repo",cue:"X was committed on a branch that has since been deleted. No ref reaches it, so it is no longer part of the repo and gc eventually prunes it. A–E stay, because main reaches them."}
+    ];
+    function refsDiagram() {
+      let b="";
+      const xs={A:70,B:200,C:330,D:460,E:590}, y=300;
+      const commit=(k,c=C.ink,cx=xs[k],cy=y)=>`<circle cx="${cx}" cy="${cy}" r="30" fill="${C.white}" stroke="${c}" stroke-width="3"/>`+text(cx,cy+9,k,26,c,"middle",600);
+      b+=line(100,y,170,y,C.ink,3)+line(230,y,300,y,C.ink,3)+line(360,y,430,y,C.ink,3)+commit("A")+commit("B")+commit("C")+commit("D");
+      b+=S("2-",line(490,y,560,y,C.ink,3)+commit("E",C.accent));
+      b+=S("3",line(352,322,408,408,C.red,2.5,"6 5")+commit("X",C.red,430,430)+
+        text(476,424,"commit on a deleted branch",19,C.red,"start",600)+text(476,450,"unreachable → pruned by git gc",18,C.muted));
+      const ref=(x,label,c)=>box(x-60,150,120,46,label,"",{size:22,color:c,mono:true})+arrow(x,196,x,y-34,c);
+      b+=S("1",ref(460,"main",C.accent))+S("2-",ref(590,"main",C.accent));
+      b+=S("1",box(400,50,120,44,"HEAD","",{size:22,mono:true})+arrow(460,94,460,148))+S("2-",box(530,50,120,44,"HEAD","",{size:22,mono:true})+arrow(590,94,590,148));
+      b+=text(330,530,"parent pointers run right → left; refs give the newest commit a name",19,C.muted,"middle");
+      b+=`<g transform="translate(790,20)"><rect x="0" y="0" width="626" height="330" rx="6" fill="#ebe6dc"/>`+
+        mono(24,44,".git/HEAD",20,C.muted)+mono(24,78,"ref: refs/heads/main",22)+
+        mono(24,132,".git/refs/heads/main",20,C.muted)+
+        S("1",mono(24,166,"9d2a7c40…   (commit D)",22,C.accent))+S("2-",mono(24,166,"c8f3e912…   (commit E)",22,C.accent))+
+        mono(24,220,".git/packed-refs",20,C.muted)+mono(24,254,"5ac0e1… refs/heads/old-feature",20)+mono(24,284,"9d2a7c… refs/tags/v1.0",20)+`</g>`+
+        lines(790,400,["A loose ref is 41 bytes: 40 hex + newline.","Update = write main.lock, then rename.","Thousands of refs → packed-refs or reftable."],22,C.ink,1.45);
+      return svg(b,"Commits A to E with main and HEAD refs; main moves from D to E; a commit X on a deleted branch is unreachable.");
+    }
+    const storageBuilds=[
+      {label:"Every commit starts loose",cue:"git commit writes each new object (commit, trees, blob) as its own zlib file under .git/objects, named by its hash."},
+      {label:"gc rolls them into a pack",cue:"Auto gc runs after commit or fetch once there are about 6,700 loose objects or 50 packs (or on a schedule with git maintenance). A fetch of 100+ objects is kept as a pack; a big push lands as one on the server. The id in the name is a checksum of the contents. D and E came later, so they are still loose."},
+      {label:"Inside the pack",cue:"Every object is zlib-compressed. Blobs and trees can be deltas against a similar nearby object, usually newest whole and older as deltas. Chains are capped at 50. Entries are placed for size, not by commit."},
+      {label:"The .idx finds things",cue:"The .idx is sorted by hash: a 256-entry fanout jumps to rows sharing the first byte, binary search finds the row, and the row gives the offset (plus a CRC to check the stored bytes). The .pack itself stays in write order."}
+    ];
+    function storageDiagram() {
+      let b="";
+      const xs=[80,230,380,530,680], names=["A","B","C","D","E"];
+      for(let i=1;i<5;i++)b+=line(xs[i-1]+28,80,xs[i]-28,80,C.ink,3);
+      xs.forEach((x,i)=>b+=`<circle cx="${x}" cy="80" r="28" fill="${C.white}" stroke="${C.ink}" stroke-width="3"/>`+text(x,89,names[i],26,C.ink,"middle",600));
+      b+=box(620,0,120,34,"main","",{size:18,mono:true,color:C.accent})+arrow(680,35,680,50,C.accent,2.5);
+      b+=S("1",xs.map(x=>text(x,140,"loose",17,C.muted,"middle",600)).join("")+
+        `<g transform="translate(830,10)">`+text(0,20,"git commit E writes four loose files:",22,C.ink,"start",600)+
+        mono(0,58,"objects/c8/f3e912…   commit E",19)+mono(0,86,"objects/f0/21b88e…   tree /",19)+mono(0,114,"objects/6c/81a3d0…   tree src/",19)+mono(0,142,"objects/f7/a9c104…   blob server.ts",19)+
+        text(0,178,"one zlib file per object, named by its hash",19,C.muted)+`</g>`);
+      b+=S("2-",`<rect x="40" y="122" width="380" height="40" rx="6" fill="${C.greenSoft}" stroke="${C.green}" stroke-width="2"/>`+mono(230,148,"pack-3f1c.pack + pack-3f1c.idx",17,C.green,"middle",600)+
+        text(530,148,"loose",17,C.muted,"middle",600)+text(680,148,"loose",17,C.muted,"middle",600));
+      b+=S("2",`<g transform="translate(830,0)">`+text(0,20,"When does a pack appear?",22,C.ink,"start",600)+
+        lines(0,54,["• auto gc after commit/fetch: ~6,700+ loose","   objects or 50+ packs (or git maintenance)","• a fetch of 100+ objects is kept as a pack","• a big push lands as a pack on the server"],19,C.ink,1.42)+
+        lines(0,174,["pack-3f1c = checksum of its contents; .idx shares it.","D and E came later: loose until the next repack."],18,C.muted,1.42)+`</g>`);
+      const parts=[["PACK",80,C.muted],["commit C",130,C.ink],["commit B",130,C.ink],["commit A",130,C.ink],["tree /",110,C.ink],["server.ts v3 · whole",230,C.green],["Δ server.ts v2",170,C.accent],["tree src/",120,C.ink],["Δ server.ts v1",170,C.accent],["…",80,C.muted]];
+      let strip="",x=0;
+      parts.forEach(([l,w,c])=>{const cell=`<rect x="${x}" y="230" width="${w}" height="56" fill="${c===C.green?C.greenSoft:c===C.accent?C.soft:C.white}" stroke="${c}" stroke-width="2"/>`+mono(x+w/2,264,l,17,c,"middle",c===C.ink?400:600);
+        strip+=l==="commit C"?H("4",cell):cell;x+=w;});
+      b+=S("3-",text(0,214,"pack-3f1c.pack",21,C.ink,"start",600)+strip+
+        `<path d="M895 288C895 322 695 322 695 290" fill="none" stroke="${C.accent}" stroke-width="2.5"/><polygon points="695,287 689,300 701,300" fill="${C.accent}"/>`+
+        `<path d="M1185 288C1185 326 895 326 895 290" fill="none" stroke="${C.accent}" stroke-width="2.5"/><polygon points="895,287 889,300 901,300" fill="${C.accent}"/>`+
+        text(795,336,"base",16,C.accent,"middle",600)+text(1040,340,"base",16,C.accent,"middle",600));
+      b+=S("3",text(0,350,"Every object is zlib-compressed. Blobs and trees can be deltas,",20,C.muted)+text(0,376,"based on a similar nearby object; chains stay ≤ 50 deep.",20,C.muted));
+      const rows=[["0f62…","tree src/","a41f09c2","3,904"],["3f7d…","commit C","5b7710fe","12"],["4b70…","tree /","e3c0aa94","404"],["5ac0…","commit B","07be5d11","142"],["a93d…","server.ts v3","c19d2e40","514"]];
+      b+=S("4",text(0,388,"pack-3f1c.idx · sorted by hash (the .pack is in write order)",21,C.ink,"start",600)+
+        `<rect x="0" y="400" width="620" height="${rows.length*30+14}" rx="6" fill="${C.white}" stroke="${C.ink}" stroke-width="2"/>`+
+        rows.map(([h,n,c,o],i)=>{const y=426+i*30,hl=n==="commit C",col=hl?C.accent:C.ink,w=hl?600:400;return (hl?`<rect x="6" y="${y-21}" width="608" height="29" fill="${C.soft}"/>`:"")+
+          mono(22,y,h,19,col,"start",w)+mono(118,y,n,17,hl?C.accent:C.muted,"start",w)+mono(300,y,`crc ${c}`,17,hl?C.accent:C.muted,"start",w)+mono(600,y,`→ ${o}`,19,col,"end",w);}).join("")+
+        `<g transform="translate(720,420)">`+text(0,0,"Read commit C (3f7d…):",22,C.accent,"start",600)+
+        lines(0,40,["1. Loose? Look in objects/3f/: not there.","2. fanout[0x3f] → only the rows starting 3f","3. Binary search those rows → offset 12","4. Seek + inflate; if a delta, read its base."],21,C.ink,1.5)+`</g>`);
+      return svg(b,"Commits A to E. All start as loose objects; gc packs A to C into pack-3f1c with an index while D and E stay loose. The pack stores deltas; the index maps hash to offset.");
+    }
+    const deltaBuilds=[
+      {label:"A tree delta",cue:"src/ is a tree: two entries (pack.ts, server.ts) of mode, name, and file hash, 72 bytes. Editing server.ts in commit E changes only its hash. Matching the newest-whole rule, E's src/ is stored whole and D's src/ becomes: copy bytes 0–51, insert the old 20-byte hash. About 26 bytes instead of 72. A commit is mostly new hashes and timestamps, so it usually stays whole."},
+      {label:"server.ts × 100 edits",cue:"100 versions, all kept. Loose they are 100 full copies; packed they are a whole base plus small deltas that branch, or restart from another whole copy, so no rebuild needs more than 50 hops. Recent versions read fast; old ones cost a few hops."}
+    ];
+    function deltaDiagram() {
+      let b="";
+      const treeTable=(x,title,tc,hash)=>`<g transform="translate(${x},58)">`+text(0,0,title,18,tc,"start",650)+
+        `<rect x="0" y="12" width="310" height="84" rx="6" fill="${C.white}" stroke="${tc}" stroke-width="2"/>`+
+        `<rect x="6" y="${12+8+34}" width="298" height="32" fill="${C.soft}"/>`+
+        [["pack.ts","b8e2…",C.ink],["server.ts",hash,C.accent]].map(([n,h,c],i)=>{const y=12+34+i*34;
+          return mono(16,y,"100644",17,C.muted)+mono(98,y,n,17,c,"start",c===C.accent?600:400)+mono(294,y,h,17,c,"end",c===C.accent?600:400);}).join("")+`</g>`;
+      b+=S("1-",text(0,22,"A tree delta: src/ in commits D and E",24,C.ink,"start",600)+
+        treeTable(0,"E's src/ (6c81…) · stored whole",C.green,"f7a9…")+
+        arrow(316,112,364,112,C.accent,3)+text(340,100,"base",15,C.accent,"middle",600)+
+        treeTable(370,"D's src/ (7a19…) · stored as Δ",C.accent,"d431…")+
+        text(0,190,"Each entry: mode · name · \\0 · 20-byte hash. Two entries = 72 bytes.",18,C.muted)+
+        text(0,216,"The two trees differ in exactly one place: server.ts's hash.",18,C.ink,"start",600)+
+        `<rect x="0" y="236" width="680" height="106" rx="6" fill="#ebe6dc"/>`+
+        mono(20,268,"D's src/ = delta against E's src/:",18,C.muted)+
+        mono(20,298,"COPY   bytes 0–51 of E's",18,C.green,"start",600)+mono(330,298,"pack.ts entry + server.ts name",16,C.muted)+
+        mono(20,328,"INSERT 20 bytes d431…",18,C.accent,"start",600)+mono(330,328,"the old hash",16,C.muted)+
+        text(0,390,"≈ 26 bytes instead of 72. An 80 KB directory: still ≈ 30 bytes.",20,C.ink,"start",600)+
+        text(0,422,"A commit is mostly new hashes and timestamps: usually stored whole.",18,C.muted));
+      let dots=(x0,y,n)=>{let d="";for(let k=0;k<n;k++){if(k)d+=line(x0+(k-1)*50+9,y,x0+k*50-9,y,C.accent,2);d+=`<circle cx="${x0+k*50}" cy="${y}" r="9" fill="${C.soft}" stroke="${C.accent}" stroke-width="2"/>`;}return d;};
+      b+=S("2",`<g transform="translate(760,0)">`+text(0,24,"server.ts × 100 edits",26,C.ink,"start",600)+
+        Array.from({length:20},(_,i)=>`<rect x="${i*30}" y="44" width="22" height="40" fill="${C.white}" stroke="${C.muted}" stroke-width="1.5"/>`).join("")+
+        text(0,112,"loose: 100 full copies · ≈ 1.2 MB",19,C.muted,"start",600)+
+        text(0,156,"packed",17,C.muted,"start",650)+
+        box(0,172,150,50,"v100 · whole","",{size:18,color:C.green,fill:C.greenSoft})+line(150,197,181,197,C.accent,2)+dots(190,197,8)+
+        text(190,238,"v99 … v51 · Δ ≈ 200 B each · depth 1 → 49",16,C.muted)+
+        `<path d="M290 206C300 250 320 262 330 268" fill="none" stroke="${C.accent}" stroke-width="2"/>`+dots(340,276,4)+
+        text(330,312,"v49 … v41 · branch off a shallower base",16,C.muted)+
+        box(0,338,150,50,"v40 · whole","",{size:18,color:C.green,fill:C.greenSoft})+line(150,363,181,363,C.accent,2)+dots(190,363,8)+
+        text(190,404,"v39 … v1 · a fresh shallow chain",16,C.muted)+
+        text(0,452,"≈ 35 KB · 100 versions kept · every rebuild ≤ 50 hops",20,C.ink,"start",600)+
+        text(0,484,"read v100: 1 inflate · read v1: up to 50 delta hops",18,C.muted)+`</g>`+
+        text(0,566,"Deltas are made when packing, reused when sending, resolved when read.",25,C.ink,"start",600));
+      return svg(b,"Left: a tree delta copies 52 bytes, inserts a 20-byte hash, and copies 35 bytes. Right: 100 versions of server.ts packed as whole bases plus small deltas with depth capped at 50.");
+    }
+    function transportDiagram() {
+      let b="";
+      b+=`<rect x="0" y="20" width="420" height="470" rx="8" fill="none" stroke="${C.blue}" stroke-width="2.5"/>`+text(24,62,"Client",28,C.blue,"start",600);
+      b+=`<rect x="996" y="20" width="420" height="470" rx="8" fill="none" stroke="${C.accent}" stroke-width="2.5"/>`+text(1020,62,"Server (bare repo)",28,C.accent,"start",600);
+      b+=box(30,120,360,90,"fetch-pack","git fetch · git clone · git pull",{size:26,mono:true})+box(30,320,360,90,"send-pack","git push",{size:26,mono:true});
+      b+=box(1026,120,360,90,"upload-pack","serves objects",{size:26,mono:true})+box(1026,320,360,90,"receive-pack","accepts objects + ref updates",{size:26,mono:true});
+      b+=arrow(392,150,1024,150,C.ink)+arrow(1024,180,392,180,C.ink)+arrow(392,350,1024,350,C.ink)+arrow(1024,380,392,380,C.ink);
+      b+=text(708,135,"want / have →",20,C.muted,"middle")+text(708,205,"← refs, packfile",20,C.muted,"middle");
+      b+=text(708,335,"ref updates + packfile →",20,C.muted,"middle")+text(708,405,"← refs, status",20,C.muted,"middle");
+      b+=`<g transform="translate(450,450)">`+mono(0,0,"ssh  git@host 'git-upload-pack repo.git'",19,C.ink)+mono(0,34,"https GET  /info/refs?service=git-upload-pack",19,C.ink)+mono(0,68,"https POST /git-upload-pack",19,C.ink)+`</g>`;
+      b+=text(0,560,"pkt-line framing (4-hex length prefix) · protocol v2 commands: ls-refs, fetch · both ends are just Git",21,C.muted);
+      return svg(b,"Client fetch-pack and send-pack talk to server upload-pack and receive-pack over ssh or https.");
+    }
+    // Sequence diagrams: client lane at x=130, server lane at x=760.
+    const CL=130, SV=760;
+    function lanes(clientLabel,serverLabel) {
+      return box(CL-120,0,240,50,clientLabel,"",{size:20,mono:true,color:C.blue})+box(SV-140,0,280,50,serverLabel,"",{size:20,mono:true,color:C.accent})+
+        line(CL,52,CL,585,C.blue,2,"4 6")+line(SV,52,SV,585,C.accent,2,"4 6");
+    }
+    const msg = (y,dir,label,o={}) => (dir>0?arrow(CL,y,SV,y,o.color||C.ink,o.width||3):arrow(SV,y,CL,y,o.color||C.ink,o.width||3))+mono((CL+SV)/2,y-11,label,o.size||18,o.color||C.ink,"middle");
+    const proc = (x,y,w,h,rows,o={}) => `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="6" fill="${C.white}" stroke="${o.color||C.ink}" stroke-width="2.5"/>`+rows.map((r,i)=>(i===0?text:mono)(x+18,y+30+i*27,r,i===0?20:17,i===0?C.ink:C.muted,"start",i===0?600:400)).join("");
+    const fetchBuilds=[
+      {label:"Ref advertisement",cue:"The client asks which refs exist. The server answers from its ref files: main points at E. No objects are touched yet."},
+      {label:"want / have",cue:"want = the tip of each ref the client is missing (E). have = the client's own tips first (B), then older commits in batches only if needed. Once the server ACKs B, it knows the client has everything behind B, including A."},
+      {label:"Server walks the graph",cue:"Walk back from E until you hit what the client has. E and D are found loose; C is found through the pack's .idx; B is common, so stop."},
+      {label:"Server builds one pack",cue:"The sender builds; the receiver resolves. pack-objects puts C, D, E and their new trees and blobs in one pack. C's bytes are reused from the existing pack (CRC-checked, never re-inflated); D and E are compressed now. Deltas against B's objects are allowed: a thin pack."},
+      {label:"Client resolves and moves the ref",cue:"Whoever receives a pack resolves it. Pack entries carry no hashes, so index-pack rebuilds every delta from its base, SHA-1s the result, and writes the .idx. Thin bases come from the client's own store (B) and are appended. Only after the connectivity check does origin/main move to E."}
+    ];
+    function fetchDiagram() {
+      let b=lanes("fetch-pack","upload-pack");
+      b+=S("1-",H("1",msg(100,1,"ls-refs")+msg(140,-1,"refs/heads/main → E")));
+      b+=S("2-",H("2",msg(200,1,"want E · have B")+msg(240,-1,"ACK B · ready")));
+      b+=S("3-",H("3",proc(540,266,440,78,["Walk from E until the client's history","E loose → D loose → C via .idx → B ✓ stop"])));
+      b+=S("4-",H("4",proc(540,356,440,78,["Server builds the pack (pack-objects)","C, D, E: reuse C's bytes, compress D, E"])+msg(470,-1,"PACK (thin: may delta against B)",{width:6})));
+      b+=S("5",H("5",proc(10,482,560,104,["Client resolves the pack (index-pack)","rebuild each Δ from its base, SHA-1 it → .idx","fill thin base from B · connectivity · origin/main → E"])));
+      // State panel: the same A–E history on both sides.
+      const cx=[30,105,180,255,330], nm=["A","B","C","D","E"];
+      const graph=(y,n,label)=>{let g=text(0,y-62,label,17,C.muted,"start",650);
+        for(let i=1;i<n;i++)g+=line(cx[i-1]+20,y,cx[i]-20,y,C.ink,2.5);
+        for(let i=0;i<n;i++)g+=`<circle cx="${cx[i]}" cy="${y}" r="20" fill="${C.white}" stroke="${C.ink}" stroke-width="2.5"/>`+text(cx[i],y+7,nm[i],19,C.ink,"middle",600);return g;};
+      b+=`<g transform="translate(1040,30)">`+graph(50,5,"SERVER")+
+        `<rect x="6" y="80" width="198" height="24" rx="4" fill="${C.greenSoft}" stroke="${C.green}" stroke-width="1.5"/>`+mono(105,97,"pack-3f1c",15,C.green,"middle",600)+
+        text(255,98,"loose",15,C.muted,"middle",600)+text(330,98,"loose",15,C.muted,"middle",600)+
+        mono(330,-8,"main",15,C.accent,"middle",600)+
+        graph(210,2,"CLIENT")+mono(105,182,"origin/main",15,C.accent,"middle",600)+
+        S("5",[2,3,4].map(i=>line(cx[i-1]+20,210,cx[i]-20,210,C.green,2.5)+`<circle cx="${cx[i]}" cy="210" r="20" fill="${C.greenSoft}" stroke="${C.green}" stroke-width="2.5"/>`+text(cx[i],217,nm[i],19,C.green,"middle",600)).join("")+
+          `<rect x="40" y="168" width="140" height="20" fill="${C.paper}"/>`+mono(352,182,"origin/main",15,C.accent,"end",600))+
+        S("3-",`<path d="M330 28C300 0 270 0 255 28M255 28C225 0 195 0 180 28M180 28C150 0 120 0 105 28" fill="none" stroke="${C.accent}" stroke-width="2.5"/>`+text(105,128,"✓ stop",15,C.accent,"middle",650))+
+        S("2-",`<g transform="translate(0,290)">`+text(0,0,"want = tip of each ref",21,C.ink,"start",600)+text(0,26,"you're missing",21,C.ink,"start",600)+
+          lines(0,66,["have = your own tips first, then","older commits in batches, until","the server ACKs one. ACK B","implies A: ancestors come free."],19,C.muted,1.4)+`</g>`)+`</g>`;
+      return svg(b,"Fetch of main when the server has commits A to E (A to C packed, D and E loose) and the client has A and B: want E, have B, walk back to B, send C, D, E as one pack.");
+    }
+    const pushBuilds=[
+      {label:"1 · Server advertises refs",cue:"receive-pack opens by telling the client where every ref points right now."},
+      {label:"2 · Client builds the pack",cue:"The client committed F on top of E. On push the client is the sender, so it builds: only objects reachable from F but not from E (F, its new trees, the changed blob), possibly as thin deltas against E's objects."},
+      {label:"3 · Commands + pack",cue:"Each command is old, new, ref: here E F refs/heads/main. The pack follows on the same stream."},
+      {label:"4 · Server resolves in quarantine",cue:"Now the server is the receiver, so it resolves: index-pack rebuilds every delta, SHA-1s each object, fills thin bases from E's objects, and writes the .idx, all inside a quarantine directory. Then the connectivity check on F. If anything fails, the quarantine is deleted and nothing becomes visible."},
+      {label:"5 · Ref transaction",cue:"pre-receive can reject. Then lock main, check it still points at E, write F, commit. If someone else pushed G first, main is no longer E and this push is rejected. This is compare-and-swap."},
+      {label:"6 · Report status",cue:"post-receive fires (webhooks, CI), and the client gets per-ref ok or ng."}
+    ];
+    function pushDiagram() {
+      let b=lanes("send-pack","receive-pack");
+      b+=S("1-",H("1",msg(95,-1,"refs/heads/main → E")));
+      b+=S("2-",H("2",proc(10,116,560,78,["Client builds the pack (pack-objects)","F ^E → F + new trees + blob, thin vs E"])));
+      b+=S("3-",H("3",msg(225,1,"E F refs/heads/main + PACK",{width:5})));
+      b+=S("4-",H("4",proc(540,248,440,104,["Server resolves, in quarantine","index-pack: rebuild Δ, SHA-1 → .idx","fill thin bases · connectivity on F"])));
+      b+=S("5-",H("5",`<rect x="540" y="364" width="440" height="140" rx="6" fill="${C.white}" stroke="${C.accent}" stroke-width="3"/>`+
+        text(558,394,"pre-receive hook → ref transaction",20,C.ink,"start",600)+mono(558,424,"lock   refs/heads/main.lock",17,C.muted)+mono(558,451,"verify main == E",17,C.accent)+mono(558,478,"write  F → commit",17,C.muted)));
+      b+=S("6",H("6",msg(545,-1,"post-receive · ok refs/heads/main")));
+      b+=S("5-",`<g transform="translate(1030,320)">`+text(0,0,"Compare-and-swap",24,C.accent,"start",600)+
+        lines(0,44,["If someone pushed G first,","main ≠ E and this push is","rejected (fetch, rebase, retry).","--atomic: all refs or none."],22,C.ink,1.42)+`</g>`);
+      b+=S("1-",`<g transform="translate(1030,80)">`+text(0,0,"Two payloads",24,C.ink,"start",600)+lines(0,44,["The pack: new objects.","The commands: which refs","move, and from where."],22,C.muted,1.42)+`</g>`);
+      return svg(b,"Sequence diagram of git push between send-pack and receive-pack in six steps, ending in a compare-and-swap ref transaction.");
+    }
+    const refsScaleBuilds=[
+      {label:"Branches and tags are just refs",cue:"A branch is a ref that moves as you commit. A lightweight tag is a ref that never moves. An annotated tag is a ref to a tag object (tagger, message, signature) that points at a commit. Real repos have thousands: CI branches, agent branches, release tags, and on hosts, a ref per pull request."},
+      {label:"How refs are stored as they grow",cue:"One loose file per ref is simple but slow at 100k files. packed-refs is one sorted text file: fast lookups, but changing one ref rewrites the whole file. reftable stores refs in sorted, prefix-compressed binary blocks; an update appends a small table and compaction merges them later."},
+      {label:"What thousands of refs cost",cue:"Protocol v0 advertises every ref before any work, so a million refs means tens of MB per fetch. v2's ls-refs asks only for the prefixes you need. Hosts hide internal refs like refs/pull/*. And every ref is a garbage-collection root, so more refs means more to walk."}
+    ];
+    function refsScaleDiagram() {
+      let b="";
+      const t=(x,y,l,c=C.ink,w=400,sz=19)=>mono(x,y,l,sz,c,"start",w);
+      b+=`<rect x="0" y="0" width="460" height="560" rx="8" fill="#ebe6dc"/>`+
+        t(20,40,"refs/",C.ink,600,21)+t(44,80,"heads/",C.ink,600)+
+        t(68,114,"main")+text(300,114,"→ E",19,C.accent,"start",600)+
+        t(68,146,"feature/login")+text(300,146,"→ D",19,C.muted)+
+        t(68,178,"agent/task-1832")+text(300,178,"× 1000s",19,C.muted)+
+        t(44,226,"tags/",C.ink,600)+
+        t(68,260,"v1.0")+text(170,260,"→ tag object → D",19,C.muted)+
+        t(68,292,"v1.1")+text(170,292,"→ C (lightweight)",19,C.muted)+
+        t(44,340,"remotes/origin/",C.ink,600)+t(68,374,"main")+text(300,374,"→ E",19,C.muted)+
+        t(44,422,"pull/123/head",C.ink,600)+text(68,452,"one per PR, on the host",17,C.muted)+
+        text(20,530,"every one: a name → a SHA",19,C.ink,"start",600);
+      b+=S("1",`<g transform="translate(520,30)">`+text(0,0,"Branches and tags are just refs",28,C.ink,"start",600)+
+        text(0,56,"Branch",22,C.accent,"start",600)+text(150,56,"moves as you commit",21,C.ink)+
+        text(0,98,"Lightweight tag",22,C.accent,"start",600)+text(200,98,"a ref that never moves",21,C.ink)+
+        text(0,140,"Annotated tag",22,C.accent,"start",600)+text(200,140,"ref → tag object → commit",21,C.ink)+
+        text(200,168,"(tagger, message, signature)",18,C.muted)+
+        lines(0,232,["Thousands are normal: CI and agent branches,","release tags, remote-tracking refs, and on a","host, refs for every pull request."],22,C.ink,1.45)+`</g>`);
+      const stage=(x,title,a,ok,bad)=>`<g transform="translate(${x},40)"><rect x="0" y="0" width="280" height="330" rx="8" fill="${C.white}" stroke="${C.ink}" stroke-width="2.5"/>`+
+        text(20,40,title,24,C.ink,"start",600)+lines(20,80,a,18,C.muted,1.45)+
+        text(20,214,"✓ "+ok[0],18,C.green,"start",600)+text(38,240,ok[1],17,C.green)+
+        text(20,282,"✗ "+bad[0],18,C.red,"start",600)+text(38,308,bad[1],17,C.red)+`</g>`;
+      b+=S("2",stage(520,"Loose files",["one file per ref","refs/heads/main","holds one SHA"],["update one ref:","write + rename one file"],["100k refs:","100k files to list"])+
+        arrow(802,205,818,205,C.ink,2.5)+
+        stage(824,"packed-refs",["one sorted text file","<sha> <name> per line","^<sha> peels a tag"],["lookup:","binary search"],["update one ref:","rewrite the whole file"])+
+        arrow(1106,205,1122,205,C.ink,2.5)+
+        stage(1128,"reftable",["sorted binary blocks,","prefix-compressed,","indexed"],["update: append a","small table, compact later"],["newer: Git 2.45+","--ref-format=reftable"])+
+        text(520,430,"Git starts loose, packs refs on gc, and can opt into reftable.",20,C.ink,"start",600));
+      b+=S("3",`<g transform="translate(520,30)">`+text(0,0,"What thousands of refs cost",28,C.ink,"start",600)+
+        text(0,56,"Protocol v0: every ref advertised first",22,C.red,"start",600)+text(0,86,"1M refs ≈ tens of MB before any real work",20,C.muted)+
+        text(0,140,"Protocol v2: ls-refs with ref-prefix",22,C.green,"start",600)+mono(0,172,"ls-refs ref-prefix refs/heads/main",18,C.ink)+text(0,200,"only what the client asks for",20,C.muted)+
+        text(0,254,"Hosts hide internal refs",22,C.ink,"start",600)+text(0,284,"refs/pull/* exist, but are never advertised (hideRefs)",20,C.muted)+
+        text(0,338,"Every ref is a GC root",22,C.ink,"start",600)+text(0,368,"more refs → more history kept reachable and walked",20,C.muted)+
+        text(0,422,"WAL-Git: ref changes ride in log entries; checkpoints",20,C.ink)+text(0,450,"snapshot all refs, so a cold node never replays everything.",20,C.ink)+`</g>`);
+      return svg(b,"A ref namespace with branches, tags, remote-tracking refs and pull request refs; ref storage evolving from loose files to packed-refs to reftable; and the wire cost of thousands of refs.");
+    }
+    function oneBoxDiagram() {
+      let b="";
+      ["git clone","git push","browser"].forEach((l,i)=>b+=box(0,90+i*120,190,70,l,"",{size:22,color:C.blue}));
+      [125,245,365].forEach(y=>b+=arrow(192,y,318,y,C.blue));
+      b+=`<rect x="320" y="40" width="640" height="470" rx="10" fill="none" stroke="${C.ink}" stroke-width="3"/>`+text(344,80,"one beefy machine",24,C.ink,"start",600);
+      b+=box(350,110,270,80,"web app","Rails",{size:24})+box(660,110,270,80,"sshd / git-daemon","upload / receive-pack",{size:22});
+      b+=arrow(485,192,560,318)+arrow(795,192,720,318);
+      b+=box(380,320,520,130,"local disk","/data/repositories/*.git",{size:28,subSize:20,color:C.accent});
+      b+=`<g transform="translate(1020,90)">`+text(0,0,"Works because",22,C.green,"start",600)+lines(0,38,["Git does everything","Reads are local, packs mmap'd"],22,C.ink,1.45)+
+        text(0,160,"Breaks because",22,C.red,"start",600)+lines(0,198,["One disk, one CPU","One failure domain","Scale up only"],22,C.ink,1.45)+`</g>`;
+      b+=text(0,570,"The box is the repo. Every early host (GitHub 2008 included) started here.",24,C.ink,"start",500);
+      return svg(b,"Clients talk to one machine that runs the web app and Git daemons on top of a local disk of bare repositories.");
+    }
+    function whyNotDiagram() {
+      let b="";
+      b+=text(0,30,"Objects in a key-value store",28,C.ink,"start",600);
+      const chain=["ref","commit","tree","tree","blob"];
+      chain.forEach((l,i)=>{b+=box(i*130,70,104,56,l,"",{size:21});if(i)b+=arrow(i*130-26,98,i*130-2,98,C.accent,2.5)+text(i*130-14,150,"RTT",16,C.accent,"middle",600);});
+      b+=lines(0,210,["Each pointer is known only after the previous","fetch returns. git log over 10k commits =","10k+ serial round trips."],22,C.ink,1.45);
+      b+=text(0,345,"JGit DHT (Google): reads worked; clone did not.",21,C.muted);
+      b+=`<g transform="translate(740,0)">`+text(0,30,"Repos on a network filesystem",28,C.ink,"start",600);
+      b+=`<rect x="0" y="85" width="676" height="56" fill="${C.white}" stroke="${C.ink}" stroke-width="2"/>`;
+      for(let i=1;i<14;i++)b+=line(i*48,85,i*48,141,C.line,1.5);
+      [[40,420],[420,180],[180,600],[600,300],[300,90]].forEach(([a,z])=>b+=`<path d="M${a} 85C${a} ${70-Math.abs(z-a)/20} ${z} ${70-Math.abs(z-a)/20} ${z} 83" fill="none" stroke="${C.accent}" stroke-width="2.2"/>`);
+      b+=lines(0,210,["Every operation is a random walk through","GBs of deltas. Git assumes local locks,","atomic rename, mmap, fsync."],22,C.ink,1.45);
+      b+=text(0,330,"NFS: GitHub tried it; Bitbucket Data Center ran on it",21,C.ink,"start",600)+text(0,358,"for years. Fine for streaming packs, punishing for refs",19,C.muted)+text(0,382,"and loose objects. GFS: no better.",19,C.muted)+`</g>`;
+      b+=line(0,400,1416,400,C.line,1.5);
+      b+=text(0,460,"Git wants its data on a local disk.",34,C.ink,"start",550)+text(0,510,"Every design that followed either keeps it there, or rebuilds Git around remote storage.",26,C.muted);
+      b+=text(0,560,"Note: \"local disk\" in this talk means a fast local SSD (NVMe): ~100 µs per random read, versus milliseconds per network round trip.",19,C.accent,"start",600);
+      return svg(b,"Two failed approaches: objects in a key-value store need a round trip per hop; packfiles on network filesystems need random reads.");
+    }
+    const raidBuilds=[
+      {label:"Active + hot spare",cue:"RAID inside each server, DRBD mirrors every block to a dedicated spare. Four copies of every byte."},
+      {label:"Failover",cue:"Active dies. A human confirms, promotes the spare, traffic moves. Now the spare has no spare."},
+      {label:"The limits",cue:"Half the hardware idles, one server serves every read for its repos, and losing the pair takes them all offline."}
+    ];
+    function raidDiagram() {
+      let b="";
+      b+=box(560,0,300,64,"app → RPC","routes repo → fileserver",{size:22,subSize:16,color:C.blue});
+      const server=(x,title,c)=>`<rect x="${x}" y="150" width="440" height="230" rx="8" fill="${C.white}" stroke="${c}" stroke-width="3"/>`+text(x+220,190,title,23,c,"middle",600)+
+        box(x+40,220,160,80,"disk","",{size:20})+box(x+240,220,160,80,"disk","",{size:20})+text(x+220,345,"RAID-1 · local disk",18,C.muted,"middle");
+      b+=server(150,"fileserver A · active",C.ink)+server(826,"fileserver A′ · hot spare",C.muted);
+      b+=arrow(592,265,822,265,C.accent,4)+text(708,245,"DRBD",20,C.accent,"middle",650)+text(708,300,"every block, sync",17,C.muted,"middle");
+      b+=S("1",arrow(650,66,420,148,C.blue,3));
+      b+=S("2-",`<path d="M200 170L540 360M540 170L200 360" stroke="${C.red}" stroke-width="7" opacity=".85"/>`+arrow(770,66,1000,148,C.blue,3)+text(1000,110,"human confirms → promote",18,C.red,"start",550));
+      b+=text(0,425,"4 copies of every byte: 2 via RAID on the active, 2 via DRBD on the spare",22,C.ink,"start",500);
+      b+=S("3",[["Idle spare","half the fleet serves no reads"],["Pair loss","every repo on it goes offline"],["Manual failover","then a window with no spare"]]
+        .map(([t,d],i)=>`<g transform="translate(${i*480},470)">`+text(0,30,t,26,C.red,"start",600)+text(0,66,d,22,C.muted)+`</g>`).join(""));
+      return svg(b,"An application routes to an active fileserver that mirrors blocks to a hot spare with DRBD; on failure the spare is promoted manually.");
+    }
+    const spokesBuilds=[
+      {label:"Fan out the pack",cue:"Packs are idempotent, so send them to every replica in parallel: 3 by default, up to around 20 for the hottest repos. No agreement needed yet."},
+      {label:"3PC on the ref transaction",cue:"Only the tiny ref update needs consensus: prepare (lock + check old), pre-commit, commit. A majority must ack."},
+      {label:"Reads, and the bill",cue:"Any replica can serve a fetch. The price: tail latency, a fixed floor and ceiling on replicas, and repos you have to babysit."}
+    ];
+    function spokesDiagram() {
+      let b="";
+      b+=box(0,215,170,64,"git push","",{size:22,color:C.blue})+arrow(172,247,258,247,C.blue);
+      b+=box(260,200,240,94,"coordinator","Spokes",{size:24});
+      const ys=[40,215,390];
+      ys.forEach((y,i)=>b+=box(760,y,340,110,`replica ${i+1}`,"real Git repo · local disk",{size:24}));
+      b+=S("1-",H("1",ys.map(y=>arrow(502,247,756,y+40,C.accent,3,"9 6")).join("")+text(590,120,"pack",20,C.accent,"middle",600)));
+      b+=S("2-",H("2",ys.map(y=>arrow(502,262,756,y+80,C.ink,2.5)).join("")+text(530,405,"ref txn",20,C.ink,"start",600)));
+      b+=S("2",`<g transform="translate(1150,40)">`+text(0,0,"Three-phase commit",22,C.accent,"start",600)+
+        lines(0,44,["1 prepare: lock ref,","   verify old SHA","2 pre-commit","3 commit","","majority must ack"],21,C.ink,1.45)+`</g>`);
+      b+=S("3",box(0,450,170,64,"git fetch","",{size:22,color:C.blue})+arrow(172,482,756,445,C.blue,3)+box(260,500,280,70,"routing DB","repo → replicas + checksums",{size:20,subSize:15,color:C.muted})+
+        `<g transform="translate(1150,30)">`+text(0,0,"The bill",22,C.red,"start",600)+
+        lines(0,42,["Latency = slowest","replica","Floor: 3 copies of","every idle repo","Ceiling: more replicas,","slower pushes","Pets: checksums,","repair jobs, routing DB"],20,C.ink,1.38)+`</g>`);
+      b+=text(930,532,"3 replicas by default · up to ~20 for hot repos",19,C.muted,"middle",600)+text(930,562,"Same pattern later: Bitbucket Mesh (2022) replaced NFS",17,C.muted,"middle");
+      return svg(b,"Spokes fans the pack out to three replicas, then runs three-phase commit on the ref transaction; reads go to any replica.");
+    }
+    const blobBuilds=[
+      {label:"Pack → blob store",cue:"Packs are immutable files. Any stateless frontend can write one to blob storage."},
+      {label:"Ref → database transaction",cue:"The ref update becomes a conditional write in a database: old value must match."},
+      {label:"Reads through a cache",cue:"Reads come back through a cache because blob latency per object is too high for Git's random access."}
+    ];
+    function blobDiagram() {
+      let b="";
+      b+=box(0,230,170,64,"git push","fetch",{size:22,color:C.blue})+arrow(172,262,258,262,C.blue);
+      b+=`<rect x="276" y="168" width="290" height="190" rx="8" fill="${C.white}" stroke="${C.muted}" stroke-width="2"/>`+`<rect x="268" y="176" width="290" height="190" rx="8" fill="${C.white}" stroke="${C.muted}" stroke-width="2"/>`;
+      b+=box(260,184,290,190,"stateless frontends","own Git implementation",{size:24,subSize:18});
+      b+=box(780,60,330,130,"blob store","packs as immutable objects",{size:26,color:C.green});
+      b+=box(780,330,330,130,"database","refs: conditional update",{size:26,color:C.blue});
+      b+=S("1-",H("1",arrow(552,230,776,130,C.green,3)+text(650,160,"1 write pack",20,C.green,"middle",600)));
+      b+=S("2-",H("2",arrow(552,320,776,395,C.blue,3)+text(700,410,"2 old → new",20,C.blue,"middle",600)));
+      b+=S("3",H("3",box(260,450,290,70,"pack cache","hides blob latency",{size:21,subSize:16})+`<path class="edge" d="M780 160C690 200 640 470 552 485" fill="none" stroke="${C.ink}" stroke-width="2.5" stroke-dasharray="7 5"/>`+text(690,470,"3 read",20,C.ink,"middle",600)));
+      b+=`<g transform="translate(1160,40)">`+text(0,0,"Same pattern",22,C.ink,"start",600)+
+        text(0,48,"JGit DFS",22,C.ink,"start",600)+text(0,76,"built at Google for",18,C.muted)+text(0,100,"hosted Gerrit",18,C.muted)+
+        text(0,148,"Azure DevOps",22,C.ink,"start",600)+text(0,176,"Blob + SQL Server",18,C.muted)+
+        text(0,224,"AWS CodeCommit",22,C.ink,"start",600)+text(0,252,"S3 + DynamoDB",18,C.muted)+`</g>`;
+      b+=S("3",`<g transform="translate(1160,330)">`+text(0,0,"+ stateless compute",19,C.green,"start",600)+text(0,28,"+ durable storage",19,C.green,"start",600)+text(0,56,"+ no replica pets",19,C.green,"start",600)+
+        text(0,100,"− not stock Git on disk",19,C.red,"start",600)+text(0,128,"− cache layer to tune",19,C.red,"start",600)+text(0,156,"− a database to run",19,C.red,"start",600)+`</g>`);
+      return svg(b,"Stateless frontends write packs to a blob store and update refs with a database transaction; reads come through a cache.");
+    }
+    const walBuilds=[
+      {label:"1 · Read the index first",cue:"Before advertising refs to the pusher, the node does the same conditional GET as any read. Now it knows the log is at version e1 with head 41, so this push will be entry #42."},
+      {label:"2 · Persist the push as WAL entry #42",cue:"Write the pack to local disk and upload entry #42 to the object store at the same time. Durable, but nothing points at it yet."},
+      {label:"3 · Publish with compare-and-swap",cue:"Lock main and check it is still E, then PUT the index with If-Match: e1, the version read in step 1. Success gives e2: the push is acknowledged and linearized."},
+      {label:"4 · Gossip to other nodes",cue:"UDP gossip tells other nodes there is news. It can be lost; correctness doesn't depend on it."},
+      {label:"5 · Any node can serve a read",cue:"A fetch starts with the same GET index as a push. A warm node sends If-None-Match with the version it has: 304 in under 10 ms means serve now; 200 means pull the new WAL entries first. Cold node 3 has no version yet, so it does a plain GET, learns e2 and head 42, rebuilds the repo from the WAL, then serves."},
+      {label:"6 · Any node can take a push",cue:"There is no primary role. Node 2 read e2 and tries to publish #43 with If-Match: e2. If another node got there first, it gets a 412: re-read the index, re-check the ref, retry. Pushes usually go to the rendezvous #1 node only because that avoids retries."}
+    ];
+    function walDiagram() {
+      let b="";
+      b+=box(0,90,160,64,"git push","",{size:22,color:C.blue})+arrow(162,122,236,122,C.blue);
+      b+=`<rect x="240" y="40" width="330" height="200" rx="8" fill="${C.white}" stroke="${C.ink}" stroke-width="3"/>`+text(405,78,"node 1 · took this push",22,C.ink,"middle",600)+text(405,104,"any node can; #1 by rendezvous hash",17,C.muted,"middle")+
+        box(270,130,270,80,"Git repo on local disk","warm cache, not truth",{size:20,subSize:16});
+      b+=`<rect x="760" y="20" width="656" height="250" rx="8" fill="#eef3ea" stroke="${C.green}" stroke-width="3"/>`+text(784,58,"Object store · source of truth",24,C.green,"start",600);
+      b+=box(784,85,130,54,"entry #40","",{size:19})+box(930,85,130,54,"entry #41","",{size:19});
+      b+=S("2-",H("2",box(1076,85,130,54,"entry #42","",{size:19,color:C.accent,dash:"6 4"})+`<path class="edge" d="M572 72H1141V74" fill="none" stroke="${C.accent}" stroke-width="3"/>`+arrow(1141,72,1141,84,C.accent,3)));
+      b+=box(784,170,420,70,"WAL index","the only mutable object",{size:22,subSize:16});
+      b+=S("1-2",mono(1226,212,"version e1",20,C.ink,"start",600)+mono(1226,236,"head 41",17,C.muted))+S("3-",H("3",mono(1226,212,"version e2",20,C.accent,"start",600)+mono(1226,236,"head 42",17,C.accent)+arrow(572,190,780,205,C.accent,3)+text(676,255,"CAS If-Match: e1",17,C.accent,"middle",600)+arrow(236,145,162,145,C.green,3)+text(198,180,"ack",18,C.green,"middle",600)));
+      b+=S("1",H("1",arrow(574,152,778,182,C.ink,3,"7 5")+text(668,150,"GET index",17,C.ink,"middle",600))+
+        `<g transform="translate(830,320)">`+text(0,0,"Before anything else:",21,C.ink,"start",600)+mono(0,38,"GET index If-None-Match: <last version>",18,C.ink)+
+        text(0,74,"304 or 200 → now at version e1, head 41",20,C.ink)+text(0,106,"→ this push will be entry #42",20,C.accent,"start",600)+
+        text(0,138,"The CAS later says: only if still e1.",19,C.muted)+text(0,172,"version = the object's ETag on S3, generation on GCS",17,C.muted)+`</g>`);
+      b+=box(240,340,330,80,"node 2","Git repo on local disk (cache)",{size:22,subSize:16})+box(240,450,330,80,"node 3","cold: no local copy yet",{size:22,subSize:16,dash:"6 5"});
+      b+=S("4-",H("4",arrow(330,242,330,336,C.amber,2.5,"4 5")+`<path d="M480 242C520 300 600 400 572 470" fill="none" stroke="${C.amber}" stroke-width="2.5" stroke-dasharray="4 5"/>`+text(320,298,"UDP gossip (may drop)",18,C.amber,"end",600)));
+      b+=S("5-",H("5",box(0,458,160,64,"git fetch","",{size:22,color:C.blue})+arrow(162,490,236,490,C.blue)+arrow(574,480,798,274,C.ink,2.5,"7 5"))+S("5",text(700,400,"GET index",17,C.ink,"middle",600)));
+      b+=S("5",`<g transform="translate(830,320)">`+text(0,0,"Every read starts with GET index:",21,C.ink,"start",600)+
+        mono(0,36,"warm node: If-None-Match: e2",18,C.ink)+text(0,64,"304 → up to date, serve now (<10 ms)",19,C.green,"start",600)+text(0,90,"200 → pull the new WAL entries, then serve",19,C.ink)+
+        mono(0,128,"cold node 3: plain GET, no version yet",18,C.ink)+text(0,156,"200 → e2, head 42 → rebuild from the WAL, then serve",19,C.ink)+`</g>`);
+      b+=S("6",H("6",box(0,348,160,64,"git push","",{size:22,color:C.blue})+arrow(162,380,236,380,C.blue)+arrow(572,368,780,236,C.accent,3,"7 5"))+
+        `<g transform="translate(830,320)">`+mono(0,0,"#43: CAS If-Match: e2 (still current?)",19,C.accent,"start",600)+text(0,38,"Lost the race → re-read WAL, re-check ref, retry",20,C.ink)+
+        text(0,70,"No primary role: the CAS is the agreement.",20,C.ink,"start",600)+text(0,102,"Rendezvous #1 is just a preference",19,C.muted)+text(0,128,"that avoids retries and owns compaction.",19,C.muted)+`</g>`);
+      b+=text(0,585,"Kept from Spokes: real Git on local disk. Kept from blob + DB: object storage as truth. Dropped: quorum, primary, routing DB, database.",20,C.muted);
+      return svg(b,"WAL-based Git: pushes are WAL entries in object storage published by compare-and-swap on an index; replicas learn via gossip and validate with conditional GETs.");
+    }
+    const s3Builds=[
+      {label:"The contract",cue:"Five kinds of objects per repository. Only the WAL index is mutable, and only by compare-and-swap. Entries, packs, and checkpoints are written once and never change."},
+      {label:"What one push writes",cue:"Resolve and verify the pack locally. Write pack P42 and entry #42 (kind PUSH, pack P42, refs main: E to F); they are durable but invisible. Then CAS the WAL index: only if it is still at version e1, set head 42 and add P42. That is the commit point; git hears ok only after it."},
+      {label:"Compaction and checkpoints",cue:"Later, the node holding the compaction lease merges P1, P2 and P42 into P-all, writes entry #43 COMPACT, and CASes the index to e3; other nodes download P-all instead of repacking. A checkpoint then snapshots all refs and the pack set at #43, so a cold node loads it and replays only newer entries."}
+    ];
+    function s3WriteDiagram() {
+      let b="";
+      const nm=(x,y,l,c=C.ink,w=400,sz=19)=>mono(x,y,l,sz,c,"start",w), note=(x,y,l,c=C.muted)=>text(x,y,l,16,c);
+      b+=`<rect x="0" y="0" width="640" height="560" rx="8" fill="#eef3ea" stroke="${C.green}" stroke-width="2.5"/>`;
+      b+=nm(20,38,"object store / acme/app /",C.green,600,20);
+      b+=nm(28,82,"WAL index",C.accent,600,20)+note(200,82,"mutable · compare-and-swap only",C.accent);
+      b+=S("1",nm(52,114,"e1 · head 41 · packs [P1, P2]",C.muted,400,17))+
+        S("2",H("2",nm(52,114,"e2 · head 42 · packs [P1, P2, P42]",C.accent,600,17)))+
+        S("3",nm(52,114,"e3 · head 43 · packs [P-all]",C.green,600,17));
+      b+=nm(28,160,"log/",C.ink,600,20)+note(110,160,"written once, in order");
+      b+=nm(52,192,"entry #40   PUSH   C → D",C.ink,400,17)+nm(52,222,"entry #41   PUSH   D → E",C.ink,400,17)+
+        S("2-",H("2",nm(52,252,"entry #42   PUSH   E → F",C.accent,600,17)))+S("3",nm(52,282,"entry #43   COMPACT",C.green,600,17));
+      b+=nm(28,330,"packs/",C.ink,600,20)+note(130,330,"written once, named by checksum");
+      b+=nm(52,362,"P1  + index   A–C",C.ink,400,17)+nm(52,392,"P2  + index   D, E",C.ink,400,17)+
+        S("2-",H("2",nm(52,422,"P42 + index   F",C.accent,600,17)))+S("3",nm(52,452,"P-all + index A–F, compacted",C.green,600,17));
+      b+=nm(28,500,"checkpoints/",C.ink,600,20)+S("1-2",note(200,500,"ref snapshot + pack set"))+S("3",nm(200,500,"@ #43: all refs + [P-all]",C.green,600,17));
+      b+=nm(28,536,"leases/",C.ink,600,20)+note(130,536,"who compacts right now");
+      b+=S("1",`<g transform="translate(700,30)">`+text(0,0,"One mutable object.",28,C.accent,"start",600)+text(0,38,"Everything else is written once.",28,C.ink,"start",600)+
+        [["WAL index","head of the log + live pack set; changed only by CAS"],["log/","one entry per push or compaction: kind, pack, ref updates"],["packs/","the Git objects, named by their checksum"],["checkpoints/","all refs at some point, so a cold node reads snapshot + tail"],["leases/","who is allowed to run compaction"]]
+          .map(([k,v],i)=>{const y=104+i*62;return mono(0,y,k,19,C.ink,"start",600)+text(0,y+26,v,18,C.muted);}).join("")+`</g>`);
+      b+=S("2-",`<g transform="translate(700,10)">`+`<rect x="0" y="0" width="716" height="190" rx="8" fill="#ebe6dc"/>`+text(20,36,"Entry #42",24,C.ink,"start",600)+text(140,36,"written once",17,C.muted)+
+        text(20,78,"kind",19,C.muted)+text(110,78,"PUSH",19,C.ink,"start",600)+
+        text(20,112,"pack",19,C.muted)+text(110,112,"P42 (+ its index), named by checksum",19,C.ink)+
+        text(20,146,"refs",19,C.muted)+text(110,146,"main: E → F",19,C.accent,"start",600)+
+        text(20,178,"meta",19,C.muted)+text(110,178,"writer node 2, client, pusher",17,C.muted)+`</g>`);
+      const steps=[["Resolve + verify the pack","index-pack --fix-thin · connectivity · policy"],["Write P42 and entry #42","in parallel · durable, not visible yet"],["CAS the WAL index: only if still e1","head → 42, + P42 · the commit point"],["Reply ok to git","only after the store has it"]];
+      b+=S("2",`<g transform="translate(700,250)">`+steps.map(([op,d],i)=>{const y=i*56,hl=i===2;return `<circle cx="16" cy="${y-7}" r="16" fill="${hl?C.accent:C.paper}" stroke="${hl?C.accent:C.ink}" stroke-width="2"/>`+text(16,y,String(i+1),16,hl?C.white:C.ink,"middle",650)+
+          text(46,y,op,21,hl?C.accent:C.ink,"start",600)+text(46,y+24,d,16,C.muted);}).join("")+`</g>`);
+      b+=S("3",`<g transform="translate(700,236)">`+text(0,0,"Later: compaction",22,C.green,"start",600)+
+        lines(0,30,["the lease holder merges P1, P2, P42 into P-all,","writes entry #43 COMPACT, then CASes the index to e3.","Other nodes download P-all instead of repacking."],18,C.muted,1.4)+
+        text(0,130,"Then: a checkpoint",22,C.green,"start",600)+
+        lines(0,160,["a snapshot of all refs + the pack set at #43.","A cold node loads it and replays only newer entries."],18,C.muted,1.4)+`</g>`);
+      b+=text(700,500,"Durable first, visible second:",24,C.ink,"start",600)+text(700,532,"the WAL index CAS is the only commit point.",24,C.ink,"start",600);
+      b+=text(700,566,"Contract as implemented by walgit, an open-source take on Cursor's design.",16,C.muted);
+      return svg(b,"Object storage for one repository as a tree: a mutable WAL index, immutable log entries, packs, checkpoints and leases. A push adds entry #42 and pack P42, then commits by compare-and-swap on the index; compaction later adds P-all.");
+    }
+    function architectureDiagram() {
+      let b="";
+      ["coding agents","review bots","compliance","platform services"].forEach((l,i)=>b+=box(0,40+i*120,220,80,l,"",{size:22,color:C.blue}));
+      [80,200,320,440].forEach(y=>b+=arrow(222,y,318,270,C.blue,2));
+      b+=text(270,555,"gRPC",19,C.muted,"middle",600);
+      b+=`<rect x="320" y="120" width="270" height="300" rx="8" fill="${C.white}" stroke="${C.ink}" stroke-width="3"/>`+text(455,160,"Gateway",26,C.ink,"middle",600)+
+        lines(345,205,["authn · repo authz","placement policy","throttling","state in Redis"],20,C.muted,1.6);
+      const cluster=(y,title)=>`<rect x="670" y="${y}" width="500" height="250" rx="8" fill="none" stroke="${C.muted}" stroke-width="2" stroke-dasharray="7 5"/>`+text(690,y+34,title,20,C.muted,"start",600)+
+        [0,1].map(i=>`<g transform="translate(${690+i*240},${y+52})">`+`<rect x="0" y="0" width="220" height="180" rx="6" fill="${C.white}" stroke="${C.ink}" stroke-width="2.5"/>`+text(110,30,"backend node",18,C.ink,"middle",600)+
+          box(14,44,192,38,"bare clone","",{size:17,color:C.green})+box(14,88,192,38,"checkout pool","",{size:17,color:C.accent})+box(14,132,192,38,"sandbox pool","",{size:17,color:C.blue})+`</g>`).join("");
+      b+=cluster(20,"specialized cluster (one use case)")+cluster(320,"shared cluster")+arrow(592,230,666,150)+arrow(592,300,666,440);
+      b+=box(1240,190,176,180,"upstream","Git servers",{size:24,subSize:18,color:C.green});
+      b+=arrow(1236,250,1174,150,C.green,2.5)+arrow(1236,320,1174,440,C.green,2.5);
+      b+=text(1328,410,"push events",17,C.green,"middle")+text(1328,434,"+ fetch every 5 min",17,C.green,"middle");
+      return svg(b,"GitFarm: clients call a gateway over gRPC; the gateway routes to backend clusters whose nodes hold a bare clone, a checkout pool, and a sandbox pool synced from upstream.");
+    }
+    const flowBuilds=[1,2,3,4,5,6].map((n,i)=>({label:["Request","Authenticate + authorize","Place","Acquire sandbox + checkout","Execute as caller","Release"][i],cue:[
+      "Client sends repo id, workspace type, and a list of commands.",
+      "Gateway identifies the caller and checks they may access this repo.",
+      "Gateway picks the node with the most free checkouts for that repo and marks one occupied. None free → throttle.",
+      "Backend takes a pre-started sandbox from its pool and mounts a pre-warmed checkout into it.",
+      "Commands run inside the sandbox with the caller's identity, not the service's.",
+      "Sandbox is released back to the pool; Redis state is updated."][i]}));
+    function flowDiagram() {
+      let b="";
+      b+=H("1",box(0,200,150,80,"client","",{size:22,color:C.blue}));
+      b+=H("1",arrow(152,240,228,240,C.blue));
+      b+=H("2,3,6",box(230,170,190,140,"Gateway","",{size:24}));
+      b+=H("3",arrow(422,240,498,240));
+      b+=`<rect x="500" y="40" width="380" height="460" rx="8" fill="none" stroke="${C.ink}" stroke-width="2.5"/>`+text(690,74,"backend node",20,C.ink,"middle",600);
+      b+=H("4",box(525,95,155,170,"sandbox","pool",{size:20,color:C.blue}))+H("4",box(700,95,155,170,"checkout","pool",{size:20,color:C.accent}));
+      b+=H("5",box(525,300,330,110,"sandbox + checkout","runs as caller",{size:22,subSize:18}));
+      b+=H("4",arrow(602,267,640,298,C.blue,2.5)+arrow(777,267,740,298,C.accent,2.5));
+      b+=box(525,430,330,50,"bare clone ← upstream","",{size:18,color:C.green});
+      [[75,180],[325,150],[460,215],[690,282],[548,322],[325,330]].forEach(([x,y],i)=>b+=H(String(i+1),`<circle cx="${x}" cy="${y}" r="17" fill="${C.paper}" stroke="${C.ink}" stroke-width="2.5"/>`+text(x,y+7,String(i+1),18,C.ink,"middle",650)));
+      return svg(b,"Six-step GitFarm request flow from client through gateway to a pooled sandbox and checkout.",880,510);
+    }
+    const sessionBuilds=[
+      {label:"merge-base",cue:"First command: where did this branch diverge from main?"},
+      {label:"rev-parse",cue:"Same session, same repo state: resolve the tip. Output streams back; the next step can use it."},
+      {label:"push",cue:"Push from the sandbox. It goes through exactly the receive-pack path we walked earlier: quarantine, connectivity, ref compare-and-swap."}
+    ];
+    const slides = [];
+    function add(title,chapter,seconds,body,notes,refs=[],opts={}) {
+      slides.push({title,chapter,seconds,body,notes,refs,...opts});
+    }
+
+    add("Evolution of Git","Opening",20,
+      `<p class="eyebrow">Seattle Systems · From Kernel to Codebase</p><h1 class="cover-title">Evolution of Git</h1><p class="cover-sub">From a kernel tool to a distributed control plane</p>
+       <div class="cover-author"><p class="cover-name">Preetam Dwivedi</p><p class="cover-event">Staff Software Engineer · Developer Platform, Uber</p></div><div class="cover-art">${coverArt()}</div>`,
+      "- Git was designed with no server. Today it is the center of a distributed system.\n- Four parts: the data model, fetch and push on the wire, how servers evolved, and GitFarm.\n- Goal: you leave knowing what actually happens underneath git push.",
+      ["linkedin"],{theme:"dark",custom:true});
+    add("2005: built for one very unusual project","Part 1 · Origins",50,
+      `<div class="split" style="grid-template-columns:1fr 600px;gap:60px"><ul class="list">
+        <li><strong>April 2005</strong><span>The free BitKeeper license for kernel developers is withdrawn.</span></li>
+        <li><strong>7 April 2005</strong><span>Git's first commit: “the information manager from hell.”</span></li>
+        <li><strong>June 2005</strong><span>Linux 2.6.12, the first kernel release managed in Git.</span></li>
+       </ul><div style="height:470px">${peersDiagram()}</div></div>
+       <p class="bottom-line">No server in the design. <span class="accent">Every clone is the whole repository.</span></p>`,
+      "- Git was written for the kernel's decentralized workflow: many maintainers, patches and pulls between peers.\n- The original design has no privileged copy. Every clone holds the entire history.\n- Keep that in mind: everything later in this talk is about making one copy special again.",
+      []);
+    add("Everything in Git is an object","Part 1 · Data model · Objects",60,
+      `<div class="split" style="grid-template-columns:600px 1fr;gap:56px"><div>
+        <p class="compare-label">An object is</p>
+        <pre class="codeblock">type + " " + size + "\\0" + content</pre>
+        <ul class="list tight" style="margin-bottom:22px">
+          <li><strong>zlib-compressed</strong>, stored once</li>
+          <li><strong>named by its SHA-1</strong>: the name is the content</li>
+          <li><strong>immutable</strong>: a new version is a new object</li>
+        </ul>
+        <pre class="codeblock" style="font-size:20px;line-height:1.4;padding:14px 22px"><span class="c">$ git cat-file -t ce0136</span>
+<span class="hl-out">blob</span>
+<span class="c">$ git cat-file -t HEAD</span>
+<span class="hl-out">commit</span></pre>
+       </div><div style="height:520px">${objectTypesDiagram()}</div></div>
+       <p class="bottom-line">Objects are append-only and content-addressed. <span class="accent">Refs are the only thing that changes.</span></p>`,
+      "- Everything Git stores is an object: type, size, and content, compressed and named by its SHA-1. Commit, tree, and blob are the chain that matters; tag is the fourth, rarer type.\n- Objects never change. Editing a file creates a new blob; the old one is still there under its old name.\n- On top sits a ref: not an object, just a file holding a SHA, and the only mutable thing in Git. That split drives the rest of the talk.",
+      ["objects"]);
+    add("Content is its own address","Part 1 · Data model · Blobs and trees",70,
+      `<div class="split" style="grid-template-columns:720px 1fr;gap:50px"><div>
+        <p class="compare-label">Blob: file bytes, named by their hash</p>
+        <pre class="codeblock"><span class="c">$ printf 'hello\\n' | git hash-object --stdin</span>
+<span class="hl-out">ce013625030ba8dba906f756967f9e9ca394464a</span>
+<span class="c"># = sha1("blob 6\\0" + "hello\\n")</span></pre>
+        <p class="compare-label">Tree: a directory listing of names → hashes</p>
+        <pre class="codeblock"><span class="c">$ git cat-file -p HEAD^{tree}</span>
+100644 blob ce0136…  README.md
+040000 tree 6c81a3…  src
+040000 tree 0db5e7…  docs</pre>
+       </div><div style="height:560px">${treeDiagram()}</div></div>`,
+      "- A blob is the file's bytes with a small header; its name is the SHA-1 of that. No filename, no metadata.\n- A tree maps names and modes to blob or tree hashes. Identical content anywhere in history is stored exactly once.\n- Because names are derived from content, any copy can verify any object. That is what makes replication safe later.",
+      ["objects"]);
+    add("A commit is a snapshot that shares structure","Part 1 · Data model · Commits",80,
+      commitDiagram(),
+      "- A commit is a root tree plus parent pointers plus metadata. Not a diff.\n- A new commit only adds objects on the path from the root to what changed; everything else is shared.\n- It is a Merkle DAG: trees hash their children's hashes, commits hash their tree and parents. Anyone can verify what they receive, and an identical subtree hash means you can skip the whole directory. Walking it still means following pointers one object at a time; remember that for the server section.",
+      ["objects"],{builds:commitBuilds});
+    add("Refs give names to commits","Part 1 · Data model · Refs and reachability",60,
+      refsDiagram(),
+      "- A branch is a 41-byte file holding a SHA. HEAD names the current branch.\n- Every write to a repo ends with one small ref update. That update is the only mutable thing in Git.\n- Reachability from refs defines what the repo contains. Unreachable objects are eventually garbage-collected.",
+      ["refs"],{builds:refBuilds});
+    add("Where objects live: loose files and packs","Part 1 · Data model · Storage",90,
+      storageDiagram(),
+      "- New objects are written loose, one file each. gc, repack, or a large fetch or push rolls many objects into one packfile plus its .idx.\n- Inside a pack, older versions are deltas against newer ones, placed for size rather than by commit.\n- To read any object, Git checks loose files first, then binary-searches each .idx for the offset. Remember A–E: the fetch slide uses the same history.",
+      ["packformat"],{builds:storageBuilds});
+    add("How a delta is stored","Part 1 · Data model · Deltas",90,
+      deltaDiagram(),
+      "- A delta is a list of COPY and INSERT instructions against a base object. A tree is just a list of mode, name, hash entries, so one changed file changes 20 bytes of each tree on its path, and the older tree becomes a ~26-byte delta against the newer one.\n- server.ts edited 100 times is 100 objects, all kept. Packed, that's one or two whole copies plus about 200-byte deltas; depth is capped at 50, so Git branches or restarts chains as needed.\n- Deltas are made when packing, reused when sending, and resolved whenever someone reads an old version.",
+      ["packformat"],{builds:deltaBuilds});
+    add("Further down the rabbit hole","Part 1 · Advanced, for later",45,
+      `<div class="skim-grid">
+        <div class="skim"><h3>commit-graph</h3><p>Walk history without opening commit objects.</p></div>
+        <div class="skim"><h3>Reachability bitmaps</h3><p>“Everything reachable from X” as one bitset.</p></div>
+        <div class="skim"><h3>Multi-pack-index</h3><p>One sorted lookup across many packs.</p></div>
+        <div class="skim"><h3>Geometric repacking</h3><p>Merge the small packs; leave the giant one alone.</p></div>
+        <div class="skim"><h3>Cruft packs</h3><p>Unreachable objects wait here until pruned.</p></div>
+        <div class="skim"><h3>Alternates</h3><p>Share one object store, as fork networks do.</p></div>
+        <div class="skim"><h3>Partial &amp; shallow clone</h3><p><span class="mono">--filter=blob:none</span>, <span class="mono">--depth</span>: fetch less, ask later.</p></div>
+        <div class="skim"><h3>reftable</h3><p>A sorted binary store for millions of refs.</p></div>
+        <div class="skim"><h3>SHA-256</h3><p>New object hash; most hosting is still hardened SHA-1.</p></div>
+       </div>
+       <p class="bottom-line">None of these change the model of objects, packs, and refs. <span class="accent">They make it fast at scale.</span></p>`,
+      "- A quick skim, not a deep dive: these are the indexes and storage tricks big repos and big hosts depend on.\n- commit-graph, bitmaps, and the multi-pack-index speed up walks and lookups; geometric repacking and cruft packs keep maintenance cheap; alternates, partial clones, reftable, and SHA-256 deal with scale and security.\n- None of them changes the model from the last few slides. Happy to go deeper in Q&A.",
+      ["packformat"]);
+
+    add("Two programs on each side of the wire","Part 2 · Fetch and push",40,
+      transportDiagram(),
+      "- Fetch is fetch-pack talking to upload-pack. Push is send-pack talking to receive-pack.\n- Transport is ssh or smart HTTP; framing is pkt-line; protocol v2 adds explicit commands like ls-refs and fetch.\n- The server is the same Git binary running against a bare repo. That is why hosting Git looks easy and isn't.",
+      ["protocolv2","packprotocol"]);
+    add("git fetch, end to end","Part 2 · Fetch and push · Client and server",120,
+      fetchDiagram(),
+      "- Same history as the pack slide: the server has A–E (A–C packed, D and E loose); the client stopped at B.\n- want names ref tips; have walks back through the client's history until the server recognizes a commit. The server then walks from E back to B, finding objects loose or through the .idx.\n- It ships C, D, E as one fresh pack; the client re-indexes it into its own pack, and only then moves origin/main.",
+      ["protocolv2","packprotocol"],{builds:fetchBuilds});
+    add("git push, end to end","Part 2 · Fetch and push · Client and server",120,
+      pushDiagram(),
+      "- Continuing the A–E story: the client commits F on top of E and pushes. It sends only what the server lacks, plus the command E F refs/heads/main.\n- The server quarantines, verifies connectivity, runs hooks, then does a ref transaction: lock, check old, write.\n- That ref transaction is a compare-and-swap. Keep it in mind for every architecture that follows.",
+      ["packprotocol","receivepack"],{builds:pushBuilds});
+    add("Branches and tags at scale","Part 2 · Refs at scale",80,
+      refsScaleDiagram(),
+      "- Branches and tags are just refs: names pointing at SHAs. Branches move, lightweight tags don't, annotated tags point through a tag object. Real repos have thousands of them, hosts far more.\n- Ref storage grows up in three steps: one loose file per ref, then one sorted packed-refs file, then reftable's sorted binary blocks, where an update is a small append instead of a full rewrite.\n- On the wire, protocol v0 advertises every ref up front; v2's ls-refs with ref-prefix fixes that, and hosts hide internal refs. Every ref is also a GC root.",
+      ["refs","protocolv2"],{builds:refsScaleBuilds});
+    add("A push is two different things","Part 2 · The key split",45,
+      `<div class="split" style="margin-top:20px"><div><p class="compare-label">Packfile</p><p class="contract">Large. Immutable.<br>Content-addressed.</p><p class="under">Idempotent: write it twice and nothing breaks. It can land on any disk, at any time, before anyone agrees.</p></div>
+       <div><p class="compare-label">Ref transaction</p><p class="contract accent">Tiny. Mutable.<br>Compare-and-swap.</p><p class="under">Must be atomic and ordered. This is the only part of a push that needs agreement.</p></div></div>
+       <p class="bottom-line">Every server design that follows answers two questions: <span class="accent">where do packs live, and who agrees on refs?</span></p>`,
+      "- The pack is bulk data that can be copied anywhere without coordination.\n- The ref update is a few bytes that must be agreed on, atomically.\n- Use this lens for every stage: one box, RAID pairs, Spokes, blob plus database, WAL.",
+      [],{theme:"dark"});
+
+    add("Stage 0: one box","Part 3 · Server evolution",40,
+      oneBoxDiagram(),
+      "- The first Git hosts were one big machine: web app, Git daemons, and repos on local disk.\n- Packs and refs both live on that disk, and the box agrees with itself.\n- It is fast and simple until the disk, the CPU, or the machine runs out.",
+      ["cursor"]);
+    add("Why not just distribute the storage?","Part 3 · Server evolution · Dead ends",60,
+      whyNotDiagram(),
+      "- Objects in a distributed key-value store: every hop of the DAG walk becomes a network round trip. Google's JGit DHT worked for reads, but clone performance sank it.\n- Repos on NFS or GFS: Git's random delta reads and its local-filesystem assumptions make it slow and buggy. GitHub tried NFS early; Bitbucket Data Center kept every repo on a shared NFS mount for years, and Atlassian's own docs call NFS latency fine for streaming packs but punishing for refs and loose objects.\n- Conclusion: Git needs local disk, or you rewrite Git around remote storage. \"Local disk\" from here on means a fast local SSD (NVMe): microseconds per random read instead of a network round trip.",
+      ["cursor","mesh"]);
+    add("Stage 1: RAID + DRBD pairs","Part 3 · Server evolution · Replicate the disk",65,
+      raidDiagram(),
+      "- GitHub's pre-2016 design: an active fileserver with RAID, mirrored block-by-block to a dedicated hot spare with DRBD.\n- Packs and refs both live on the active disk; DRBD copies bytes without knowing they are Git.\n- Failover was manual, the spare served nothing, and a pair outage took every repo on it offline.",
+      ["dgit"],{builds:raidBuilds});
+    add("Stage 2: Spokes — replicate Git, not disks","Part 3 · Server evolution · Application-level replication",85,
+      spokesDiagram(),
+      "- DGit, later Spokes: real Git repos on several servers (3 by default, up to around 20 for the hottest repos), replicated by Git-aware software, not by blocks.\n- Packs fan out freely; only the ref transaction goes through three-phase commit. Reads go to any replica.\n- Costs: latency bound by the slowest replica; a floor of 3 copies even for idle repos; a ceiling, because every extra replica slows every push, so even ~20 is tight for monorepo CI; and repos as pets. Atlassian landed in the same place later: Bitbucket Mesh (Data Center 8.0, 2022) replaced NFS with repos replicated on local disk across nodes.",
+      ["dgit","cursor","mesh"],{builds:spokesBuilds});
+    add("Stage 2b: packs in blobs, refs in a database","Part 3 · Server evolution · Disaggregated storage",75,
+      blobDiagram(),
+      "- The other road: put immutable packs in blob storage and refs in a database. JGit DFS, Azure DevOps, and CodeCommit all follow this pattern.\n- Compute becomes stateless and storage durable, with no replica babysitting.\n- The price: you no longer run stock Git on a local repo, so you own a Git implementation, a cache, and a database.",
+      ["jgitdfs","codecommit","cursor"],{builds:blobBuilds});
+    add("Stage 3: WAL-Git — the log is the repo","Part 3 · Server evolution · Object storage as truth",135,
+      walDiagram(),
+      "- Cursor's Continuity: a push is a WAL entry in the object store; it becomes visible only when a compare-and-swap on the WAL index succeeds. Pushes are linearizable.\n- The local Git repo is a warm cache. Replicas learn from lossy gossip but verify every read with a conditional GET, so reads are consistent.\n- There is no primary: any node can take a push (the CAS on the object store decides) and any node can serve a read, rebuilding from the WAL if it has no copy. Rendezvous hashing just picks a preferred node to avoid CAS retries, and that node does compaction; idle repos are dropped and rebuilt on demand.",
+      ["cursor"],{builds:walBuilds});
+    add("What a push writes to the object store","Part 3 · Server evolution · WAL-Git in detail",90,
+      s3WriteDiagram(),
+      "- The contract, as implemented by walgit (an open-source take on Cursor's design): per repository, one tiny mutable WAL index and everything else immutable: log entries, packs, checkpoints. walgit calls the index manifest.pb; Cursor calls it gitwal.pb.\n- A push writes a pack, its .idx, and a PUSH log entry holding the pack reference and the ref transaction (main: E to F). Only the conditional PUT on the manifest makes it visible; git hears ok after that.\n- After the push: the lease holder compacts packs and publishes a COMPACT entry; a checkpoint snapshots all refs and packs so a cold node starts from it plus the log tail. (Races were covered on the previous slide.)",
+      ["walgit","cursor"],{builds:s3Builds});
+    add("Five answers to one question","Part 3 · Server evolution · Summary",55,
+      `<table class="table"><thead><tr><th>Stage</th><th>Packs live</th><th>Refs agreed by</th><th>Replicas</th><th>Failover</th><th>You operate</th></tr></thead><tbody>
+        <tr><td>One box</td><td>local disk</td><td>the box</td><td>1</td><td>restore</td><td>one machine</td></tr>
+        <tr><td>RAID + DRBD</td><td>local disk, block-mirrored</td><td>active node</td><td>1 + idle spare</td><td>manual promote</td><td>pairs, spares</td></tr>
+        <tr><td>Spokes</td><td>a Git repo on each replica's local disk</td><td>3PC majority</td><td>3 → ~20</td><td>other replicas</td><td>routing DB, repair</td></tr>
+        <tr><td>Blob + DB</td><td>blob store</td><td>DB transaction</td><td>storage-managed</td><td>stateless</td><td>Git impl, cache, DB</td></tr>
+        <tr><td>WAL-Git</td><td>object-store WAL, local-disk cache</td><td>object-store CAS</td><td>0 → 100+</td><td>rebuild from WAL</td><td>compaction</td></tr>
+       </tbody></table>
+       <div class="metrics-strip"><div><strong>120 pushes/s</strong>S3 Standard</div><div><strong>300+ pushes/s</strong>S3 Express One Zone</div><div><strong>linear reads</strong>to 100 replicas</div><div style="align-self:end">Cursor's reported numbers, on AWS S3</div></div>`,
+      "- Same two questions every time: where do packs live, who agrees on refs. \n- The trend: move truth to durable shared storage and treat local copies as cache.\n- Throughput numbers are Cursor's own reports for their monorepo, not independent benchmarks.",
+      ["cursor"]);
+
+    add("Storage scales. Every client still clones.","Part 4 · GitFarm",25,
+      `<p class="eyebrow">Part 4 · GitFarm</p><p class="statement">Storage scales.<br><span class="accent">Every client still clones.</span></p><p class="statement-sub">Agents, review bots, and automation don't need a copy of the repo. They need to run Git against it.</p>`,
+      "- Everything up to WAL-Git makes the server side scale.\n- But each automation still pulls a full checkout before it can run one git command.\n- GitFarm moves the execution to where the repo already is.",
+      ["paper"],{theme:"dark",custom:true});
+    add("The cost of a local checkout at Uber","Part 4 · GitFarm · The problem",45,
+      `<div class="split" style="grid-template-columns:1.1fr 1fr;gap:70px"><div class="stat-grid">
+        <div class="stat"><p class="num">~15<small>min</small></p><p class="label">Go monorepo clone<span>before any work starts</span></p></div>
+        <div class="stat"><p class="num">40+<small>GB</small></p><p class="label">disk per Go checkout<span>plus ~4 cores, 16 GB RAM</span></p></div>
+        <div class="stat"><p class="num">12<small>cores</small></p><p class="label">48 GB RAM, 64 GB disk<span>a node syncing several monorepos</span></p></div>
+        <div class="stat"><p class="num">6</p><p class="label">monorepos<span>Go, Java, Python, Web, Android, iOS</span></p></div>
+       </div><ul class="list">
+        <li><strong>Every system kept its own checkout</strong><span>and fetched upstream independently, adding server load.</span></li>
+        <li><strong>CI caches help, partly</strong><span>Per-agent caches diverge; cold starts take minutes.</span></li>
+        <li><strong>Checkout sits on the critical path</strong><span>even for a 2-second git command.</span></li>
+       </ul></div>`,
+      "- Six monorepos. Cloning Go takes about 15 minutes and a meaningful slice of a machine.\n- Each automation system kept and synced its own checkouts, multiplying upstream load.\n- CI caches reduce clone time but add cold starts, drift, and upkeep.",
+      ["paper"]);
+    add("GitFarm: Git as a service","Part 4 · GitFarm · Architecture",55,
+      architectureDiagram(),
+      "- Clients call a gRPC API. The gateway authenticates, authorizes per repo, and places the request.\n- Backend nodes keep a bare clone per repo, synced by push events plus a 5-minute fetch, and pools of pre-warmed checkouts and sandboxes.\n- Separate clusters per heavy use case, plus a shared cluster for everyone else.",
+      ["paper"]);
+    add("One request, six steps","Part 4 · GitFarm · Request flow",55,
+      `<div style="display:grid;grid-template-columns:840px 1fr;gap:50px;height:100%"><div>${flowDiagram()}</div>
+        <ol class="steps-list">${flowBuilds.map((s,i)=>`<li data-hl="${i+1}"><strong>${esc(s.label)}</strong></li>`).join("")}</ol></div>
+       <div class="metrics-strip" style="position:absolute;bottom:0;left:0;right:0"><div><strong>1–2 s</strong>sandbox start, unpooled</div><div><strong>up to 3 min</strong>checkout from bare clone</div><div><strong class="green">&lt; 1 s</strong>ready checkout, pooled</div></div>`,
+      "- Request, authenticate, place on the node with the most free checkouts, or throttle.\n- A pooled sandbox gets a pooled checkout mounted; commands run as the caller.\n- Pools are the whole trick: cold start moves off the request path.",
+      ["paper"],{builds:flowBuilds});
+    add("Stateful sessions: many commands, one repo state","Part 4 · GitFarm · Execution API",55,
+      `<div class="split" style="grid-template-columns:900px 1fr;gap:56px"><div>
+        <pre class="codeblock" style="font-size:20px;white-space:pre">Exec(repo_id="go-code", workspace_type=CHECKOUT,
+  commands=[
+<span class="code-hl" data-hl="1">    {alias:"base", bin:"git", args:["merge-base","main","HEAD"]},</span>
+<span class="code-hl" data-hl="2">    {alias:"tip",  bin:"git", args:["rev-parse","HEAD"]},</span>
+<span class="code-hl" data-hl="3">    {alias:"push", bin:"git", args:["push","origin","HEAD:x"]},</span>
+  ])</pre>
+        <pre class="codeblock" style="font-size:21px;border-color:var(--green)"><span data-show="1-">→ base  exit 0  5ac0e1d4…</span>
+<span data-show="2-">→ tip   exit 0  3f7d9a02…</span>
+<span data-show="3">→ push  exit 0  ok refs/heads/x</span></pre>
+       </div><div class="col">
+        <h3>Bidirectional gRPC stream</h3><p>Each command's stdout can feed the next. Results return alias, exit code, stdout, stderr.</p>
+        <p><strong>Isolation</strong> — one sandbox per session.</p><p><strong>Consistency</strong> — every command sees one repo state.</p><p><strong>Determinism</strong> — commands run in order.</p>
+        <p data-show="3" class="accent" style="color:var(--accent)">The push goes through the same receive-pack path and ref compare-and-swap from Part 2.</p>
+       </div></div>`,
+      "- The API takes a repo, a workspace type, and a list of commands; a session can chain commands that depend on earlier output.\n- Guarantees: isolation, one consistent repo state, ordered execution. Fatal errors end the session.\n- The example from the paper: merge-base, rev-parse, push.",
+      ["paper"],{builds:sessionBuilds});
+    add("Identity, freshness, isolation","Part 4 · GitFarm · Design choices",50,
+      `<div class="three" style="margin-top:10px">
+        <div class="col"><p class="compare-label">Identity</p><h3>Authorization follows the caller</h3><p>The gateway checks the caller's access to the repo.</p><p>The sandbox runs with the caller's privileges, not the client host's.</p></div>
+        <div class="col"><p class="compare-label">Freshness</p><h3>Eventually consistent, by choice</h3><p>Push events plus a periodic fetch every 5 minutes keep bare clones current.</p><p><strong>Need latest?</strong> Start the session with <span class="mono">git fetch</span>. <strong>Can tolerate lag?</strong> Skip it and save the latency.</p></div>
+        <div class="col"><p class="compare-label">Isolation</p><h3>Clusters per workload</h3><p>Heavy or latency-sensitive workloads get their own cluster; a shared cluster onboards the rest.</p><p>New use cases go through a sizing review: pool sizes, limits, sync policy.</p></div>
+       </div>
+       <p class="bottom-line" style="font-size:26px">Contrast with WAL-Git: strong consistency at the storage layer; GitFarm lets each request choose.</p>`,
+      "- Identity is decoupled from the client environment: the caller's identity flows into the sandbox.\n- Freshness is eventual with a 5-minute backstop; clients that need the newest state fetch first.\n- Workload isolation by cluster avoids noisy neighbours.",
+      ["paper"]);
+    add("Who needs Git without a clone?","Part 4 · GitFarm · Use cases",45,
+      (()=>{let b="";
+        b+=line(708,20,708,560,C.ink,2)+line(40,290,1376,290,C.ink,2);
+        b+=text(708,14,"INTERACTIVE",17,C.muted,"middle",650)+text(708,588,"BATCH",17,C.muted,"middle",650)+text(40,280,"READ-ONLY",17,C.muted,"start",650)+text(1376,280,"READ / WRITE",17,C.muted,"end",650);
+        const q=(x,y,items)=>items.map(([l,f],i)=>dot(x,y+i*52-7,f,f?C.accent:C.ink)+text(x+22,y+i*52,l,24,C.ink)).join("");
+        b+=q(80,90,[["Code ownership lookups · ~100 rps",1],["AI review: diff + surrounding code",0],["Research / Q&A agents",0]]);
+        b+=q(760,90,[["PR base-branch change · ~1 rps",1],["Coding agents pushing branches",0],["Review-bot fix-up commits",0]]);
+        b+=q(80,370,[["Ownership and dependency scans",0],["Repository analytics",0]]);
+        b+=q(760,370,[["Compliance audits → audit PRs",1],["Upstream mirroring (planned)",0],["SubmitQueue merge-to-trunk (planned)",0]]);
+        b+=dot(1040,540,1,C.accent)+text(1060,547,"in the paper",19,C.muted)+dot(1200,540,0)+text(1220,547,"pattern",19,C.muted);
+        return svg(b,"Quadrant map of GitFarm use cases by read-only versus read/write and interactive versus batch.");})(),
+      "- Two axes: does the workload write, and is someone waiting on it.\n- Filled dots are measured production cases in the paper; hollow dots are patterns and planned work.\n- Agents and review automation fill every quadrant, which is why a shared execution layer pays off.",
+      ["paper"]);
+    add("Agents need the monorepo, not a clone","Part 4 · GitFarm · Agents",85,
+      (()=>{let b="";
+        b+=text(0,30,"Agent with a local clone",26,C.red,"start",600);
+        [["provision","VM / container"],["clone","~15 min · 40+ GB"],["work","minutes"],["discard","repeat per task"]].forEach(([t,s],i)=>{b+=box(i*168,60,150,80,t,s,{size:21,subSize:15,color:i===1?C.red:C.ink});if(i)b+=arrow(i*168-18,100,i*168-2,100);});
+        b+=text(0,180,"× N agents = N clones, N upstream fetches",22,C.muted);
+        b+=S("2-",`<g transform="translate(730,0)">`+text(0,30,"Agent with GitFarm",26,C.green,"start",600)+
+          box(0,60,180,80,"open session","< 1 s, pooled",{size:21,subSize:15,color:C.green})+arrow(182,100,208,100)+
+          box(210,60,230,80,"read","grep · log · blame · diff",{size:21,subSize:15})+arrow(442,100,468,100)+
+          box(470,60,216,80,"write","commit → push",{size:21,subSize:15})+
+          text(0,180,"push to a scoped ref:",19,C.muted)+mono(686,180,"refs/heads/agent/<task>",19,C.accent,"end")+`</g>`);
+        b+=S("3",line(0,230,1416,230,C.line,1.5)+text(0,280,"Fan-out: many agents, one pool",26,C.ink,"start",600)+
+          Array.from({length:8},(_,i)=>box(i*86,320,70,56,"agent","",{size:15,color:C.blue})+arrow(i*86+35,378,330,468,C.blue,1.5)).join("")+
+          box(230,470,260,70,"GitFarm sessions","identity-scoped",{size:21,subSize:15,color:C.green})+
+          `<g transform="translate(760,300)">`+lines(0,0,["Each agent gets an isolated sandbox on a","pre-warmed checkout, and can push only","where its caller may.","","Today sessions cap at 5 minutes, so long","agent loops chain sessions."],23,C.ink,1.45)+`</g>`);
+        b+=S("1",text(0,580,"Pattern, not a measured case in the paper.",19,C.muted));
+        return svg(b,"Comparison of an agent cloning the monorepo versus using GitFarm sessions, then many agents sharing pooled sessions.");})(),
+      "- An agent that clones first spends 15 minutes and 40 GB before it reads a file, and every agent repeats it.\n- With GitFarm an agent opens a session in under a second, reads with ordinary git commands, and pushes to a scoped ref.\n- This is the direction, not a paper result. The 5-minute session cap matters for long agent loops.",
+      ["paper"],{builds:[{label:"Clone first",cue:"Cost of a clone-first agent."},{label:"Session instead",cue:"Same task through a GitFarm session."},{label:"Fan-out",cue:"Many agents share pools; identity scopes their writes."}]});
+    add("Code review and PR automation","Part 4 · GitFarm · Review workflows",60,
+      (()=>{let b="";
+        b+=H("1",box(0,150,200,90,"PR event","opened · updated",{size:23,subSize:16,color:C.blue}));
+        b+=H("1",arrow(202,195,268,195,C.blue));
+        b+=H("1",box(270,150,220,90,"review service","bot / workflow",{size:23,subSize:16}));
+        b+=H("1",arrow(492,195,558,195));
+        b+=`<rect x="560" y="40" width="400" height="320" rx="8" fill="${C.white}" stroke="${C.green}" stroke-width="3"/>`+text(760,78,"GitFarm session",24,C.green,"middle",600);
+        b+=S("2-",H("2",["git fetch origin pull/123/head","git merge-base main HEAD","git diff --stat base..HEAD","git show HEAD:path (context)","OWNERS lookup per changed dir"].map((c,i)=>mono(585,125+i*48,c,18,C.ink)).join("")));
+        b+=S("3",H("3",arrow(962,200,1036,200)+[["review comments",C.ink],["required reviewers",C.ink],["fix-up commit",C.accent],["base-branch update",C.accent]].map(([l,c],i)=>box(1040,40+i*82,376,64,l,"",{size:21,color:c})).join("")));
+        b+=`<g transform="translate(0,420)">`+line(0,0,1416,0,C.line,1.5)+
+          text(0,50,"Code ownership inspection",22,C.ink,"start",600)+text(0,82,"~100 rps · 350K+ directories in the Go monorepo",20,C.muted)+
+          text(720,50,"PR base-branch change",22,C.ink,"start",600)+text(720,82,"~1 rps · p50 ~25 s end to end (fetch ~5 s, push ~12 s)",20,C.muted)+
+          text(0,140,"Both in production per the paper. AI review on this path is the pattern, not a reported result.",19,C.muted)+`</g>`;
+        return svg(b,"A PR event triggers a review service that runs a GitFarm session to read the diff and context, then posts comments or pushes changes.");})(),
+      "- A PR event starts a session: fetch the PR ref, merge-base, diff, read context files, look up owners.\n- Outputs are comments, required reviewers, or writes such as a fix-up commit or base-branch update.\n- Measured: ownership inspection at about 100 rps over 350K directories; base-branch changes at about 1 rps with p50 near 25 seconds, mostly Git itself.",
+      ["paper"],{builds:[{label:"Event → session",cue:"The trigger and the session."},{label:"Read the change",cue:"Ordinary git commands, no local clone."},{label:"Act on it",cue:"Comments, reviewers, or a push back through receive-pack."}]});
+    add("Compliance: audit every bypass","Part 4 · GitFarm · Production case",40,
+      `<p class="body muted" style="max-width:1300px">10–20k deploy and push events per hour across ~9,000 repos. Find commits that landed without review and open an audit PR for each.</p>
+       <div class="result-pair"><div><p class="when">Buildkite · p50</p><p class="value muted">110–160<small>s</small></p></div><div class="arrow">→</div><div><p class="when">GitFarm · p50</p><p class="value accent">20–30<small>s</small></p></div></div>
+       <p class="bottom-line">More than <span class="accent">80% lower</span> median latency, with no checkout on the critical path.</p>`,
+      "- Compliance auditing watches deploy and push events and publishes audit PRs for unreviewed commits.\n- Median latency fell from roughly two minutes on CI to 20–30 seconds.\n- Only p50 is reported; the paper notes tail latency is dominated by Git itself.",
+      ["paper"]);
+    add("Results: give the resources back","Part 4 · GitFarm · Code ownership service",40,
+      (()=>{let b="";
+        const rows=[["CPU, fleet average","90.1 cores","16 cores",90.1,16,"−82%"],["Memory, fleet average","~472 GB","32 GB",472,32,"−93%"],["Node startup","15–20 min","< 1 min",17.5,1,"cold start gone"]];
+        rows.forEach(([l,a,z,va,vz,d],i)=>{const y=30+i*165,W=900;
+          b+=text(0,y+18,l,24,C.ink,"start",600)+text(1416,y+18,d,26,C.accent,"end",600);
+          b+=`<rect x="0" y="${y+38}" width="${W}" height="38" fill="${C.line}"/>`+text(W+20,y+66,`before · ${a}`,21,C.muted);
+          b+=`<rect x="0" y="${y+84}" width="${Math.max(10,W*vz/va).toFixed(1)}" height="38" fill="${C.accent}"/>`+text(Math.max(10,W*vz/va)+20,y+112,`after · ${z}`,21,C.accent,"start",600);});
+        b+=text(0,535,"Per node: 12 → 2 cores, 48 → 4 GB RAM, 64 → 2 GB disk. Client-side resource use down more than 70% overall.",21,C.muted);
+        b+=text(0,570,"In production since early 2025; automation invokes Git millions of times a day.",21,C.muted);
+        return svg(b,"Bars comparing CPU, memory, and startup time before and after GitFarm for the code ownership service.");})(),
+      "- The code ownership service dropped local checkouts for all six monorepos.\n- Fleet CPU fell from about 90 to 16 cores and memory from about 472 to 32 GB; node startup went from 15–20 minutes to under a minute.\n- Caveat: results come from one shared four-node cluster and one service per case.",
+      ["paper"]);
+    add("What's next","Part 4 · GitFarm · Future work",35,
+      `<div class="three" style="margin-top:10px">
+        <div class="col"><p class="compare-label">Planned integrations</p><h3>SubmitQueue merge-to-trunk</h3><p>Apply changes to latest main in sandboxes, push a temporary ref, merge after CI.</p><h3 style="margin-top:30px">Upstream mirroring</h3><p>Watch push events and replicate commits to a secondary upstream.</p></div>
+        <div class="col"><p class="compare-label">Engine</p><h3>Streaming output</h3><p>Today stdout/stderr return whole; streaming cuts memory pressure.</p><h3 style="margin-top:30px">Sparse workspaces</h3><p>Not every task needs a full working tree.</p></div>
+        <div class="col"><p class="compare-label">Agents</p><h3>Long-lived sessions</h3><p>Sessions cap at 5 minutes; agents and branch watchers need longer.</p><h3 style="margin-top:30px">Agents as primary clients</h3><p>The fastest-growing callers of Git are not humans.</p></div>
+       </div>`,
+      "- Planned: SubmitQueue merge-to-trunk running in sandboxes, and mirroring across upstreams.\n- Engine work: streaming output, sparse workspaces, longer sessions.\n- The direction: agents become the main clients of the Git control plane.",
+      ["paper"]);
+
+    add("Git became a distributed system","Closing",25,
+      `<div class="close-lines">
+        <p><span>Storage:</span> one disk → mirrored disks → quorum replicas → an object-store log.</p>
+        <p><span>Agreement:</span> the box → the active node → 3PC → a database → one compare-and-swap.</p>
+        <p><span>Execution:</span> every client's clone → a shared, pre-warmed, identity-scoped service.</p>
+        <p class="accent">The interface is still Git. Everything underneath changed.</p></div>`,
+      "- Storage, agreement, and execution each moved from a single machine to a distributed service.\n- The thread the whole way: big immutable packs, tiny atomic ref updates.\n- Agents are driving the next round, at both the storage and the execution layer.",
+      [],{theme:"dark"});
+    add("Thank you","Closing",10,
+      `<h1 style="font-size:96px;letter-spacing:-.055em">Thank you</h1>
+       <div class="thanks-grid">
+        <div class="thanks-item"><div class="qr">${qr.paper}</div><div><h3>GitFarm</h3><p>Git as a Service for Large-Scale Monorepos<br>arXiv 2604.11977</p><a href="https://arxiv.org/abs/2604.11977" target="_blank" rel="noopener">arxiv.org/abs/2604.11977 ↗</a></div></div>
+        <div class="thanks-item"><div class="qr">${qr.cursor}</div><div><h3>Git at any scale</h3><p>Spokes and Continuity<br>Cursor, Aug 2026</p><a href="https://cursor.com/blog/git-at-any-scale" target="_blank" rel="noopener">cursor.com/blog/git-at-any-scale ↗</a></div></div>
+       </div>
+       <p class="thanks-more">Also: Uber blog · GitFarm as a Service · walgit (github.com/tobi/walgit) · GitHub · Introducing DGit (2016), Stretching Spokes (2017) · Atlassian · Bitbucket Mesh · Pro Git, chapter 10 · git-scm.com/docs: gitformat-pack, gitprotocol-v2, gitprotocol-pack</p>`,
+      "- Thank you.\n- The GitFarm paper, the Cursor post, and walgit are the deep references.\n- Git's own docs on pack format and protocol cover everything from Part 1 and 2.",
+      ["paper","uberblog","cursor","walgit","dgit","stretching","mesh","packformat","protocolv2","linkedin"],{theme:"dark",custom:true});
+
+    // On-slide source links: storage history slides cite their posts; every GitFarm slide cites the paper and Uber's blog.
+    const cites = {
+      "Stage 0: one box":["cursor"],
+      "Why not just distribute the storage?":["cursor","mesh"],
+      "Stage 1: RAID + DRBD pairs":["dgit"],
+      "Stage 2: Spokes — replicate Git, not disks":["dgit","stretching","mesh"],
+      "Stage 2b: packs in blobs, refs in a database":["jgitdfs","codecommit","cursor"],
+      "Stage 3: WAL-Git — the log is the repo":["cursor","walgit"],
+      "What a push writes to the object store":["walgit","cursor"],
+      "Five answers to one question":["dgit","cursor","walgit"]
+    };
+    slides.forEach(s=>{
+      s.cite = cites[s.title] || (s.chapter.startsWith("Part 4") ? ["paper","uberblog"] : null);
+      if(s.cite) s.refs = [...new Set([...s.refs, ...s.cite])];
+    });
+    const mainCount = slides.length;
+    const secondsTotal = slides.reduce((n,s) => n+s.seconds,0);
+    document.getElementById("overview-meta").textContent = `~${Math.round(secondsTotal/60)}-minute plan for a 30–45 minute slot · ${mainCount} slides · Seattle Systems`;
+    const deck = document.getElementById("deck");
+    const jump = document.getElementById("jump");
+    let current = 0, currentBuild = 0, presenterWindow = null;
+    let running = false, timerBase = 0, timerStart = 0, touchStart = null;
+    const isPresenter = new URLSearchParams(location.search).get("presenter") === "1";
+    const formatTime = s => `${Math.floor(s/60).toString().padStart(2,"0")}:${Math.floor(s%60).toString().padStart(2,"0")}`;
+    const elapsedSeconds = () => Math.floor(timerBase + (running ? (performance.now()-timerStart)/1000 : 0));
+    function buildCount(index) {
+      return slides[index]?.builds?.length||1;
+    }
+    function getHashState() {
+      const match = location.hash.match(/^#(?:slide=)?(\d+)(?:&step=(\d+))?$/);
+      const index=match?Math.min(slides.length-1,Math.max(0,Number(match[1])-1)):0;
+      const build=match?.[2]?Math.max(0,Math.min(buildCount(index)-1,Number(match[2])-1)):0;
+      return {index,build};
+    }
+    slides.forEach((s,i) => {
+      const el = document.createElement("section");
+      el.className = "slide " + (s.theme||"");
+      el.dataset.slide = String(i+1);
+      el.setAttribute("aria-label", `Slide ${i+1}: ${s.title}`);
+      el.hidden = true;
+      el.innerHTML = s.custom ? s.body : `${s.eyebrow===false?"":`<p class="eyebrow">${esc(s.chapter)}</p>`}<h2>${esc(s.title)}</h2><div class="content">${s.body}</div>`;
+      const summary = s.builds ? `<span class="build-print-summary">${s.builds.map((b,n)=>`${n+1}. ${esc(b.label)}`).join(" → ")}</span>` : "";
+      el.innerHTML += `<footer class="foot">${s.cite?sourceLine(s.cite):""}${summary}<span class="folio">${String(i+1).padStart(2,"0")} / ${mainCount}</span></footer>`;
+      deck.appendChild(el);
+      const option = document.createElement("option");
+      option.value = i;
+      option.textContent = `${String(i+1).padStart(2,"0")} · ${s.title}`;
+      jump.appendChild(option);
+      const button = document.createElement("button");
+      button.innerHTML = `<span class="ordinal">${String(i+1).padStart(2,"0")} · ${esc(s.chapter.toUpperCase())}</span>${esc(s.title)}`;
+      button.dataset.index = i;
+      button.addEventListener("click", () => {go(i);document.getElementById("overview").close();});
+      document.getElementById("overview-grid").appendChild(button);
+    });
+    const slideElements = Array.from(deck.children);
+    // Step specs: "2" only step 2, "2-" from step 2 on, "1-3" a range, "1,4" a list.
+    function inSpec(spec,step) {
+      return spec.split(",").some(part=>{
+        const [a,b]=part.split("-");
+        const lo=Number(a), hi=b===undefined?lo:(b===""?Infinity:Number(b));
+        return step>=lo&&step<=hi;
+      });
+    }
+    function applyStep(el,step) {
+      el.querySelectorAll("[data-show]").forEach(n=>n.classList.toggle("off",!inSpec(n.dataset.show,step)));
+      el.querySelectorAll("[data-hl]").forEach(n=>n.classList.toggle("hl",inSpec(n.dataset.hl,step)));
+      el.querySelectorAll("[data-dim]").forEach(n=>n.classList.toggle("dim",inSpec(n.dataset.dim,step)));
+    }
+    slideElements.forEach((el,i)=>{ if(slides[i].builds) applyStep(el,1); });
+    window.addEventListener("beforeprint",()=>slideElements.forEach((el,i)=>{ if(slides[i].builds) applyStep(el,buildCount(i)); }));
+    window.addEventListener("afterprint",()=>{ slideElements.forEach((el,i)=>{ if(slides[i].builds&&i!==current) applyStep(el,1); }); render(); });
+    function resize() {
+      const box = document.querySelector(".stage").getBoundingClientRect();
+      document.documentElement.style.setProperty("--scale", Math.min(box.width/1600,box.height/900));
+    }
+    function updateNotes() {
+      const s = slides[current];
+      const before = slides.slice(0,current).reduce((n,x)=>n+x.seconds,0);
+      document.getElementById("notes").innerHTML =
+        `${!isPresenter?'<button class="close-panel" id="notes-close" aria-label="Close speaker notes">Close</button>':""}
+        <div class="notes-meta">SLIDE ${current+1} / ${mainCount} · ${esc(s.chapter)}</div>
+        <h2>${esc(s.title)}</h2>
+        <div class="notes-meta">Planned ${formatTime(s.seconds)} · talk ${formatTime(before)}–${formatTime(before+s.seconds)}<br>
+        ${slides[current+1]?`Next: ${esc(slides[current+1].title)}`:"End of talk"}</div>
+        ${s.builds?`<div class="notes-meta">BUILD ${currentBuild+1} / ${s.builds.length}: ${esc(s.builds[currentBuild].label)}<br>${esc(s.builds[currentBuild].cue)}</div>`:""}
+        <ul class="speaker-cues">${s.notes.split("\n").map(cue=>`<li>${esc(cue.replace(/^-\s*/,""))}</li>`).join("")}</ul>
+        ${s.refs.length?`<h3>Public resources</h3><ul>${s.refs.map(key=>`<li><a href="${esc(sources[key].url)}" target="_blank" rel="noopener">${esc(sources[key].label)}</a></li>`).join("")}</ul>`:""}`;
+      const close = document.getElementById("notes-close");
+      if(close)close.addEventListener("click",toggleNotes);
+    }
+    function render() {
+      slideElements.forEach((el,i)=>{el.hidden=i!==current;el.inert=i!==current;});
+      if(slides[current].builds) applyStep(slideElements[current],currentBuild+1);
+      jump.value = current;
+      document.getElementById("position").textContent = `${current+1} / ${mainCount}`;
+      const count=buildCount(current),stepCounter=document.getElementById("build-position");
+      stepCounter.hidden=count===1;
+      stepCounter.textContent=count>1?`Step ${currentBuild+1} / ${count}`:"";
+      document.getElementById("prev").disabled = current===0&&currentBuild===0;
+      document.getElementById("next").disabled = current===slides.length-1&&currentBuild===count-1;
+      document.getElementById("prev").setAttribute("aria-label",currentBuild>0?"Previous build":"Previous slide");
+      document.getElementById("next").setAttribute("aria-label",currentBuild<count-1?"Next build":"Next slide");
+      document.getElementById("progress").style.width = `${Math.min(1,(current+1)/mainCount)*100}%`;
+      document.getElementById("announcement").textContent = `Slide ${current+1}: ${slides[current].title}${count>1?`. Build ${currentBuild+1} of ${count}: ${slides[current].builds[currentBuild].label}`:""}`;
+      document.querySelectorAll("#overview-grid button").forEach((button,i)=>button.setAttribute("aria-current",String(i===current)));
+      document.title = `${current+1} · ${slides[current].title} — Evolution of Git`;
+      updateNotes(); resize();
+      if(presenterWindow&&!presenterWindow.closed)presenterWindow.postMessage({kind:"git-evo-slide",index:current,build:currentBuild},"*");
+    }
+    function go(index,remote=false,build=0) {
+      if(!Number.isInteger(index))return;
+      const next = Math.max(0,Math.min(slides.length-1,index));
+      const step=Number.isInteger(build)?Math.max(0,Math.min(buildCount(next)-1,build)):0;
+      if(isPresenter&&window.opener&&!remote)window.opener.postMessage({kind:"git-evo-navigate",index:next,build:step},"*");
+      current=next;
+      currentBuild=step;
+      history.replaceState(null,"",`${location.pathname}${location.search}#slide=${current+1}${buildCount(current)>1?`&step=${currentBuild+1}`:""}`);
+      render();
+    }
+    function advance(direction) {
+      if(direction>0) {
+        if(currentBuild<buildCount(current)-1)go(current,false,currentBuild+1);
+        else go(current+1);
+      } else if(direction<0) {
+        if(currentBuild>0)go(current,false,currentBuild-1);
+        else {const previous=Math.max(0,current-1);go(previous,false,buildCount(previous)-1);}
+      }
+    }
+    function toggleNotes() {
+      if(isPresenter)return;
+      const panel=document.getElementById("notes");
+      panel.hidden=!panel.hidden;
+      document.getElementById("notes-toggle").setAttribute("aria-pressed",String(!panel.hidden));
+      if(!panel.hidden)document.getElementById("notes-close").focus();
+    }
+    function toggleTimer(reset=false) {
+      if(reset){timerBase=0;timerStart=performance.now();running=false;}
+      else if(running){timerBase=elapsedSeconds();running=false;}
+      else {timerStart=performance.now();running=true;}
+      document.getElementById("timer-toggle").textContent=running?"Pause timer":"Start timer";
+      document.getElementById("elapsed").textContent=formatTime(elapsedSeconds());
+    }
+    async function toggleFullscreen() {
+      if(document.fullscreenElement)await document.exitFullscreen();
+      else if(document.documentElement.requestFullscreen)await document.documentElement.requestFullscreen();
+    }
+    document.getElementById("prev").addEventListener("click",()=>advance(-1));
+    document.getElementById("next").addEventListener("click",()=>advance(1));
+    jump.addEventListener("change",()=>go(Number(jump.value)));
+    document.getElementById("notes-toggle").addEventListener("click",toggleNotes);
+    document.getElementById("overview-open").addEventListener("click",()=>document.getElementById("overview").showModal());
+    document.getElementById("help-open").addEventListener("click",()=>document.getElementById("help").showModal());
+    document.getElementById("fullscreen").addEventListener("click",toggleFullscreen);
+    document.getElementById("timer-toggle").addEventListener("click",()=>toggleTimer());
+    document.getElementById("elapsed").addEventListener("click",()=>toggleTimer());
+    document.getElementById("presenter-open").addEventListener("click",()=>{
+      presenterWindow=window.open(`${location.pathname}?presenter=1#slide=${current+1}${buildCount(current)>1?`&step=${currentBuild+1}`:""}`,"git-evo-presenter","popup,width=1400,height=850");
+    });
+    document.querySelectorAll("[data-close]").forEach(b=>b.addEventListener("click",()=>document.getElementById(b.dataset.close).close()));
+    document.addEventListener("keydown",event=>{
+      const active=document.activeElement;
+      if(event.altKey||event.ctrlKey||event.metaKey||active?.matches("input,textarea,select")||document.querySelector("dialog[open]"))return;
+      const key=event.key.toLowerCase();
+      if(["arrowright","pagedown"," "].includes(key)){event.preventDefault();advance(1);}
+      else if(["arrowleft","pageup"].includes(key)){event.preventDefault();advance(-1);}
+      else if(key==="home"){event.preventDefault();go(0);}
+      else if(key==="end"){event.preventDefault();go(mainCount-1);}
+      else if(key==="n")toggleNotes();
+      else if(key==="o")document.getElementById("overview").showModal();
+      else if(key==="f")toggleFullscreen();
+      else if(key==="b")document.body.classList.toggle("blackout");
+      else if(key==="t")toggleTimer(event.shiftKey);
+      else if(key==="?")document.getElementById("help").showModal();
+      else if(key==="escape"){document.body.classList.remove("blackout");if(!isPresenter&&!document.getElementById("notes").hidden)toggleNotes();}
+    });
+    document.querySelector(".stage").addEventListener("touchstart",event=>{touchStart=event.touches[0].clientX;},{passive:true});
+    document.querySelector(".stage").addEventListener("touchend",event=>{
+      if(touchStart===null)return;
+      const delta=event.changedTouches[0].clientX-touchStart;touchStart=null;
+      if(Math.abs(delta)>65)advance(delta<0?1:-1);
+    },{passive:true});
+    window.addEventListener("message",event=>{
+      if(!event.data||!Number.isInteger(event.data.index))return;
+      if(isPresenter&&event.source===window.opener&&event.data.kind==="git-evo-slide")go(event.data.index,true,event.data.build);
+      else if(event.source===presenterWindow&&event.data.kind==="git-evo-navigate")go(event.data.index,true,event.data.build);
+    });
+    window.addEventListener("hashchange",()=>{const state=getHashState();go(state.index,true,state.build);});
+    window.addEventListener("resize",resize);
+    document.addEventListener("fullscreenchange",()=>{document.body.classList.toggle("immersive",!!document.fullscreenElement);resize();});
+    setInterval(()=>{document.getElementById("elapsed").textContent=formatTime(elapsedSeconds());},1000);
+    if(isPresenter){document.body.classList.add("presenter");document.getElementById("notes").hidden=false;}
+    // Exposed read-only content makes rendering, accessibility checks, and note export straightforward.
+    window.presentation = { slides, sources, mainCount, secondsTotal, go, advance, get current(){return current;}, get currentBuild(){return currentBuild;} };
+    const initialState=getHashState();
+    go(initialState.index,true,initialState.build);
+  </script>
+</body>
+</html>
