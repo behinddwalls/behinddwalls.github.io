@@ -20,13 +20,13 @@ Each server generation answers the same two questions: *where do packs live, and
    - Deltas: every object is zlib-compressed; blobs and trees can be COPY/INSERT deltas against a similar object, picked greedily within a window of about 10 and capped at depth 50. A tree delta for one changed file is about 28 bytes. 100 edits to a file stay 100 objects; packed, they become one or two whole bases plus small deltas.
    - The `.idx` is sorted by hash: a 256-entry fanout, then binary search, then offset, with a CRC32 per entry so reused bytes can be checked without inflating. The `.pack` is in write order.
    - One example repo runs through Parts 1–2: files README.md, src/pack.ts, src/server.ts; commits A→E on main (B 5ac0, C 3f7d, D 9d2a, E c8f3); D and E roots e8c4/f021, src/ 7a19/6c81, server.ts d431/f7a9; A–C packed, D–E loose; the client pushes F.
-   - Refs at scale: branches and tags are refs (annotated tags go through a tag object). Storage goes loose files → packed-refs (one sorted file; updating one ref rewrites it) → reftable (sorted binary blocks; updates append, compaction merges; Git 2.45+ `--ref-format=reftable`). Protocol v0 advertises every ref up front; v2 `ls-refs` takes `ref-prefix`. Hosts hide internal refs such as `refs/pull/*` (hideRefs). Every ref is a GC root.
+   - Refs at scale (background for Q&A; no longer its own slide): branches and tags are refs (annotated tags go through a tag object). Storage goes loose files → packed-refs (one sorted file; updating one ref rewrites it) → reftable (sorted binary blocks; updates append, compaction merges; Git 2.45+ `--ref-format=reftable`). Protocol v0 advertises every ref up front; v2 `ls-refs` takes `ref-prefix`. Hosts hide internal refs such as `refs/pull/*` (hideRefs). Every ref is a GC root.
    - want/have: a want is the tip of each ref the client lacks; haves are the client's tips, then older commits in batches, until the server ACKs a common one.
 3. The wire:
    - fetch-pack talks to upload-pack: ls-refs, then want/have negotiation, then the reachability walk, then pack-objects over sideband, then index-pack and the connectivity check.
    - send-pack talks to receive-pack: ref advertisement, then the commands and the pack, then quarantine, the connectivity check, pre-receive, the ref transaction, post-receive, and report-status.
 4. Server evolution: one box → RAID + DRBD pairs → Spokes (3PC on the ref transaction) → blob + DB → WAL-Git (object-store WAL + CAS index).
-5. GitFarm: architecture, request flow, sessions, design choices, use cases, and results.
+5. GitFarm: architecture, request flow, sessions, design choices, and use cases (results are in the speaker notes).
 
 ## Figures and how to read them
 
