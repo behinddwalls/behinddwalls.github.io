@@ -1,6 +1,6 @@
 # Git at Scale — speaker cues
 
-Planned at about 32 minutes for a 30–45 minute slot · 31 slides. Each slide has three short cues, and build slides also have one cue per step.
+Planned at about 31 minutes for a 30–45 minute slot · 31 slides. Each slide has three short cues, and build slides also have one cue per step.
 
 ## Run of show
 
@@ -15,28 +15,28 @@ Planned at about 32 minutes for a 30–45 minute slot · 31 slides. Each slide h
 | 07 | 04:55 | 01:15 | Refs give names to commits |
 | 08 | 06:10 | 01:30 | Where objects live: loose files and packs |
 | 09 | 07:40 | 01:30 | How a delta is stored |
-| 10 | 09:10 | 00:45 | Further down the rabbit hole |
-| 11 | 09:55 | 00:40 | Two programs on each side of the wire |
-| 12 | 10:35 | 02:00 | git fetch, end to end |
-| 13 | 12:35 | 02:00 | git push, end to end |
-| 14 | 14:35 | 00:45 | A push is two different things |
-| 15 | 15:20 | 00:40 | Stage 0: one box |
-| 16 | 16:00 | 01:00 | Why not just put the repos on NFS? |
-| 17 | 17:00 | 01:05 | Stage 1: RAID + DRBD pairs |
-| 18 | 18:05 | 01:25 | Stage 2: Spokes — replicate Git, not disks |
-| 19 | 19:30 | 01:15 | Stage 2b: packs in blobs, refs in a database |
-| 20 | 20:45 | 02:15 | Stage 3: WAL-Git — the log is the repo |
-| 21 | 23:00 | 01:55 | What a push writes to the object store |
-| 22 | 24:55 | 00:25 | Storage scales. Every client still clones. |
-| 23 | 25:20 | 00:45 | The cost of a local checkout |
-| 24 | 26:05 | 00:40 | Warm checkouts: remote devboxes and GitFarm |
-| 25 | 26:45 | 00:55 | GitFarm: Git as a service |
-| 26 | 27:40 | 00:55 | One request, end to end |
-| 27 | 28:35 | 00:55 | Stateful sessions: many commands, one repo state |
-| 28 | 29:30 | 00:50 | Identity, freshness, isolation |
-| 29 | 30:20 | 00:45 | Who needs Git without a clone? |
-| 30 | 31:05 | 00:25 | The infrastructure went distributed |
-| 31 | 31:30 | 00:10 | Thank you |
+| 10 | 09:10 | 00:35 | Further down the rabbit hole |
+| 11 | 09:45 | 00:40 | Two programs on each side of the wire |
+| 12 | 10:25 | 02:00 | git fetch, end to end |
+| 13 | 12:25 | 02:00 | git push, end to end |
+| 14 | 14:25 | 00:45 | A push is two different things |
+| 15 | 15:10 | 00:40 | Stage 0: one box |
+| 16 | 15:50 | 01:00 | Why not just put the repos on NFS? |
+| 17 | 16:50 | 01:05 | Stage 1: RAID + DRBD pairs |
+| 18 | 17:55 | 01:25 | Stage 2: Spokes — replicate Git, not disks |
+| 19 | 19:20 | 01:15 | Stage 2b: packs in blobs, refs in a database |
+| 20 | 20:35 | 02:00 | Stage 3: WAL-Git — a write-ahead log is the repo |
+| 21 | 22:35 | 01:55 | What a push writes to the object store |
+| 22 | 24:30 | 00:25 | Storage scales. Every client still clones. |
+| 23 | 24:55 | 00:45 | The cost of a local checkout |
+| 24 | 25:40 | 00:40 | Warm checkouts: remote devboxes and GitFarm |
+| 25 | 26:20 | 00:55 | GitFarm: Git as a service |
+| 26 | 27:15 | 00:55 | One request, end to end |
+| 27 | 28:10 | 00:55 | Stateful sessions: many commands, one repo state |
+| 28 | 29:05 | 00:50 | Identity, freshness, isolation |
+| 29 | 29:55 | 00:45 | Who needs Git without a clone? |
+| 30 | 30:40 | 00:25 | The infrastructure went distributed |
+| 31 | 31:05 | 00:10 | Thank you |
 
 ## Speaking cues
 
@@ -135,19 +135,19 @@ Builds:
 Builds:
 
 1. **A tree delta.** src/ is a tree: two entries (pack.ts, server.ts) of mode, name, and file hash, 72 bytes. Editing server.ts in commit E changes only its hash. Matching the newest-whole rule, E's src/ is stored whole and D's src/ becomes: copy bytes 0–51, insert the old 20-byte hash. About 26 bytes instead of 72. A commit is mostly new hashes and timestamps, so it usually stays whole.
-2. **server.ts × 100 edits.** 100 versions, all kept. Loose they are 100 full copies; packed they are a whole base plus small deltas that branch, or restart from another whole copy, so no rebuild needs more than 50 hops. Recent versions read fast; old ones cost a few hops.
+2. **server.ts edited 100 times.** 100 versions, all kept. Loose they are 100 full copies, about 1.2 MB. Packed, the newest is stored whole and older ones as small deltas, about 35 KB in total. Git caps a delta chain at 50 steps (it branches or starts a fresh base when needed), so even the oldest version is a bounded number of hops away.
 
 ### 10 · Further down the rabbit hole
 
-09:10–09:55
+09:10–09:45
 
-- A quick skim, not a deep dive: these are the indexes and storage tricks big repos and big hosts depend on.
-- commit-graph, bitmaps, and the multi-pack-index speed up walks and lookups; geometric repacking and cruft packs keep maintenance cheap; alternates, partial clones, reftable, and SHA-256 deal with scale and security.
-- None of them changes the model from the last few slides. Happy to go deeper in Q&A.
+- A quick skim, not a deep dive: these are the indexes and tricks big repos and big hosts depend on.
+- commit-graph, bitmaps and the multi-pack index speed up history walks and lookups; geometric repacking keeps maintenance cheap; partial clone, shallow clone and sparse checkout let a client take less.
+- None of them changes the model from the last few slides. Others worth knowing for Q&A: cruft packs, alternates, reftable, SHA-256.
 
 ### 11 · Two programs on each side of the wire
 
-09:55–10:35
+09:45–10:25
 
 - Fetch is fetch-pack talking to upload-pack. Push is send-pack talking to receive-pack.
 - Transport is ssh or smart HTTP; framing is pkt-line; protocol v2 adds explicit commands like ls-refs and fetch.
@@ -155,7 +155,7 @@ Builds:
 
 ### 12 · git fetch, end to end
 
-10:35–12:35 · 5 builds
+10:25–12:25 · 5 builds
 
 - Same history as the pack slide: the server has A–E (A–C packed, D and E loose); the client stopped at B.
 - want names ref tips; have walks back through the client's history until the server recognizes a commit. The server then walks from E back to B, finding objects loose or through the .idx.
@@ -171,7 +171,7 @@ Builds:
 
 ### 13 · git push, end to end
 
-12:35–14:35 · 6 builds
+12:25–14:25 · 6 builds
 
 - Continuing the A–E story: the client commits F on top of E and pushes. It sends only what the server lacks, plus the command E F refs/heads/main.
 - The server quarantines, verifies connectivity, runs hooks, then does a ref transaction: lock, check old, write.
@@ -188,7 +188,7 @@ Builds:
 
 ### 14 · A push is two different things
 
-14:35–15:20
+14:25–15:10
 
 - The pack is bulk data that can be copied anywhere without coordination.
 - The ref update is a few bytes that must be agreed on, atomically.
@@ -196,7 +196,7 @@ Builds:
 
 ### 15 · Stage 0: one box
 
-15:20–16:00
+15:10–15:50
 
 - The simplest Git server is one machine: sshd or git-daemon runs upload-pack and receive-pack against bare repos on local disk.
 - Packs and refs both live on that disk, and the box agrees with itself.
@@ -204,7 +204,7 @@ Builds:
 
 ### 16 · Why not just put the repos on NFS?
 
-16:00–17:00
+15:50–16:50
 
 - The obvious next step after one box: keep stock Git, but put every repo on a shared NFS filer that all servers mount. Any server can serve any repo.
 - Git assumes a local disk. Delta walks become many small network reads, and ref updates depend on lock files and atomic rename over NFS. Atlassian's own docs call NFS fine for streaming packs but punishing for refs and loose objects; GitHub tried it early, and Bitbucket Data Center ran on it for years before Bitbucket Mesh. I ran Phabricator's repositories on NFS at Uber, so this is first-hand: say what broke first.
@@ -212,7 +212,7 @@ Builds:
 
 ### 17 · Stage 1: RAID + DRBD pairs
 
-17:00–18:05 · 3 builds
+16:50–17:55 · 3 builds
 
 - RAID-1 (Redundant Array of Independent Disks) mirrors two disks inside one server; DRBD (Distributed Replicated Block Device) mirrors every disk write over the network to a second server. GitHub's pre-2016 design: an active fileserver with RAID, mirrored block-by-block to a dedicated hot spare with DRBD.
 - Packs and refs both live on the active disk; DRBD copies bytes without knowing they are Git.
@@ -228,23 +228,23 @@ Builds:
 
 ### 18 · Stage 2: Spokes — replicate Git, not disks
 
-18:05–19:30 · 3 builds
+17:55–19:20 · 3 builds
 
-- DGit, later Spokes: real Git repos on several servers (3 by default, up to around 20 for the hottest repos), replicated by Git-aware software, not by blocks.
+- DGit, later Spokes: real Git repos on several servers (3 at launch, 5 by default today per GitHub), replicated by Git-aware software, not by blocks.
 - Packs fan out freely; only the ref transaction goes through three-phase commit. Reads go to any replica.
-- Costs: latency bound by the slowest replica; a floor of 3 copies even for idle repos; a ceiling, because every extra replica slows every push, so even ~20 is tight for monorepo CI; and repos as pets. Atlassian landed in the same place later: Bitbucket Mesh (Data Center 8.0, 2022) replaced NFS with repos replicated on local disk across nodes.
+- Costs: latency bound by the slowest replica; a floor of 3 copies even for idle repos; a ceiling, because every extra replica slows every push, so adding replicas for read load makes pushes slower; and repos as pets. Atlassian landed in the same place later: Bitbucket Mesh (Data Center 8.0, 2022) replaced NFS with repos replicated on local disk across nodes.
 
-Sources: [GitHub · Introducing DGit (2016)](https://github.blog/engineering/architecture-optimization/introducing-dgit/) · [GitHub · Stretching Spokes (2017)](https://github.blog/engineering/infrastructure/stretching-spokes/) · [Atlassian · Bitbucket Mesh (replaces NFS for Git storage)](https://confluence.atlassian.com/display/BitbucketServer/Bitbucket+Mesh)
+Sources: [GitHub · Introducing DGit (2016)](https://github.blog/engineering/architecture-optimization/introducing-dgit/) · [GitHub · Stretching Spokes (2017)](https://github.blog/engineering/infrastructure/stretching-spokes/) · [GitHub · Building Git infrastructure for agent-scale development (Oct 2026)](https://github.blog/engineering/architecture-optimization/building-git-infrastructure-for-agent-scale-development/) · [Atlassian · Bitbucket Mesh (replaces NFS for Git storage)](https://confluence.atlassian.com/display/BitbucketServer/Bitbucket+Mesh)
 
 Builds:
 
-1. **Fan out the pack.** Packs are idempotent, so send them to every replica in parallel: 3 by default, up to around 20 for the hottest repos. No agreement needed yet.
+1. **Fan out the pack.** Packs are idempotent, so send them to every replica in parallel: 3 at launch, 5 by default today. No agreement needed yet.
 2. **3PC on the ref transaction.** Only the tiny ref update needs agreement. Phase 1 asks every replica: can you apply these ref updates? Each runs Git's own ref transaction: lock the refs, check the old values. Phase 2: a majority said yes, so get ready. Phase 3: commit, or roll back everywhere. Spokes then compares a checksum of every replica's refs; one that disagrees is marked unhealthy and repaired. About four round trips per push.
 3. **Reads, and the bill.** Any replica can serve a fetch. The price: tail latency, a fixed floor and ceiling on replicas, and repos you have to babysit.
 
 ### 19 · Stage 2b: packs in blobs, refs in a database
 
-19:30–20:45 · 3 builds
+19:20–20:35 · 3 builds
 
 - The other road: put immutable packs in blob storage and refs in a database. JGit DFS, Azure DevOps, and CodeCommit all follow this pattern, and so does Jigit at Uber: built on JGit, with MySQL and a blob store.
 - Compute becomes stateless and storage durable, with no replica babysitting.
@@ -258,9 +258,9 @@ Builds:
 2. **Ref → database transaction.** The ref update becomes a conditional write in a database: old value must match.
 3. **Reads through a cache.** Git reads packs in small random pieces: the .idx, then each object and its delta bases. A blob read is 10–50 ms versus about 0.1 ms on a local SSD, so each frontend keeps recently used pack and index blocks in memory (JGit's DfsBlockCache, 64 KB blocks by default). Packs never change, so cached blocks never go stale; only misses go to the blob store.
 
-### 20 · Stage 3: WAL-Git — the log is the repo
+### 20 · Stage 3: WAL-Git — a write-ahead log is the repo
 
-20:45–23:00 · 6 builds
+20:35–22:35 · 5 builds
 
 - Cursor's Continuity: a push is a WAL entry in the object store; it becomes visible only when a compare-and-swap on the WAL index succeeds. Pushes are linearizable.
 - The local Git repo is a warm cache. Replicas learn from lossy gossip but verify every read with a conditional GET, so reads are consistent.
@@ -273,13 +273,12 @@ Builds:
 1. **Read the index first.** Before advertising refs to the pusher, the node does the same conditional GET as any read. Now it knows the log is at version e1 with head 41, so this push will be entry #42. The version is the object's ETag on S3 or its generation on GCS.
 2. **Persist the push as WAL entry #42.** Write the pack to local disk and upload entry #42 to the object store at the same time. Durable, but nothing points at it yet.
 3. **Publish with compare-and-swap.** Lock main and check it is still E, then PUT the index with If-Match: e1, the version read in step 1. Success gives e2: the push is acknowledged and linearized.
-4. **Gossip to other nodes.** UDP gossip tells other nodes there is news. It can be lost; correctness doesn't depend on it.
-5. **Any node can serve a read.** A fetch starts with the same GET index as a push. A warm node sends If-None-Match with the version it has: 304 in under 10 ms means serve now; 200 means pull the new WAL entries first. Cold node 3 has no version yet, so it does a plain GET, learns e2 and head 42, rebuilds the repo from the WAL, then serves.
-6. **Any node can take a push.** There is no primary role. Node 2 read e2 and tries to publish #43 with If-Match: e2. If another node got there first, it gets a 412: re-read the index, re-check the ref, retry. Pushes usually go to the rendezvous #1 node only because that avoids retries.
+4. **Any node can serve a read.** UDP gossip tells other nodes there is news; it can be lost, and correctness doesn't depend on it. A fetch starts with the same GET index as a push. A warm node sends If-None-Match with the version it has: 304 in under 10 ms means serve now; 200 means pull the new WAL entries first. Cold node 3 has no version yet, so it does a plain GET, learns e2 and head 42, rebuilds the repo from the WAL, then serves.
+5. **Any node can take a push.** There is no primary role. Node 2 read e2 and tries to publish #43 with If-Match: e2. If another node got there first, it gets a 412: re-read the index, re-check the ref, retry. Pushes usually go to the rendezvous #1 node only because that avoids retries.
 
 ### 21 · What a push writes to the object store
 
-23:00–24:55 · 4 builds
+22:35–24:30 · 4 builds
 
 - The contract, as implemented by walgit (an open-source take on Cursor's design): per repository, one tiny mutable WAL index and everything else immutable: log entries, packs, checkpoints. walgit calls the index manifest.pb; Cursor calls it gitwal.pb.
 - A push writes a pack, its .idx, and a PUSH log entry holding the pack reference and the ref transaction (main: E to F). Only the conditional PUT on the manifest makes it visible; git hears ok after that.
@@ -297,7 +296,7 @@ Builds:
 
 ### 22 · Storage scales. Every client still clones.
 
-24:55–25:20
+24:30–24:55
 
 - Everything up to WAL-Git makes the server side scale.
 - But each automation still pulls a full checkout before it can run one git command.
@@ -307,7 +306,7 @@ Sources: [GitFarm: Git as a Service for Large-Scale Monorepos (arXiv 2604.11977)
 
 ### 23 · The cost of a local checkout
 
-25:20–26:05
+24:55–25:40
 
 - Cloning a large monorepo takes about 15 minutes and a meaningful slice of a machine: 40+ GB of disk, plus cores and memory.
 - Each automation system kept and synced its own checkouts, multiplying upstream load.
@@ -317,7 +316,7 @@ Sources: [GitFarm: Git as a Service for Large-Scale Monorepos (arXiv 2604.11977)
 
 ### 24 · Warm checkouts: remote devboxes and GitFarm
 
-26:05–26:45
+25:40–26:20
 
 - A remote devbox (or devpod) is a dev machine in the data center that already has the monorepo checked out and kept in sync in the background. A developer connects with their IDE or shell and starts working: no 15-minute clone.
 - GitFarm does the same for automation. Each node keeps a bare clone fresh from push events plus a periodic fetch, and a pool of warm checkouts.
@@ -327,7 +326,7 @@ Sources: [GitFarm: Git as a Service for Large-Scale Monorepos (arXiv 2604.11977)
 
 ### 25 · GitFarm: Git as a service
 
-26:45–27:40
+26:20–27:15
 
 - Clients call a gRPC API. The gateway authenticates, authorizes per repo, and places the request.
 - Every node runs three containers: backend serves the request; sandbox keeps a pool of sandboxes and executes the commands; repo-manager keeps the bare clone, synced by push events plus a 5-minute fetch, and a pool of pre-warmed checkouts.
@@ -337,7 +336,7 @@ Sources: [GitFarm: Git as a Service for Large-Scale Monorepos (arXiv 2604.11977)
 
 ### 26 · One request, end to end
 
-27:40–28:35 · 5 builds
+27:15–28:10 · 5 builds
 
 - Request, authenticate, place on the node with the most free checkouts, or throttle.
 - The backend takes a sandbox from the sandbox container's pool and a checkout from repo-manager's pool, mounts one into the other, and runs the commands as the caller.
@@ -355,7 +354,7 @@ Builds:
 
 ### 27 · Stateful sessions: many commands, one repo state
 
-28:35–29:30 · 3 builds
+28:10–29:05 · 3 builds
 
 - The API takes a repo, a workspace type, and a list of commands; a session can chain commands that depend on earlier output.
 - Guarantees: isolation, one consistent repo state, ordered execution. Fatal errors end the session.
@@ -371,7 +370,7 @@ Builds:
 
 ### 28 · Identity, freshness, isolation
 
-29:30–30:20
+29:05–29:55
 
 - Identity is decoupled from the client environment: the caller's identity flows into the sandbox.
 - Freshness is eventual with a 5-minute backstop; clients that need the newest state fetch first.
@@ -379,7 +378,7 @@ Builds:
 
 ### 29 · Who needs Git without a clone?
 
-30:20–31:05
+29:55–30:40
 
 - Two axes: does the workload write, and is someone waiting on it. Agents and review automation fill every quadrant, which is why a shared execution layer pays off.
 - Security scanning (secrets, vulnerable dependencies) is a read-only batch job: it needs the code at a commit, not a clone.
@@ -387,7 +386,7 @@ Builds:
 
 ### 30 · The infrastructure went distributed
 
-31:05–31:30
+30:40–31:05
 
 - Storage, agreement, and execution each moved from a single machine to a distributed service.
 - The thread the whole way: big immutable packs, tiny atomic ref updates.
@@ -395,7 +394,7 @@ Builds:
 
 ### 31 · Thank you
 
-31:30–31:40
+31:05–31:15
 
 - Thank you.
 - Open the floor: questions on Git internals, the server designs, or GitFarm.
