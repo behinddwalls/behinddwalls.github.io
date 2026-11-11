@@ -96,6 +96,15 @@ Each server generation answers the same two questions: *where do packs live, and
   5. The client sees `ok` only after the bucket does.
 - No leader: any instance may accept a push; a cold replica reads the log; every read revalidates with a conditional GET. Compaction is done by the lease holder and published into the log.
 
+### GitHub Rubicon (Nov 2026)
+
+- Spokes stays as the router. Underneath: disposable "virtual replicas" (local disk is only a cache), packs and read accelerators in Azure Blob Storage, and refs plus the pack manifest in Ref-CAS, a replicated quorum log service that stores only pointers.
+- Write: index the pack, upload it to blob storage, then one Ref-CAS transaction lists the pack and moves the refs. Same order as WAL-Git: durable first, visible second.
+- The CAS differs: Ref-CAS locks only the refs a transaction touches, and every commit gets an LSN that is the repo version. Reads send their LSN; an unchanged repo costs one comparison.
+- GitHub first tried a WAL indexed by one blob (Cursor's pattern) and hit the mid-hundreds of writes/s; sharding refs across blobs made every read check every shard.
+- Compaction and GC run on separate nodes that lease shards of packs; compacted output is verified to hold exactly the input objects.
+- Numbers are GitHub's internal tests: 5,000 concurrent agents, 7,200 pushes/s to one repo, Ref-CAS alone in the tens of thousands of ops/s. The post does not describe the test setup (pack sizes, replica count, latency).
+- Limited private preview; broader rollout early 2027.
 
 ### Bitbucket: from NFS to Mesh
 
@@ -123,3 +132,4 @@ Each server generation answers the same two questions: *where do packs live, and
 - [Atlassian · Bitbucket Mesh](https://confluence.atlassian.com/display/BitbucketServer/Bitbucket+Mesh)
 - [AWS CodeCommit features](https://aws.amazon.com/codecommit/features/)
 - [walgit](https://github.com/tobi/walgit)
+- [GitHub · Inside GitHub's new Git storage architecture](https://github.blog/engineering/architecture-optimization/inside-githubs-new-git-storage-architecture/)
