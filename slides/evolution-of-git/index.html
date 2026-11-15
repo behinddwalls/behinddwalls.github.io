@@ -719,7 +719,6 @@
         out(X[0],[["GET index → 304","",650],["serve now",C.green,600]])+
         out(X[1],[["GET index → 200","",650],["read #42 only: main E → F",C.ink],["now @ e2 → serve",C.green,600]])+
         out(X[2],[["GET index, then in parallel:","",650],["checkpoint + tail → fold",C.ink],["serve refs; packs later",C.green,600]]));
-      b+=S("3",text(0,524,"Nobody broadcasts a push. Every node checks before it serves.",26,C.ink,"start",600));
       return svg(b,"Truth is the WAL index, log entries and a checkpoint of every ref. Each node keeps its own packed-refs as a cache of the latest value per ref; after a push the caches differ, and each node catches up with a conditional GET on the index before it serves.",1416,540);
     }
     const blobBuilds=[
