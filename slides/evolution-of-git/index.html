@@ -586,7 +586,18 @@
       b+=S("6",H("6",msg(570,-1,"post-receive · ok refs/heads/main")));
       b+=S("5-",`<g transform="translate(1030,320)">`+text(0,0,"Compare-and-swap",24,C.accent,"start",600)+
         lines(0,44,["If someone pushed G first,","main ≠ E and this push is","rejected (fetch, rebase, retry).","--atomic: all refs or none."],22,C.ink,1.42)+`</g>`);
-      b+=S("1-",`<g transform="translate(1030,80)">`+text(0,0,"Two payloads",24,C.ink,"start",600)+lines(0,44,["The pack: new objects.","The commands: which refs","move, and from where."],22,C.muted,1.42)+`</g>`);
+      // State panel: the client has F on top of E; the server gets F, then moves main.
+      const px=[25,85,145,205,265,325], pn=["A","B","C","D","E","F"];
+      const pnode=(i,y,c=C.ink,fill=C.white,dash="")=>`<circle cx="${px[i]}" cy="${y}" r="20" fill="${fill}" stroke="${c}" stroke-width="2.5"${dash?` stroke-dasharray="${dash}"`:""}/>`+text(px[i],y+7,pn[i],19,c,"middle",600);
+      const pchain=(y,n)=>{let g="";for(let i=1;i<n;i++)g+=line(px[i-1]+20,y,px[i]-20,y,C.ink,2.5);for(let i=0;i<n;i++)g+=pnode(i,y);return g;};
+      b+=`<g transform="translate(1040,30)">`+
+        text(0,-12,"CLIENT",19,C.muted,"start",650)+pchain(50,5)+line(px[4]+20,50,px[5]-20,50,C.green,2.5)+
+        H("2",pnode(5,50,C.green,C.greenSoft))+mono(px[5],16,"main",19,C.accent,"middle",600)+
+        text(0,128,"SERVER",19,C.muted,"start",650)+pchain(190,5)+
+        S("1-4",mono(px[4],156,"main",19,C.accent,"middle",600))+
+        S("4",line(px[4]+20,190,px[5]-20,190,C.green,2.5,"5 4")+pnode(5,190,C.green,C.white,"5 4")+text(px[5],238,"quarantine",19,C.green,"middle",600))+
+        S("5-",line(px[4]+20,190,px[5]-20,190,C.green,2.5)+H("5",pnode(5,190,C.green,C.greenSoft))+mono(px[5],156,"main",19,C.accent,"middle",600)+text(px[5],238,"main moved E → F",19,C.accent,"end",600))+
+        `</g>`;
       return svg(b,"Sequence diagram of git push between send-pack and receive-pack in six steps, ending in a compare-and-swap ref transaction.");
     }
     function oneBoxDiagram() {
