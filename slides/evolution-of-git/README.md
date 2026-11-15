@@ -1,4 +1,4 @@
-# Git at Scale
+# The Evolution of Git
 
 **From Kernel to Codebase**
 

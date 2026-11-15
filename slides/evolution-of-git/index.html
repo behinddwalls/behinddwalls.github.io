@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="light dark">
-  <title>Git at Scale — Preetam Dwivedi</title>
+  <title>The Evolution of Git — Preetam Dwivedi</title>
   <meta name="description" content="A 30–45 minute systems talk: Git's data model, what fetch and push do on the wire, how Git servers evolved from one box to RAID pairs, Spokes, blob storage, and WAL-based storage, and GitFarm, Git as an execution service.">
   <style>
     :root {
@@ -109,7 +109,7 @@
     .thanks-title { font-size: 150px; line-height: 1; letter-spacing: -.06em; font-weight: 600; margin-top: 60px; }
     .thanks-qa { font-size: 72px; line-height: 1.1; letter-spacing: -.03em; color: var(--peach); margin-top: 28px; }
     .cover-title { font-size: 168px; line-height: 1; letter-spacing: -.065em; font-weight: 600; margin-top: 70px; }
-    .cover-title:has(.git-logo) { display: flex; align-items: center; white-space: nowrap; }
+    .cover-title:has(.git-logo) { display: flex; align-items: center; white-space: nowrap; font-size: 136px; }
     .cover-title .git-logo { flex: none; height: .78em; width: .78em; margin-right: .14em; }
     .cover-sub { font-size: 46px; line-height: 1.2; margin-top: 30px; letter-spacing: -.025em; color: var(--peach); }
     .cover-author { position: absolute; left: 92px; bottom: 82px; }
@@ -239,7 +239,7 @@
   </nav>
   <dialog id="overview" aria-labelledby="overview-title">
     <button class="close-panel" data-close="overview" aria-label="Close overview">Close</button>
-    <h2 id="overview-title">Git at Scale</h2>
+    <h2 id="overview-title">The Evolution of Git</h2>
     <p id="overview-meta" style="margin-top:12px;color:#bdb3a4"></p>
     <div class="overview-grid" id="overview-grid"></div>
   </dialog>
@@ -820,15 +820,15 @@
       slides.push({title,chapter,seconds,body,notes,refs,...opts});
     }
 
-    add("Git at Scale","Opening",20,
-      `<p class="eyebrow">Seattle Systems</p><h1 class="cover-title"><svg class="git-logo" viewBox="0 0 78 78" role="img" aria-label="Git logo by Jason Long, CC BY 3.0"><title>Git logo by Jason Long, CC BY 3.0</title><path fill="#f03c2e" transform="translate(10 10) rotate(-45 29 29)" d="M5,58c-2.76142,0 -5,-2.23858 -5,-5v-48c0,-2.76142 2.23858,-5 5,-5h33v12.54404c-2.06553,0.94801 -3.5,3.03446 -3.5,5.45596c0,0.73514 0.13221,1.43941 0.37415,2.09031l-15.28384,15.28384c-0.6509,-0.24194 -1.35517,-0.37415 -2.09031,-0.37415c-3.31371,0 -6,2.68629 -6,6c0,3.31371 2.68629,6 6,6c3.31371,0 6,-2.68629 6,-6c0,-0.73514 -0.13221,-1.43941 -0.37415,-2.09031l14.87415,-14.87415l0,11.50851c-2.06553,0.94801 -3.5,3.03446 -3.5,5.45596c0,3.31371 2.68629,6 6,6c3.31371,0 6,-2.68629 6,-6c0,-2.42149 -1.43447,-4.50795 -3.5,-5.45596l0,-12.08808c2.06553,-0.94801 3.5,-3.03446 3.5,-5.45596c0,-2.42149 -1.43447,-4.50795 -3.5,-5.45596l0,-12.54404h10c2.76142,0 5,2.23858 5,5v48c0,2.76142 -2.23858,5 -5,5z"/></svg>Git at Scale</h1><p class="cover-sub">From Kernel to Codebase</p>
-       <div class="cover-author"><p class="cover-name">Preetam Dwivedi</p><p class="cover-event">Sr. Staff Software Engineer · Developer Platform, LinkedIn</p></div><div class="cover-art">${coverArt()}</div>`,
+    add("The Evolution of Git","Opening",20,
+      `<p class="eyebrow">Seattle Systems</p><h1 class="cover-title"><svg class="git-logo" viewBox="0 0 78 78" role="img" aria-label="Git logo by Jason Long, CC BY 3.0"><title>Git logo by Jason Long, CC BY 3.0</title><path fill="#f03c2e" transform="translate(10 10) rotate(-45 29 29)" d="M5,58c-2.76142,0 -5,-2.23858 -5,-5v-48c0,-2.76142 2.23858,-5 5,-5h33v12.54404c-2.06553,0.94801 -3.5,3.03446 -3.5,5.45596c0,0.73514 0.13221,1.43941 0.37415,2.09031l-15.28384,15.28384c-0.6509,-0.24194 -1.35517,-0.37415 -2.09031,-0.37415c-3.31371,0 -6,2.68629 -6,6c0,3.31371 2.68629,6 6,6c3.31371,0 6,-2.68629 6,-6c0,-0.73514 -0.13221,-1.43941 -0.37415,-2.09031l14.87415,-14.87415l0,11.50851c-2.06553,0.94801 -3.5,3.03446 -3.5,5.45596c0,3.31371 2.68629,6 6,6c3.31371,0 6,-2.68629 6,-6c0,-2.42149 -1.43447,-4.50795 -3.5,-5.45596l0,-12.08808c2.06553,-0.94801 3.5,-3.03446 3.5,-5.45596c0,-2.42149 -1.43447,-4.50795 -3.5,-5.45596l0,-12.54404h10c2.76142,0 5,2.23858 5,5v48c0,2.76142 -2.23858,5 -5,5z"/></svg>The Evolution of Git</h1><p class="cover-sub">From Kernel to Codebase</p>
+       <div class="cover-author"><p class="cover-name">Preetam Dwivedi</p><p class="cover-event">Senior Staff Software Engineer · Developer Platform, LinkedIn</p></div><div class="cover-art">${coverArt()}</div>`,
       "- Git was designed with no server. Today it is the center of a distributed system.\n- Four parts: the data model, fetch and push on the wire, how servers evolved, and GitFarm.\n- Goal: you leave knowing what actually happens underneath git push.",
       ["linkedin"],{theme:"dark",custom:true});
     add("About me","Speaker",15,
       `<div class="about-mini"><img src="${portrait}" alt="Preetam Dwivedi"><div>
         <p class="name">Preetam Dwivedi</p>
-        <p class="role">Sr. Staff Software Engineer<br>Developer Platform · LinkedIn</p>
+        <p class="role">Senior Staff Software Engineer<br>Developer Platform · LinkedIn</p>
         <p class="prev">Previously</p><p class="prev">Uber · Developer Platform</p><p class="prev">Amazon · Prime, Catalog Systems, Payments</p></div>
         <a href="https://www.linkedin.com/in/behinddwalls/" target="_blank" rel="noopener">${qr.linkedin}linkedin.com/in/behinddwalls</a></div>`,
       "- One line: Developer Platform at LinkedIn; before that Developer Platform at Uber, where GitFarm comes from; before that Amazon.\n- Keep it to ten seconds and move on.\n- The QR code goes to LinkedIn for anyone who wants to connect.",
@@ -1136,7 +1136,7 @@
       document.getElementById("progress").style.width = `${Math.min(1,(current+1)/mainCount)*100}%`;
       document.getElementById("announcement").textContent = `Slide ${current+1}: ${slides[current].title}${count>1?`. Build ${currentBuild+1} of ${count}: ${slides[current].builds[currentBuild].label}`:""}`;
       document.querySelectorAll("#overview-grid button").forEach((button,i)=>button.setAttribute("aria-current",String(i===current)));
-      document.title = `${current+1} · ${slides[current].title} — Git at Scale`;
+      document.title = `${current+1} · ${slides[current].title} — The Evolution of Git`;
       updateNotes(); resize();
       if(presenterWindow&&!presenterWindow.closed)presenterWindow.postMessage({kind:"git-evo-slide",index:current,build:currentBuild},"*");
     }
