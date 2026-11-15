@@ -863,9 +863,10 @@
     add("Files are blobs, directories are trees","Part 1 · Data model · Blobs and trees",70,
       `<div class="split" style="grid-template-columns:720px 1fr;gap:50px"><div>
         <p class="compare-label">Blob: file bytes, named by their hash</p>
-        <pre class="codeblock"><span class="c">$ printf 'hello\\n' | git hash-object --stdin</span>
-<span class="hl-out">ce013625030ba8dba906f756967f9e9ca394464a</span>
-<span class="c"># = sha1("blob 6\\0" + "hello\\n")</span></pre>
+        <pre class="codeblock"><span class="c">$ cat README.md</span>
+hello
+<span class="c">$ git hash-object README.md</span>
+<span class="hl-out">ce013625030ba8dba906f756967f9e9ca394464a</span></pre>
         <p class="compare-label">Tree: a directory listing of names → hashes</p>
         <pre class="codeblock"><span class="c">$ git cat-file -p HEAD^{tree}</span>
 <span class="lbl">mode   type hash     name</span>
