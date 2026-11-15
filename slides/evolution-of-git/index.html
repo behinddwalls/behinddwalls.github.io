@@ -485,10 +485,6 @@
         lines(0,42,["1. Not loose in objects/3f/","2. fanout[0x3f] → rows starting 3f","3. Binary search → offset 12","4. Seek + inflate (+ base if a delta)"],22,C.ink,1.45)+`</g>`);
       return svg(b,"Commits A to E. All start as loose objects; gc packs A to C into pack-3f1c with an index while D and E stay loose. The pack stores deltas; the index maps hash to offset.");
     }
-    const deltaBuilds=[
-      {label:"A tree delta",cue:"src/ is a tree: two entries (pack.ts, server.ts) of mode, name, and file hash, 72 bytes. Editing server.ts in commit E changes only its hash. Matching the newest-whole rule, E's src/ is stored whole and D's src/ becomes: copy bytes 0–51, insert the old 20-byte hash. 25 bytes instead of 72 (2 for the two sizes, 2 for the COPY, 21 for the INSERT). Left vs right: without a delta both trees are stored whole, 144 B, and the first 52 bytes are stored twice; with a delta it is 72 + 25 = 97 B. A commit is mostly new hashes and timestamps, so it usually stays whole."},
-      {label:"server.ts edited 100 times",cue:"100 versions, all kept. Loose they are 100 full copies, about 1.2 MB. Packed, the newest is stored whole and older ones as small deltas, about 35 KB in total. Git caps a delta chain at 50 steps (it branches or starts a fresh base when needed), so even the oldest version is a bounded number of hops away."}
-    ];
     function deltaDiagram() {
       let b="";
       // Each build replaces the previous one, so both halves get the full width.
@@ -503,7 +499,7 @@
           return mono(14,yy,r,19,C.muted,"start",600)+mono(88,yy,"100644",22,C.muted)+mono(190,yy,n,22,C.ink)+mono(W-16,yy,h,22,c,"end",i?600:400);}).join("")+
         mono(hashX-10,96,"52–71",19,hc,"end",600)+`</g>`;
       const R=760;
-      b+=S("1",`<g transform="translate(0,-52)">`+
+      b+=`<g transform="translate(0,-52)">`+
         line(690,70,690,500,C.line,2)+
         // Left: no delta, both trees whole.
         text(0,88,"Without delta: both stored whole",24,C.ink,"start",600)+
@@ -521,18 +517,8 @@
         line(R+10,392,R-30,392,C.green,2.5,"7 5")+line(R-30,392,R-30,200,C.green,2.5,"7 5")+arrow(R-30,200,R+4,200,C.green,2.5)+
         text(R,504,"97 B: every byte stored once",23,C.muted,"start",600)+`</g>`+
         text(0,528,"D's src/: 25 bytes instead of 72.",32,C.accent,"start",600)+
-        text(0,570,"A 2,000-file directory (≈ 80 KB): still ≈ 40 bytes.",23,C.muted));
-      let dots=(x0,y,n)=>{let d="";for(let k=0;k<n;k++){if(k)d+=line(x0+(k-1)*60+11,y,x0+k*60-11,y,C.accent,2.5);d+=`<circle cx="${x0+k*60}" cy="${y}" r="11" fill="${C.soft}" stroke="${C.accent}" stroke-width="2.5"/>`;}return d;};
-      b+=S("2",text(0,30,"server.ts (~12 KB) edited 100 times",28,C.ink,"start",600)+
-        Array.from({length:20},(_,i)=>`<rect x="${i*30}" y="56" width="22" height="40" fill="${C.white}" stroke="${C.muted}" stroke-width="1.5"/>`).join("")+
-        text(640,86,"loose: 100 full copies × 12 KB ≈ 1.2 MB",24,C.muted,"start",600)+
-        text(0,180,"packed",22,C.muted,"start",650)+
-        box(0,200,190,56,"v100 · whole","",{size:22,color:C.green,fill:C.greenSoft})+line(190,228,225,228,C.accent,2.5)+dots(236,228,8)+
-        text(720,235,"v99 … v1 · small deltas, ≈ 200 B each",22,C.muted)+
-        text(0,340,"≈ 35 KB instead of 1.2 MB",34,C.accent,"start",600)+
-        text(0,382,"All 100 versions kept. Newest is whole, so it reads fastest.",24,C.muted)+
-        text(0,520,"Deltas are made when packing, reused when sending, resolved when read.",25,C.ink,"start",600));
-      return svg(b,"Step 1: D's src/ tree is stored as a 25-byte delta against E's: copy bytes 0–51, then insert the old 20-byte hash. Step 2: 100 versions of server.ts packed as one whole copy plus small deltas, about 35 KB instead of 1.2 MB.");
+        text(0,570,"A 2,000-file directory (≈ 80 KB): still ≈ 40 bytes.",23,C.muted);
+      return svg(b,"D's src/ tree is stored as a 25-byte delta against E's: copy bytes 0–51, then insert the old 20-byte hash. Stored whole, the two trees take 144 bytes; with the delta, 97.");
     }
     // Sequence diagrams: client lane at x=130, server lane at x=760.
     const CL=130, SV=760;
@@ -848,10 +834,10 @@ hello
       storageDiagram(),
       "- New objects are written loose, one file each. gc, repack, or a large fetch or push rolls many objects into one packfile plus its .idx.\n- Inside a pack, older versions are deltas against newer ones, placed for size rather than by commit.\n- To read any object, Git checks loose files first, then binary-searches each .idx for the offset. Remember A–E: the fetch slide uses the same history.",
       ["packformat"],{builds:storageBuilds});
-    add("How a delta is stored","Part 1 · Data model · Deltas",90,
+    add("How a delta is stored","Part 1 · Data model · Deltas",60,
       deltaDiagram(),
-      "- A delta is a list of COPY and INSERT instructions against a base object. A tree is just a list of mode, name, hash entries, so one changed file changes 20 bytes of each tree on its path, and the older tree becomes a ~25-byte delta against the newer one.\n- server.ts edited 100 times is 100 objects, all kept. Packed, the newest is stored whole and the rest as ~200-byte deltas; Git starts a new base only if a chain would pass 50 steps.\n- Deltas are made when packing, reused when sending, and resolved whenever someone reads an old version.\n- If asked why 52: bytes 0–34 are \"100644 pack.ts\\0\" plus pack.ts's hash (6 + 1 + 7 + 1 + 20 = 35 B); bytes 35–51 are \"100644 server.ts\\0\" (6 + 1 + 9 + 1 = 17 B); bytes 52–71 are server.ts's hash (20 B).",
-      ["packformat"],{builds:deltaBuilds});
+      "- A delta is a recipe: COPY byte ranges from a base object, INSERT the bytes the base doesn't have. src/ is a tree: two entries (pack.ts, server.ts) of mode, name, and file hash, 72 bytes. Editing server.ts in commit E changes only its hash. Matching the newest-whole rule, E's src/ is stored whole and D's src/ becomes: copy bytes 0–51, insert the old 20-byte hash. 25 bytes instead of 72 (2 for the two sizes, 2 for the COPY, 21 for the INSERT). Left vs right: without a delta both trees are stored whole, 144 B, and the first 52 bytes are stored twice; with a delta it is 72 + 25 = 97 B. A commit is mostly new hashes and timestamps, so it usually stays whole.\n- Same idea for file contents: server.ts (~12 KB) edited 100 times is 100 objects, about 1.2 MB loose. Packed, the newest is whole and the rest are ~200-byte deltas, about 35 KB in total; Git starts a new base only if a chain would pass 50 steps.\n- Deltas are made when packing, reused when sending, and resolved whenever someone reads an old version.\n- If asked why 52: bytes 0–34 are \"100644 pack.ts\\0\" plus pack.ts's hash (6 + 1 + 7 + 1 + 20 = 35 B); bytes 35–51 are \"100644 server.ts\\0\" (6 + 1 + 9 + 1 = 17 B); bytes 52–71 are server.ts's hash (20 B).",
+      ["packformat"]);
     add("Part 2: How does it move between machines?","Part 2 · Fetch and push",10,
       `<p class="eyebrow">Part 2 · Fetch and push</p><p class="statement divider-q">How does it move <span class="accent">between machines?</span></p><p class="statement-sub">What fetch and push send, step by step.</p>`,
       "- That's the data on one machine. Now move it between two.\n- Fetch, then push, with the same A–E history.",

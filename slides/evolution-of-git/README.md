@@ -4,7 +4,7 @@
 
 Speaker: Preetam Dwivedi. Event: Seattle Systems, "From Kernel to Codebase: Engineering Systems at Scale".
 
-This is a self-contained HTML presentation for a 30–45 minute slot, planned at about 27 minutes. It has 29 slides, including a short divider that opens each part; 11 have step-by-step builds.
+This is a self-contained HTML presentation for a 30–45 minute slot, planned at about 26 minutes. It has 29 slides, including a short divider that opens each part; 10 have step-by-step builds.
 
 ## Files
 
