@@ -31,10 +31,10 @@ Planned at about 28 minutes for a 30–45 minute slot · 29 slides. Each slide h
 | 23 | 23:35 | 00:55 | GitFarm: Git as a service |
 | 24 | 24:30 | 00:55 | One request, end to end |
 | 25 | 25:25 | 00:55 | Stateful sessions: many commands, one repo state |
-| 26 | 26:20 | 00:50 | Identity, freshness, isolation |
-| 27 | 27:10 | 00:45 | Who needs Git without a clone? |
-| 28 | 27:55 | 00:25 | The infrastructure went distributed |
-| 29 | 28:20 | 00:10 | Thank you |
+| 26 | 26:20 | 00:45 | Identity, freshness, isolation |
+| 27 | 27:05 | 00:45 | Who needs Git without a clone? |
+| 28 | 27:50 | 00:25 | The infrastructure went distributed |
+| 29 | 28:15 | 00:10 | Thank you |
 
 ## Speaking cues
 
@@ -343,15 +343,15 @@ Builds:
 
 ### 26 · Identity, freshness, isolation
 
-26:20–27:10
+26:20–27:05
 
-- Identity is decoupled from the client environment: the caller's identity flows into the sandbox.
-- Freshness is eventual with a 5-minute backstop; clients that need the newest state fetch first.
-- Workload isolation by cluster avoids noisy neighbours.
+- Identity: the gateway checks the caller's access to the repo, and the sandbox runs with the caller's privileges, not the client host's.
+- Freshness: push events plus a periodic fetch every 5 minutes keep bare clones current. Need the newest state? Start the session with git fetch. Can tolerate lag? Skip it and save the latency. Contrast with WAL-Git: strong consistency at the storage layer; GitFarm lets each request choose.
+- Isolation: heavy or latency-sensitive workloads get their own cluster; a shared cluster onboards the rest. New use cases go through a sizing review: pool sizes, limits, sync policy.
 
 ### 27 · Who needs Git without a clone?
 
-27:10–27:55
+27:05–27:50
 
 - Two axes: does the workload write, and is someone waiting on it. Agents and review automation fill every quadrant, which is why a shared execution layer pays off.
 - Security scanning (secrets, vulnerable dependencies) is a read-only batch job: it needs the code at a commit, not a clone.
@@ -359,7 +359,7 @@ Builds:
 
 ### 28 · The infrastructure went distributed
 
-27:55–28:20
+27:50–28:15
 
 - Storage, agreement, and execution each moved from a single machine to a distributed service. If you want the full path: storage went one disk, mirrored disks, replicas, a log in the blob store; agreement went the box, the active node, 3PC, a database, one compare-and-swap; execution went every client's clone to a shared, pre-warmed service. Close on the arc: Git was built so every clone is a full repo, then the world hosted it centrally, and now that central host is itself a distributed system.
 - The thread the whole way: big immutable packs, tiny atomic ref updates.
@@ -367,7 +367,7 @@ Builds:
 
 ### 29 · Thank you
 
-28:20–28:30
+28:15–28:25
 
 - Thank you.
 - Open the floor: questions on Git internals, the server designs, or GitFarm.

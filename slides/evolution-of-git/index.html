@@ -124,6 +124,9 @@
     .about-mini a strong { display: block; margin-top: 14px; font-size: 22px; color: var(--ink, inherit); font-weight: 600; }
     .about-mini a svg { display: block; width: 260px; height: 260px; background: #fff; padding: 10px; border-radius: 10px; box-sizing: border-box; }
     .cover-art { position: absolute; right: 70px; bottom: 70px; width: 780px; height: 360px; }
+    .design-big { margin-top: 110px; gap: 70px; }
+    .design-big h3 { font-size: 44px; line-height: 1.15; letter-spacing: -.03em; margin-top: 14px; }
+    .design-big p:not(.compare-label) { font-size: 30px; line-height: 1.35; margin-top: 18px; }
     .close-flow { display: flex; align-items: stretch; gap: 14px; margin-top: 80px; }
     .close-step { flex: 1; border: 2px solid var(--line); border-radius: 10px; padding: 28px 22px; }
     .close-step b { display: block; font-size: 30px; font-weight: 600; letter-spacing: -.02em; line-height: 1.15; }
@@ -953,14 +956,13 @@ hello
        </div></div>`,
       "- The API takes a repo, a workspace type, and a list of commands; a session can chain commands that depend on earlier output.\n- Guarantees: isolation, one consistent repo state, ordered execution. Fatal errors end the session.\n- The example from the paper: merge-base, rev-parse, push.",
       ["paper"],{builds:sessionBuilds});
-    add("Identity, freshness, isolation","Part 4 · GitFarm · Design choices",50,
-      `<div class="three" style="margin-top:10px">
-        <div class="col"><p class="compare-label">Identity</p><h3>Authorization follows the caller</h3><p>The gateway checks the caller's access to the repo.</p><p>The sandbox runs with the caller's privileges, not the client host's.</p></div>
-        <div class="col"><p class="compare-label">Freshness</p><h3>Eventually consistent, by choice</h3><p>Push events plus a periodic fetch every 5 minutes keep bare clones current.</p><p><strong>Need latest?</strong> Start the session with <span class="mono">git fetch</span>. <strong>Can tolerate lag?</strong> Skip it and save the latency.</p></div>
-        <div class="col"><p class="compare-label">Isolation</p><h3>Clusters per workload</h3><p>Heavy or latency-sensitive workloads get their own cluster; a shared cluster onboards the rest.</p><p>New use cases go through a sizing review: pool sizes, limits, sync policy.</p></div>
-       </div>
-       <p class="bottom-line" style="font-size:26px">Contrast with WAL-Git: strong consistency at the storage layer; GitFarm lets each request choose.</p>`,
-      "- Identity is decoupled from the client environment: the caller's identity flows into the sandbox.\n- Freshness is eventual with a 5-minute backstop; clients that need the newest state fetch first.\n- Workload isolation by cluster avoids noisy neighbours.",
+    add("Identity, freshness, isolation","Part 4 · GitFarm · Design choices",45,
+      `<div class="three design-big">
+        <div class="col"><p class="compare-label">Identity</p><h3>Runs as the caller</h3><p>Not as the service that hosts it.</p></div>
+        <div class="col"><p class="compare-label">Freshness</p><h3>Eventually consistent</h3><p>Need the latest? <span class="mono">git fetch</span> first.</p></div>
+        <div class="col"><p class="compare-label">Isolation</p><h3>A cluster per heavy workload</h3><p>Everyone else shares one.</p></div>
+       </div>`,
+      "- Identity: the gateway checks the caller's access to the repo, and the sandbox runs with the caller's privileges, not the client host's.\n- Freshness: push events plus a periodic fetch every 5 minutes keep bare clones current. Need the newest state? Start the session with git fetch. Can tolerate lag? Skip it and save the latency. Contrast with WAL-Git: strong consistency at the storage layer; GitFarm lets each request choose.\n- Isolation: heavy or latency-sensitive workloads get their own cluster; a shared cluster onboards the rest. New use cases go through a sizing review: pool sizes, limits, sync policy.",
       []);
     add("Who needs Git without a clone?","Part 4 · GitFarm · Use cases",45,
       (()=>{let b="";
@@ -980,7 +982,7 @@ hello
         <div class="close-step"><b>Mirrored disks</b><span>RAID + DRBD</span></div><div class="close-arrow">→</div>
         <div class="close-step"><b>Quorum replicas</b><span>3PC on refs</span></div><div class="close-arrow">→</div>
         <div class="close-step"><b>A log in the blob store</b><span>one CAS</span></div><div class="close-arrow">→</div>
-        <div class="close-step last"><b>Git as a service</b><span>GitFarm: shared checkouts</span></div></div>
+        <div class="close-step last"><b>Git as a service</b><span>GitFarm: warm checkouts</span></div></div>
        <p class="close-tag">Distributed clients.<br>Centralized &amp; distributed Git servers.</p>`,
       "- Storage, agreement, and execution each moved from a single machine to a distributed service. If you want the full path: storage went one disk, mirrored disks, replicas, a log in the blob store; agreement went the box, the active node, 3PC, a database, one compare-and-swap; execution went every client's clone to a shared, pre-warmed service. Close on the arc: Git was built so every clone is a full repo, then the world hosted it centrally, and now that central host is itself a distributed system.\n- The thread the whole way: big immutable packs, tiny atomic ref updates.\n- Agents are driving the next round, at both the storage and the execution layer.",
       [],{theme:"dark"});
