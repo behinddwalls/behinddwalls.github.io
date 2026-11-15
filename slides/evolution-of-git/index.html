@@ -381,8 +381,7 @@
       let b="";
       b+=box(0,0,300,80,"ref","refs/heads/main",{size:28,subSize:20,color:C.accent,mono:true,dash:"8 6"});
       b+=text(330,34,"a mutable pointer file, not an object",22,C.accent,"start",600)+text(330,62,"→ one commit; the only thing that changes",21,C.ink);
-      b+=arrow(150,82,150,124,C.accent,2.5);
-      b+=`<rect x="0" y="108" width="760" height="384" rx="10" fill="#eef3ea" stroke="${C.green}" stroke-width="2" stroke-dasharray="6 5"/>`;
+      b+=arrow(160,82,160,124,C.accent,2.5);
       const rows=[["commit","snapshot + history","→ one root tree, 0..n parent commits"],
                   ["tree","a directory","→ blobs and subtrees, by name and mode"],
                   ["blob","file bytes","→ nothing: no name, no mode, a leaf"]];
@@ -390,9 +389,8 @@
         b+=box(20,y,280,84,t,d,{size:28,subSize:20,mono:true});
         b+=text(330,y+50,r,22,C.ink);
         if(i<2)b+=arrow(160,y+86,160,y+116,C.ink,2.5);});
-      b+=text(20,480,"OBJECT STORE · immutable, append-only",19,C.green,"start",650);
-      b+=text(0,518,"+ tag object: annotated and signed tags (the tag ref points to it)",21,C.muted);
-      return svg(b,"A ref, a mutable pointer file outside the object store, points to a commit; inside the immutable object store, the commit points to a tree and the tree to blobs. Tags are a fourth object type.",760,525);
+      b+=text(20,500,"+ tag object: annotated and signed tags (the tag ref points to it)",21,C.muted);
+      return svg(b,"A ref, a mutable pointer file, points to a commit; the commit points to a tree and the tree to blobs. Tags are a fourth object type.",760,525);
     }
     const commitBuilds=[
       {label:"One commit, one snapshot",cue:"A commit points to one root tree. Walk the tree and you have every file."},
