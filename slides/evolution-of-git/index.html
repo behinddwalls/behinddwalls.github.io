@@ -523,19 +523,6 @@
         text(0,520,"Deltas are made when packing, reused when sending, resolved when read.",25,C.ink,"start",600));
       return svg(b,"Left: a tree delta copies 52 bytes, inserts a 20-byte hash, and copies 35 bytes. Right: 100 versions of server.ts packed as one whole copy plus small deltas, about 35 KB instead of 1.2 MB.");
     }
-    function transportDiagram() {
-      let b="";
-      b+=`<rect x="0" y="20" width="420" height="470" rx="8" fill="none" stroke="${C.blue}" stroke-width="2.5"/>`+text(24,62,"Client",28,C.blue,"start",600);
-      b+=`<rect x="996" y="20" width="420" height="470" rx="8" fill="none" stroke="${C.accent}" stroke-width="2.5"/>`+text(1020,62,"Server (bare repo)",28,C.accent,"start",600);
-      b+=box(30,120,360,90,"fetch-pack","git fetch · git clone · git pull",{size:26,mono:true})+box(30,320,360,90,"send-pack","git push",{size:26,mono:true});
-      b+=box(1026,120,360,90,"upload-pack","serves objects",{size:26,mono:true})+box(1026,320,360,90,"receive-pack","accepts objects + ref updates",{size:26,mono:true});
-      b+=arrow(392,150,1024,150,C.ink)+arrow(1024,180,392,180,C.ink)+arrow(392,350,1024,350,C.ink)+arrow(1024,380,392,380,C.ink);
-      b+=text(708,135,"want / have →",20,C.muted,"middle")+text(708,205,"← refs, packfile",20,C.muted,"middle");
-      b+=text(708,335,"ref updates + packfile →",20,C.muted,"middle")+text(708,405,"← refs, status",20,C.muted,"middle");
-      b+=`<g transform="translate(450,450)">`+mono(0,0,"ssh  git@host 'git-upload-pack repo.git'",19,C.ink)+mono(0,34,"https GET  /info/refs?service=git-upload-pack",19,C.ink)+mono(0,68,"https POST /git-upload-pack",19,C.ink)+`</g>`;
-      b+=text(0,560,"Over SSH or HTTPS · both ends are just Git",21,C.muted);
-      return svg(b,"Client fetch-pack and send-pack talk to server upload-pack and receive-pack over ssh or https.");
-    }
     // Sequence diagrams: client lane at x=130, server lane at x=760.
     const CL=130, SV=760;
     function lanes(clientLabel,serverLabel) {
@@ -783,11 +770,6 @@
       b+=box(1250,306,166,60,"upstream","",{size:22,color:C.green});
       return svg(b,"GitFarm request flow: the client sends a request; the gateway authenticates and places it on a node; the backend gets a checkout from repo-manager and mounts it on a sandbox, which runs the commands as the caller; both repo-manager and the sandbox fetch from or push to upstream.",1416,510);
     }
-    const sessionBuilds=[
-      {label:"merge-base",cue:"First command: where did this branch diverge from main?"},
-      {label:"rev-parse",cue:"Same session, same repo state: resolve the tip. Output streams back; the next step can use it."},
-      {label:"push",cue:"Push from the sandbox. It goes through exactly the receive-pack path we walked earlier: quarantine, connectivity, ref compare-and-swap."}
-    ];
     const slides = [];
     function add(title,chapter,seconds,body,notes,refs=[],opts={}) {
       slides.push({title,chapter,seconds,body,notes,refs,...opts});
@@ -860,13 +842,9 @@ hello
       deltaDiagram(),
       "- A delta is a list of COPY and INSERT instructions against a base object. A tree is just a list of mode, name, hash entries, so one changed file changes 20 bytes of each tree on its path, and the older tree becomes a ~25-byte delta against the newer one.\n- server.ts edited 100 times is 100 objects, all kept. Packed, that's one or two whole copies plus about 200-byte deltas; depth is capped at 50, so Git branches or restarts chains as needed.\n- Deltas are made when packing, reused when sending, and resolved whenever someone reads an old version.",
       ["packformat"],{builds:deltaBuilds});
-    add("Two programs on each side of the wire","Part 2 · Fetch and push",40,
-      transportDiagram(),
-      "- Fetch is fetch-pack talking to upload-pack. Push is send-pack talking to receive-pack.\n- Transport is ssh or smart HTTP; framing is pkt-line; protocol v2 adds explicit commands like ls-refs and fetch.\n- The server is the same Git binary running against a bare repo. That is why hosting Git looks easy and isn't.",
-      ["protocolv2","packprotocol"]);
     add("git fetch, end to end","Part 2 · Fetch and push · Client and server",120,
       fetchDiagram(),
-      "- Same history as the pack slide: the server has A–E (A–C packed, D and E loose); the client stopped at B.\n- want names ref tips; have walks back through the client's history until the server recognizes a commit. The server then walks from E back to B, finding objects loose or through the .idx.\n- It ships C, D, E as one fresh pack; the client re-indexes it into its own pack, and only then moves origin/main. At scale, the first step is the expensive one: protocol v0 advertises every ref before any work (a million refs is tens of MB), so v2's ls-refs lets the client ask only for the prefixes it needs.",
+      "- Both ends are just Git: fetch is fetch-pack talking to upload-pack, push is send-pack talking to receive-pack, over ssh or HTTPS.\n- Same history as the pack slide: the server has A–E (A–C packed, D and E loose); the client stopped at B.\n- want names ref tips; have walks back through the client's history until the server recognizes a commit. The server then walks from E back to B, finding objects loose or through the .idx.\n- It ships C, D, E as one fresh pack; the client re-indexes it into its own pack, and only then moves origin/main. At scale, the first step is the expensive one: protocol v0 advertises every ref before any work (a million refs is tens of MB), so v2's ls-refs lets the client ask only for the prefixes it needs.",
       ["protocolv2","packprotocol"],{builds:fetchBuilds});
     add("git push, end to end","Part 2 · Fetch and push · Client and server",120,
       pushDiagram(),
@@ -883,7 +861,7 @@ hello
       oneBoxDiagram(),
       "- The simplest Git server is one machine: sshd or git-daemon runs upload-pack and receive-pack against bare repos on local disk.\n- Packs and refs both live on that disk, and the box agrees with itself.\n- It is fast and simple until the disk, the CPU, or the machine runs out.",
       []);
-    add("Why not just put the repos on NFS?","Part 3 · Server evolution · Dead end",60,
+    add("Why not just put the repos on NFS?","Part 3 · Server evolution · Dead end",45,
       nfsDiagram(),
       "- The obvious next step after one box: keep stock Git, but put every repo on a shared NFS filer that all servers mount. Any server can serve any repo.\n- Git assumes a local disk. Delta walks become many small network reads, and ref updates depend on lock files and atomic rename over NFS. Atlassian's own docs call NFS fine for streaming packs but punishing for refs and loose objects; GitHub tried it early, and Bitbucket Data Center ran on it for years before Bitbucket Mesh. I ran Phabricator's repositories on NFS at Uber, so this is first-hand: say what broke first.\n- Conclusion: Git needs local disk, or you rewrite Git around remote storage. \"Local disk\" from here on means a fast local SSD (NVMe): microseconds per random read instead of a network round trip.",
       []);
@@ -903,10 +881,6 @@ hello
       walDiagram(),
       "- Cursor's Continuity: a push is a WAL entry in the blob store; it becomes visible only when a compare-and-swap on the WAL index succeeds. Pushes are linearizable.\n- The local Git repo is a warm cache. Replicas learn from lossy gossip but verify every read with a conditional GET, so reads are consistent.\n- There is no primary: any node can take a push (the CAS on the blob store decides) and any node can serve a read, rebuilding from the WAL if it has no copy. Rendezvous hashing just picks a preferred node to avoid CAS retries, and that node does compaction; idle repos are dropped and rebuilt on demand. Kept from distributed Git: real Git on local disk. Kept from blob + DB: blob storage as truth. Dropped: quorum, primary, routing DB, database. Cursor reports about 120 pushes/s on S3 Standard and 300+ on S3 Express One Zone, with reads scaling linearly to 100 replicas.\n- Where the WAL index lives is the design choice. Cursor keeps it in the blob store and publishes with one CAS on it, so every push to the repo goes through that one object. GitHub's Rubicon (2026) keeps packs in blob storage too but moves the log into Ref-CAS, a separate quorum service that locks only the refs a push touches, so pushes to different branches don't wait on each other.",
       ["cursor","walgit","rubicon"],{builds:walBuilds});
-    add("Storage scales. Every client still clones.","Part 4 · GitFarm",25,
-      `<p class="eyebrow">Part 4 · GitFarm</p><p class="statement">Storage scales.<br><span class="accent">Every client still clones.</span></p><p class="statement-sub">Agents, review bots, and automation don't need a copy of the repo. They need to run Git against it.</p>`,
-      "- Everything up to WAL-Git makes the server side scale.\n- But each automation still pulls a full checkout before it can run one git command.\n- GitFarm moves the execution to where the repo already is.",
-      ["paper"],{theme:"dark",custom:true});
     add("The cost of a local checkout","Part 4 · GitFarm · The problem",45,
       `<div class="split" style="grid-template-columns:1fr 1.2fr;gap:90px;align-items:center;margin-top:20px"><div class="stat-grid" style="grid-template-columns:1fr;gap:56px">
         <div class="stat"><p class="num">~15<small>min</small></p><p class="label">to clone a large monorepo<span>before any work starts</span></p></div>
@@ -916,7 +890,7 @@ hello
         <li><strong>CI caches help, partly</strong><span>Per-agent caches diverge; cold starts take minutes.</span></li>
         <li><strong>Checkout sits on the critical path</strong><span>even for a 2-second git command.</span></li>
        </ul></div>`,
-      "- Cloning a large monorepo takes about 15 minutes and a meaningful slice of a machine: 40+ GB of disk, plus cores and memory.\n- Each automation system kept and synced its own checkouts, multiplying upstream load.\n- CI caches reduce clone time but add cold starts, drift, and upkeep.",
+      "- Open Part 4: storage scales now, but every client still clones. Agents, review bots and automation don't need a copy of the repo; they need to run Git against it.\n- Cloning a large monorepo takes about 15 minutes and a meaningful slice of a machine: 40+ GB of disk, plus cores and memory.\n- Each automation system kept and synced its own checkouts, multiplying upstream load.\n- CI caches reduce clone time but add cold starts, drift, and upkeep.",
       ["paper"]);
     add("Warm checkouts: remote devboxes and GitFarm","Part 4 · GitFarm · The idea",40,
       (()=>{let b="";
@@ -936,26 +910,8 @@ hello
       ["paper"]);
     add("One request, end to end","Part 4 · GitFarm · Request flow",55,
       `<div>${flowDiagram()}</div>`,
-      "- Request, authenticate, place on the node with the most free checkouts, or throttle.\n- The backend takes a sandbox from the sandbox container's pool and a checkout from repo-manager's pool, mounts one into the other, and runs the commands as the caller.\n- Pools are the whole trick: cold start moves off the request path.",
+      "- Request, authenticate, place on the node with the most free checkouts, or throttle.\n- The backend takes a sandbox from the sandbox container's pool and a checkout from repo-manager's pool, mounts one into the other, and runs the commands as the caller.\n- Pools are the whole trick: cold start moves off the request path.\n- A request can be a session: several commands run in order on one repo state (the paper's example is merge-base, rev-parse, push), and the push goes through the same receive-pack and ref compare-and-swap from Part 2.",
       ["paper"],{builds:flowBuilds});
-    add("Stateful sessions: many commands, one repo state","Part 4 · GitFarm · Execution API",55,
-      `<div class="split" style="grid-template-columns:900px 1fr;gap:56px"><div>
-        <pre class="codeblock" style="font-size:20px;white-space:pre">Exec(repo_id="go-code", workspace_type=CHECKOUT,
-  commands=[
-<span class="code-hl" data-hl="1">    {alias:"base", bin:"git", args:["merge-base","main","HEAD"]},</span>
-<span class="code-hl" data-hl="2">    {alias:"tip",  bin:"git", args:["rev-parse","HEAD"]},</span>
-<span class="code-hl" data-hl="3">    {alias:"push", bin:"git", args:["push","origin","HEAD:x"]},</span>
-  ])</pre>
-        <pre class="codeblock" style="font-size:21px;border-color:var(--green)"><span data-show="1-">→ base  exit 0  5ac0e1d4…</span>
-<span data-show="2-">→ tip   exit 0  3f7d9a02…</span>
-<span data-show="3">→ push  exit 0  ok refs/heads/x</span></pre>
-       </div><div class="col">
-        <h3>One open stream per session</h3><p>Each command's stdout can feed the next. Results return alias, exit code, stdout, stderr.</p>
-        <p><strong>Isolation</strong> — one sandbox per session.</p><p><strong>Consistency</strong> — every command sees one repo state.</p><p><strong>Determinism</strong> — commands run in order.</p>
-        <p data-show="3" class="accent" style="color:var(--accent)">The push goes through the same receive-pack path and ref compare-and-swap from Part 2.</p>
-       </div></div>`,
-      "- The API takes a repo, a workspace type, and a list of commands; a session can chain commands that depend on earlier output.\n- Guarantees: isolation, one consistent repo state, ordered execution. Fatal errors end the session.\n- The example from the paper: merge-base, rev-parse, push.",
-      ["paper"],{builds:sessionBuilds});
     add("Identity, freshness, isolation","Part 4 · GitFarm · Design choices",45,
       `<div class="three design-big">
         <div class="col"><p class="compare-label">Identity</p><h3>Passthrough identity</h3><p>Commands run as the caller, not the service.</p></div>
