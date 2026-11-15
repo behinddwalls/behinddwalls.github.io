@@ -23,19 +23,19 @@ Planned at about 31 minutes for a 30–45 minute slot · 30 slides. Each slide h
 | 15 | 15:15 | 01:00 | Why not just put the repos on NFS? |
 | 16 | 16:15 | 01:05 | Stage 1: RAID + DRBD pairs |
 | 17 | 17:20 | 01:25 | Stage 2: Distributed Git — replicate Git, not disks |
-| 18 | 18:45 | 01:15 | Stage 2b: packs in blobs, refs in a database |
-| 19 | 20:00 | 02:00 | Stage 3: WAL-Git — a write-ahead log is the repo |
-| 20 | 22:00 | 01:55 | What a push writes to the object store |
-| 21 | 23:55 | 00:25 | Storage scales. Every client still clones. |
-| 22 | 24:20 | 00:45 | The cost of a local checkout |
-| 23 | 25:05 | 00:40 | Warm checkouts: remote devboxes and GitFarm |
-| 24 | 25:45 | 00:55 | GitFarm: Git as a service |
-| 25 | 26:40 | 00:55 | One request, end to end |
-| 26 | 27:35 | 00:55 | Stateful sessions: many commands, one repo state |
-| 27 | 28:30 | 00:50 | Identity, freshness, isolation |
-| 28 | 29:20 | 00:45 | Who needs Git without a clone? |
-| 29 | 30:05 | 00:25 | The infrastructure went distributed |
-| 30 | 30:30 | 00:10 | Thank you |
+| 18 | 18:45 | 01:00 | Stage 2b: packs in blobs, refs in a database |
+| 19 | 19:45 | 02:00 | Stage 3: WAL-Git — a write-ahead log is the repo |
+| 20 | 21:45 | 01:55 | What a push writes to the object store |
+| 21 | 23:40 | 00:25 | Storage scales. Every client still clones. |
+| 22 | 24:05 | 00:45 | The cost of a local checkout |
+| 23 | 24:50 | 00:40 | Warm checkouts: remote devboxes and GitFarm |
+| 24 | 25:30 | 00:55 | GitFarm: Git as a service |
+| 25 | 26:25 | 00:55 | One request, end to end |
+| 26 | 27:20 | 00:55 | Stateful sessions: many commands, one repo state |
+| 27 | 28:15 | 00:50 | Identity, freshness, isolation |
+| 28 | 29:05 | 00:45 | Who needs Git without a clone? |
+| 29 | 29:50 | 00:25 | The infrastructure went distributed |
+| 30 | 30:15 | 00:10 | Thank you |
 
 ## Speaking cues
 
@@ -236,11 +236,11 @@ Builds:
 
 ### 18 · Stage 2b: packs in blobs, refs in a database
 
-18:45–20:00 · 3 builds
+18:45–19:45 · 2 builds
 
 - The other road: put immutable packs in blob storage and refs in a database. JGit DFS, Azure DevOps, and CodeCommit all follow this pattern, and so does Jigit at Uber: built on JGit, with MySQL and a blob store.
 - Compute becomes stateless and storage durable, with no replica babysitting.
-- The price: you no longer run stock Git on a local repo, so you own a Git implementation, a cache, and a database.
+- The price: you no longer run stock Git on a local repo, so you own a Git implementation and a database.
 
 Sources: [JGit · DFS storage layer](https://github.com/eclipse-jgit/jgit/tree/master/org.eclipse.jgit/src/org/eclipse/jgit/internal/storage/dfs) · [AWS CodeCommit features (S3 + DynamoDB storage)](https://aws.amazon.com/codecommit/features/) · [Cursor · Git at any scale (Vicent Martí, Aug 2026)](https://cursor.com/blog/git-at-any-scale)
 
@@ -248,11 +248,10 @@ Builds:
 
 1. **Pack → blob store.** Packs are immutable files. Any stateless frontend can write one to blob storage.
 2. **Ref → database transaction.** The database has one row per ref holding its current value, nothing more. A push is one transaction: UPDATE refs SET value = F WHERE name = main AND value = E. If no row matches, someone moved main first and the push is rejected; that is the compare-and-swap. There is no log of pushes: a frontend that needs main just reads the row. (The database has its own internal transaction log, but nothing in the Git design reads it.) Keep this in mind for the next slide, where every push becomes an entry in a log instead.
-3. **Reads through a cache.** Git reads packs in small random pieces: the .idx, then each object and its delta bases. A blob read is 10–50 ms versus about 0.1 ms on a local SSD, so each frontend keeps recently used pack and index blocks in memory (JGit's DfsBlockCache, 64 KB blocks by default). Packs never change, so cached blocks never go stale; only misses go to the blob store.
 
 ### 19 · Stage 3: WAL-Git — a write-ahead log is the repo
 
-20:00–22:00 · 5 builds
+19:45–21:45 · 5 builds
 
 - Cursor's Continuity: a push is a WAL entry in the object store; it becomes visible only when a compare-and-swap on the WAL index succeeds. Pushes are linearizable.
 - The local Git repo is a warm cache. Replicas learn from lossy gossip but verify every read with a conditional GET, so reads are consistent.
@@ -270,7 +269,7 @@ Builds:
 
 ### 20 · What a push writes to the object store
 
-22:00–23:55 · 4 builds
+21:45–23:40 · 4 builds
 
 - The contract, as implemented by walgit (an open-source take on Cursor's design): per repository, one tiny mutable WAL index and everything else immutable: log entries, packs, checkpoints. walgit calls the index manifest.pb; Cursor calls it gitwal.pb.
 - A push writes a pack, its .idx, and a PUSH log entry holding the pack reference and the ref transaction (main: E to F). Only the conditional PUT on the manifest makes it visible; git hears ok after that.
@@ -288,7 +287,7 @@ Builds:
 
 ### 21 · Storage scales. Every client still clones.
 
-23:55–24:20
+23:40–24:05
 
 - Everything up to WAL-Git makes the server side scale.
 - But each automation still pulls a full checkout before it can run one git command.
@@ -298,7 +297,7 @@ Sources: [GitFarm: Git as a Service for Large-Scale Monorepos (arXiv 2604.11977)
 
 ### 22 · The cost of a local checkout
 
-24:20–25:05
+24:05–24:50
 
 - Cloning a large monorepo takes about 15 minutes and a meaningful slice of a machine: 40+ GB of disk, plus cores and memory.
 - Each automation system kept and synced its own checkouts, multiplying upstream load.
@@ -308,7 +307,7 @@ Sources: [GitFarm: Git as a Service for Large-Scale Monorepos (arXiv 2604.11977)
 
 ### 23 · Warm checkouts: remote devboxes and GitFarm
 
-25:05–25:45
+24:50–25:30
 
 - A remote devbox (or devpod) is a dev machine in the data center that already has the monorepo checked out and kept in sync in the background. A developer connects with their IDE or shell and starts working: no 15-minute clone.
 - GitFarm does the same for automation. Each node keeps a bare clone fresh from push events plus a periodic fetch, and a pool of warm checkouts.
@@ -318,7 +317,7 @@ Sources: [GitFarm: Git as a Service for Large-Scale Monorepos (arXiv 2604.11977)
 
 ### 24 · GitFarm: Git as a service
 
-25:45–26:40
+25:30–26:25
 
 - Clients call a gRPC API. The gateway authenticates, authorizes per repo, and places the request.
 - Every node runs three containers: backend serves the request; sandbox keeps a pool of sandboxes and executes the commands; repo-manager keeps the bare clone, synced by push events plus a 5-minute fetch, and a pool of pre-warmed checkouts.
@@ -328,7 +327,7 @@ Sources: [GitFarm: Git as a Service for Large-Scale Monorepos (arXiv 2604.11977)
 
 ### 25 · One request, end to end
 
-26:40–27:35 · 5 builds
+26:25–27:20 · 5 builds
 
 - Request, authenticate, place on the node with the most free checkouts, or throttle.
 - The backend takes a sandbox from the sandbox container's pool and a checkout from repo-manager's pool, mounts one into the other, and runs the commands as the caller.
@@ -346,7 +345,7 @@ Builds:
 
 ### 26 · Stateful sessions: many commands, one repo state
 
-27:35–28:30 · 3 builds
+27:20–28:15 · 3 builds
 
 - The API takes a repo, a workspace type, and a list of commands; a session can chain commands that depend on earlier output.
 - Guarantees: isolation, one consistent repo state, ordered execution. Fatal errors end the session.
@@ -362,7 +361,7 @@ Builds:
 
 ### 27 · Identity, freshness, isolation
 
-28:30–29:20
+28:15–29:05
 
 - Identity is decoupled from the client environment: the caller's identity flows into the sandbox.
 - Freshness is eventual with a 5-minute backstop; clients that need the newest state fetch first.
@@ -370,7 +369,7 @@ Builds:
 
 ### 28 · Who needs Git without a clone?
 
-29:20–30:05
+29:05–29:50
 
 - Two axes: does the workload write, and is someone waiting on it. Agents and review automation fill every quadrant, which is why a shared execution layer pays off.
 - Security scanning (secrets, vulnerable dependencies) is a read-only batch job: it needs the code at a commit, not a clone.
@@ -378,7 +377,7 @@ Builds:
 
 ### 29 · The infrastructure went distributed
 
-30:05–30:30
+29:50–30:15
 
 - Storage, agreement, and execution each moved from a single machine to a distributed service.
 - The thread the whole way: big immutable packs, tiny atomic ref updates.
@@ -386,7 +385,7 @@ Builds:
 
 ### 30 · Thank you
 
-30:30–30:40
+30:15–30:25
 
 - Thank you.
 - Open the floor: questions on Git internals, the server designs, or GitFarm.

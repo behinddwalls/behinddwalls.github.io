@@ -679,8 +679,7 @@
     }
     const blobBuilds=[
       {label:"Pack → blob store",cue:"Packs are immutable files. Any stateless frontend can write one to blob storage."},
-      {label:"Ref → database transaction",cue:"The database has one row per ref holding its current value, nothing more. A push is one transaction: UPDATE refs SET value = F WHERE name = main AND value = E. If no row matches, someone moved main first and the push is rejected; that is the compare-and-swap. There is no log of pushes: a frontend that needs main just reads the row. (The database has its own internal transaction log, but nothing in the Git design reads it.) Keep this in mind for the next slide, where every push becomes an entry in a log instead."},
-      {label:"Reads through a cache",cue:"Git reads packs in small random pieces: the .idx, then each object and its delta bases. A blob read is 10–50 ms versus about 0.1 ms on a local SSD, so each frontend keeps recently used pack and index blocks in memory (JGit's DfsBlockCache, 64 KB blocks by default). Packs never change, so cached blocks never go stale; only misses go to the blob store."}
+      {label:"Ref → database transaction",cue:"The database has one row per ref holding its current value, nothing more. A push is one transaction: UPDATE refs SET value = F WHERE name = main AND value = E. If no row matches, someone moved main first and the push is rejected; that is the compare-and-swap. There is no log of pushes: a frontend that needs main just reads the row. (The database has its own internal transaction log, but nothing in the Git design reads it.) Keep this in mind for the next slide, where every push becomes an entry in a log instead."}
     ];
     function blobDiagram() {
       let b="";
@@ -696,17 +695,12 @@
         mono(0,40,"refs/heads/main",21,C.ink)+mono(260,40,"E → F",21,C.blue,"start",650)+
         mono(400,40,"refs/tags/v1.0",21,C.ink)+mono(640,40,"A",21,C.muted)+
         mono(0,90,"UPDATE refs SET value='F' WHERE name='main' AND value='E'",20,C.blue)+`</g>`);
-      // Step 3: the cache sits on each frontend; only misses go to the blob store.
-      b+=S("3",H("3",box(260,388,290,64,"block cache · in memory","hot pack + .idx blocks",{size:21,subSize:19,color:C.accent})+
-        `<path class="edge" d="M780 175C700 230 640 400 556 420" fill="none" stroke="${C.ink}" stroke-width="2.5" stroke-dasharray="7 5"/>`+text(728,252,"3 on a miss",20,C.ink,"start",600))+
-        text(0,505,"Git reads packs in small random pieces: the .idx, then each delta base.",21,C.ink)+
-        text(0,540,"A blob read is 10–50 ms (local SSD: ~0.1 ms), so frontends keep hot blocks in memory.",21,C.muted));
       b+=`<g transform="translate(1160,40)">`+text(0,0,"Same pattern",22,C.ink,"start",600)+
         [["JGit DFS","Google, for Gerrit"],["Jigit (Uber)","JGit, MySQL, blob store"],["Azure DevOps","Blob + SQL Server"],["AWS CodeCommit","S3 + DynamoDB"]]
           .map(([k,v],i)=>text(0,44+i*66,k,22,C.ink,"start",600)+text(0,70+i*66,v,20,C.muted)).join("")+`</g>`;
-      b+=S("3",`<g transform="translate(1160,372)">`+text(0,0,"+ stateless compute",20,C.green,"start",600)+text(0,30,"+ durable storage",20,C.green,"start",600)+text(0,60,"+ no replica pets",20,C.green,"start",600)+
-        text(0,106,"− not stock Git",20,C.red,"start",600)+text(0,136,"− a cache to tune",20,C.red,"start",600)+text(0,166,"− a database to run",20,C.red,"start",600)+`</g>`);
-      return svg(b,"Stateless frontends write packs to a blob store and update refs with a database transaction; reads come through a cache.");
+      b+=S("2",`<g transform="translate(1160,372)">`+text(0,0,"+ stateless compute",20,C.green,"start",600)+text(0,30,"+ durable storage",20,C.green,"start",600)+text(0,60,"+ no replica pets",20,C.green,"start",600)+
+        text(0,106,"− not stock Git",20,C.red,"start",600)+text(0,136,"− a database to run",20,C.red,"start",600)+`</g>`);
+      return svg(b,"Stateless frontends write packs to a blob store and update refs with a database transaction.");
     }
     const walBuilds=[
       {label:"1 · Read the index first",cue:"Before advertising refs to the pusher, the node does the same conditional GET as any read. Now it knows the log is at version e1 with head 41, so this push will be entry #42. The version is the object's ETag on S3 or its generation on GCS."},
@@ -942,9 +936,9 @@ hello
       spokesDiagram(),
       "- Distributed Git: GitHub DGit, later Spokes (2016); GitLab Gitaly Cluster (2020); Bitbucket Mesh (2022). Real Git repos on several servers (3 at launch, 5 by default today per GitHub), replicated by Git-aware software, not by blocks.\n- Packs fan out freely; only the ref transaction goes through three-phase commit. Reads go to any replica.\n- Costs: latency bound by the slowest replica; a floor of 3 copies even for idle repos; a ceiling, because every extra replica slows every push, so adding replicas for read load makes pushes slower; and repos as pets. Atlassian landed in the same place later: Bitbucket Mesh (Data Center 8.0, 2022) replaced NFS with repos replicated on local disk across nodes.",
       ["dgit","ghagent","cursor","mesh"],{builds:spokesBuilds});
-    add("Stage 2b: packs in blobs, refs in a database","Part 3 · Server evolution · Disaggregated storage",75,
+    add("Stage 2b: packs in blobs, refs in a database","Part 3 · Server evolution · Disaggregated storage",60,
       blobDiagram(),
-      "- The other road: put immutable packs in blob storage and refs in a database. JGit DFS, Azure DevOps, and CodeCommit all follow this pattern, and so does Jigit at Uber: built on JGit, with MySQL and a blob store.\n- Compute becomes stateless and storage durable, with no replica babysitting.\n- The price: you no longer run stock Git on a local repo, so you own a Git implementation, a cache, and a database.",
+      "- The other road: put immutable packs in blob storage and refs in a database. JGit DFS, Azure DevOps, and CodeCommit all follow this pattern, and so does Jigit at Uber: built on JGit, with MySQL and a blob store.\n- Compute becomes stateless and storage durable, with no replica babysitting.\n- The price: you no longer run stock Git on a local repo, so you own a Git implementation and a database.",
       ["jgitdfs","codecommit","cursor"],{builds:blobBuilds});
     add("Stage 3: WAL-Git — a write-ahead log is the repo","Part 3 · Server evolution · Object storage as truth",120,
       walDiagram(),
