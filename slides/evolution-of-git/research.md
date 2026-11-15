@@ -96,6 +96,12 @@ Each server generation answers the same two questions: *where do packs live, and
   5. The client sees `ok` only after the bucket does.
 - No leader: any instance may accept a push; a cold replica reads the log; every read revalidates with a conditional GET. Compaction is done by the lease holder and published into the log.
 
+### walgit with many refs
+
+- The manifest (WAL index) holds no refs: head seq, live pack set, log segments, checkpoint pointer, settings. Design rule: "Cost must not scale with ref count on any hot path."
+- Each PUSH / REF_UPDATE log entry carries its ref transaction plus a pack pointer. A checkpoint (`checkpoints/<seq>/refs.pb`) is a full `RefSnapshot`, rewritten when `wal.snapshot_every_entries`, `wal.checkpoint_interval` or `wal.checkpoint_tail_bytes` fires.
+- Cold refs sync: one manifest GET, then the checkpoint refs and log tail segments in parallel, folded into `packed-refs`; no packs. Target: refs in under a second. walgit's reference monorepo has 466k refs; the docs give the timing as a target, not a measurement. Snapshot compression or sharding is not described.
+
 ### GitHub Rubicon (Nov 2026)
 
 - Spokes stays as the router. Underneath: disposable "virtual replicas" (local disk is only a cache), packs and read accelerators in Azure Blob Storage, and refs plus the pack manifest in Ref-CAS, a replicated quorum log service that stores only pointers.

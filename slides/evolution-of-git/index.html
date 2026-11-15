@@ -692,6 +692,28 @@
       b+=text(870,560,"Entire (EntireDB): ≥ 2 zones per push · refs in PostgreSQL",21,C.muted,"middle",600);
       return svg(b,"EntireDB stages each pack on nodes in at least two availability zones, then moves the ref with one compare-and-swap in PostgreSQL; any node serves reads from local disk.");
     }
+    const manyRefsBuilds=[
+      {label:"Where 100k refs live",cue:"The index holds no refs at all, so it stays a few KB. Each log entry holds only the refs its push changed: main E to F. Only the checkpoint holds every ref: one full snapshot, rewritten every N entries, on a timer, or when the tail gets long. So a push that touches one branch costs the same with 10 refs or 100k; only the occasional checkpoint pays for all of them."},
+      {label:"A cold node starts in two rounds",cue:"GET the index. Then, in one parallel round, GET the checkpoint's ref snapshot and the log segments written since. Fold them: snapshot plus each entry's ref changes gives the current refs, written locally as packed-refs. The node can now answer ls-refs, filtered by prefix, without a single pack. Packs come later, downloaded or read by range only when a fetch needs objects. walgit's target is refs in under a second."}
+    ];
+    function manyRefsDiagram() {
+      let b="";
+      // Step 1: three kinds of object, drawn roughly to scale.
+      const card=(x,h,title,color,rows,foot)=>`<rect x="${x}" y="20" width="430" height="${h}" rx="8" fill="${C.white}" stroke="${color}" stroke-width="2.5"/>`+
+        text(x+22,56,title,24,color,"start",650)+rows.map(([t,c,m],i)=>(m?mono:text)(x+22,94+i*32,t,m?19:20,c||C.ink)).join("")+
+        text(x,h+52,foot,20,C.muted,"start",600);
+      b+=card(0,120,"WAL index",C.accent,[["version · head · packs · checkpoint",C.ink],["a few KB · no refs",C.accent]],"changes every push, by CAS");
+      b+=card(493,120,"Log entry #42",C.ink,[["main: E → F",C.ink,1],["only the refs this push changed",C.muted]],"one per push");
+      b+=card(986,210,"Checkpoint: refs.pb",C.green,[["refs/heads/main → E",C.ink,1],["refs/heads/feature-1 → 3a9…",C.ink,1],["refs/tags/v1.0 → A",C.ink,1],["… 100,000 refs",C.green]],"all refs · rewritten now and then");
+      // Step 2: cold start as a timeline.
+      const steps=[["1 GET index","one small object"],["2 GET checkpoint + tail","in parallel: one round"],["3 Fold","→ local packed-refs"],["4 Serve refs","ls-refs by prefix"],["5 Packs later","when a fetch needs them"]];
+      b+=S("2",text(0,330,"A cold node with 100k refs",24,C.ink,"start",650)+
+        steps.map(([t,sub],i)=>{const x=i*287;const c=i===3?C.green:C.ink;
+          return box(x,352,250,86,t,sub,{size:21,subSize:17,color:c})+(i<4?arrow(x+252,395,x+283,395,C.muted,2.5):"");}).join("")+
+        text(1004,470,"walgit's target: refs in < 1 s",19,C.green,"middle",600));
+      b+=text(0,560,"Pushes never touch all the refs. Only checkpoints do.",28,C.ink,"start",600);
+      return svg(b,"With 100k refs, the WAL index holds no refs, each log entry holds only the refs its push changed, and a checkpoint holds all of them. A cold node reads the index, then the checkpoint and the log tail in parallel, folds them into packed-refs and serves refs before fetching any packs.");
+    }
     const blobBuilds=[
       {label:"Pack → blob store",cue:"Packs are immutable files. Any stateless frontend can write one to blob storage."},
       {label:"Ref → database transaction",cue:"The database has one row per ref holding its current value, nothing more. A push is one transaction: UPDATE refs SET value = F WHERE name = main AND value = E. If no row matches, someone moved main first and the push is rejected; that is the compare-and-swap. There is no log of pushes: a frontend that needs main just reads the row. (The database has its own internal transaction log, but nothing in the Git design reads it.) Keep this in mind for the next slide, where every push becomes an entry in a log instead."}
@@ -922,6 +944,10 @@ hello
       walDiagram(),
       "- Cursor's Continuity: a push is a WAL entry in the blob store; it becomes visible only when a compare-and-swap on the WAL index succeeds. Pushes are linearizable.\n- The local Git repo is a warm cache. Replicas learn from lossy gossip but verify every read with a conditional GET, so reads are consistent.\n- There is no primary: any node can take a push (the CAS on the blob store decides) and any node can serve a read, rebuilding from the WAL if it has no copy. Rendezvous hashing just picks a preferred node to avoid CAS retries, and that node does compaction; idle repos are dropped and rebuilt on demand. Kept from distributed Git: real Git on local disk. Kept from blob + DB: blob storage as truth. Dropped: quorum, primary, routing DB, database. Cursor reports about 120 pushes/s on S3 Standard and 300+ on S3 Express One Zone, with reads scaling linearly to 100 replicas.\n- The WAL index is one small object, overwritten only by compare-and-swap: a version (what the CAS checks), the head entry number, the list of live packs (here base, an earlier compaction, plus one pack per push since; push #42 adds P42), and a pointer to the latest checkpoint (a snapshot of every ref, here as of entry #40). There is no refs field: current refs are the checkpoint plus the entries after it. A cold node reads the checkpoint plus the entries after it, never the whole log.\n- Where the WAL index lives is the design choice. Cursor keeps it in the blob store and publishes with one CAS on it, so every push to the repo goes through that one object. GitHub's Rubicon (2026) keeps packs in blob storage too but moves the log into Ref-CAS, a separate quorum service that locks only the refs a push touches, so pushes to different branches don't wait on each other.",
       ["cursor","walgit","rubicon"],{builds:walBuilds});
+    add("WAL-Git with 100k refs","Part 3 · Server evolution · A write-ahead log",60,
+      manyRefsDiagram(),
+      "- The index never holds refs, so a one-branch push writes a tiny entry and does a CAS on a tiny index whether the repo has 10 refs or 100k. walgit's rule: cost must not scale with ref count on any hot path.\n- Only checkpoints pay for every ref: a full snapshot (refs.pb), rewritten every N entries, on a timer, or when the tail grows too long. For 100k refs that is a few MB (an estimate; walgit doesn't publish sizes). Checkpoints keep the tail short, so a cold start stays at two rounds of reads.\n- If asked: walgit's reference monorepo has 466k refs, and its goal is a cold node serving refs in under a second; the docs state that as a target, not a measurement. Packs come later, downloaded or read by range only when a fetch needs objects.",
+      ["walgit"],{builds:manyRefsBuilds});
     add("Part 4: What if clients never clone?","Part 4 · GitFarm",10,
       `<p class="eyebrow">Part 4 · GitFarm</p><p class="statement divider-q">What if clients <span class="accent">never clone?</span></p><p class="statement-sub">Take repo management off the client.</p>`,
       "- Storage scales now, but every client still clones.\n- Agents, review bots and automation don't need a copy of the repo; they need to run Git against it.",
@@ -1000,7 +1026,8 @@ hello
       "Stage 2: Distributed Git — replicate Git, not disks":["dgit","ghagent","mesh"],
       "Stage 2b: refs in a database, packs on replicas":["entire"],
       "Stage 2c: packs in blobs, refs in a database":["jgitdfs","codecommit","cursor"],
-      "Stage 3: WAL-Git — a write-ahead log is the repo":["cursor","walgit","rubicon"]
+      "Stage 3: WAL-Git — a write-ahead log is the repo":["cursor","walgit","rubicon"],
+      "WAL-Git with 100k refs":["walgit"]
     };
     // GitFarm slides that speak from experience rather than the paper.
     const noCite = new Set(["Identity, freshness, isolation","Who needs Git without a clone?","Part 1: What's actually in a repository?","Part 2: How does it move between machines?","Part 3: How do you serve it to everyone?","Part 4: What if clients never clone?"]);
