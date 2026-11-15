@@ -238,7 +238,7 @@ Builds:
 
 18:45–19:45 · 2 builds
 
-- The other road: put immutable packs in blob storage and refs in a database. JGit DFS, Azure DevOps, and CodeCommit all follow this pattern, and so does Jigit at Uber: built on JGit, with MySQL and a blob store.
+- The other road: put immutable packs in blob storage and refs in a database. JGit got here second: its first backend at Google, a DHT, stored single objects and made clones too slow (Git always sends packs); JGit DFS stores whole packs and is what Google's Gerrit hosting runs on. JGit DFS, Azure DevOps, and CodeCommit all follow this pattern, and so does Jigit at Uber: built on JGit, with MySQL and a blob store.
 - Compute becomes stateless and storage durable, with no replica babysitting.
 - The price: you no longer run stock Git on a local repo, so you own a Git implementation and a database.
 
