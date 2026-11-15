@@ -862,12 +862,12 @@ hello
     add("A push is two different things","Part 2 · The key split",45,
       `<div class="split" style="margin-top:20px"><div><p class="compare-label">Packfile</p><p class="contract">Immutable.</p><p class="under">Store it anywhere. No agreement needed.</p></div>
        <div><p class="compare-label">Ref update</p><p class="contract accent">Mutable.</p><p class="under">Needs agreement: compare-and-swap.</p></div></div>
-       <p class="bottom-line">Every server design that follows answers two questions: <span class="accent">where do packs live, and who agrees on refs?</span></p>`,
+       <p class="bottom-line">Every design ahead answers two questions: <span class="accent">where do packs live, and who decides which push wins?</span></p>`,
       "- The pack is bulk data, content-addressed and idempotent: write it twice and nothing breaks, so it can land on any disk, at any time, before anyone agrees.\n- The ref update is a few bytes that must be atomic and ordered; it is the only part of a push that needs agreement.\n- Use this lens for every stage: one box, RAID pairs, distributed Git, blob plus database, WAL.",
       [],{theme:"dark"});
     add("Part 3: How do you serve it to everyone?","Part 3 · Server evolution",10,
       `<p class="eyebrow">Part 3 · Server evolution</p><p class="statement divider-q">How do you serve it <span class="accent">to everyone?</span></p>`,
-      "- Git was built with no server. Hosting made one copy special.\n- Each stage that follows answers the same two questions: where do packs live, and who agrees on refs?",
+      "- Git was built with no server. Hosting made one copy special.\n- Each stage that follows answers the same two questions: where do packs live, and who decides which push wins?",
       [],{theme:"dark",custom:true});
     add("Stage 0: one box","Part 3 · Server evolution",40,
       oneBoxDiagram(),

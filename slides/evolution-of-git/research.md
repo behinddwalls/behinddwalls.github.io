@@ -7,7 +7,7 @@ The thread through the talk is a single observation about pushes:
 - A push carries a **packfile**: large, immutable, content-addressed, idempotent.
 - A push also carries a **ref transaction**: tiny, mutable, compare-and-swap.
 
-Each server generation answers the same two questions: *where do packs live, and who agrees on refs?* GitFarm then moves *execution* to the repository.
+Each server generation answers the same two questions: *where do packs live, and who decides which push wins?* GitFarm then moves *execution* to the repository.
 
 1. Git's origin (2005) and its serverless design.
 2. The data model:

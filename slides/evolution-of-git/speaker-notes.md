@@ -198,7 +198,7 @@ Builds:
 14:15–14:25
 
 - Git was built with no server. Hosting made one copy special.
-- Each stage that follows answers the same two questions: where do packs live, and who agrees on refs?
+- Each stage that follows answers the same two questions: where do packs live, and who decides which push wins?
 
 ### 16 · Stage 0: one box
 
