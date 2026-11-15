@@ -8,7 +8,7 @@ Planned at about 27 minutes for a 30–45 minute slot · 29 slides. Each slide h
 | --- | --- | --- | --- |
 | 01 | 00:00 | 00:20 | Evolution of Git |
 | 02 | 00:20 | 00:15 | About me |
-| 03 | 00:35 | 00:50 | 2005: built for one very unusual project |
+| 03 | 00:35 | 00:50 | Built for one very unusual project: Linux |
 | 04 | 01:25 | 00:10 | Part 1: What's actually in a repository? |
 | 05 | 01:35 | 01:00 | Everything in Git is an object |
 | 06 | 02:35 | 01:10 | Files are blobs, directories are trees |
@@ -54,7 +54,7 @@ Planned at about 27 minutes for a 30–45 minute slot · 29 slides. Each slide h
 - Keep it to ten seconds and move on.
 - The QR code goes to LinkedIn for anyone who wants to connect.
 
-### 03 · 2005: built for one very unusual project
+### 03 · Built for one very unusual project: Linux
 
 00:35–01:25
 

@@ -61,6 +61,7 @@
     .list li { padding: 22px 0; border-top: 1px solid var(--line); font-size: 28px; line-height: 1.3; }
     .list li strong { font-weight: 600; }
     .list.tight li { padding: 12px 0; font-size: 25px; }
+    .list.origins li span { font-size: 26px; line-height: 1.35; }
     .obj-note { margin-top: 36px; padding-top: 22px; border-top: 1px solid var(--line); font-size: 25px; color: var(--muted); }
     .obj-note strong { color: var(--accent); font-weight: 600; }
     .list li span { display: block; color: var(--muted); font-size: 23px; margin-top: 8px; }
@@ -345,12 +346,14 @@
       return svg(b,"A commit graph flowing into a grid of servers",780,360);
     }
     function peersDiagram() {
-      const pts=[[300,70],[520,200],[440,430],[160,430],[80,200]];
+      // Five peers in a full mesh. Lines are dark and thick enough to survive a projector.
+      const pts=[[350,52],[600,215],[520,468],[180,468],[100,215]];
       let b="";
-      pts.forEach((p,i)=>pts.slice(i+1).forEach(q=>b+=line(p[0],p[1],q[0],q[1],C.line,2)));
-      pts.forEach(([x,y],i)=>b+=box(x-80,y-32,160,64,["Linus","subsystem","driver dev","maintainer","contributor"][i],"full repo",{size:21,subSize:19}));
-      b+=text(300,265,"no central server",21,C.muted,"middle")+text(300,294,"patches + pulls between peers",20,C.muted,"middle");
-      return svg(b,"Five peers, each with a full repository, exchanging patches with no central server",600,480);
+      pts.forEach((p,i)=>pts.slice(i+1).forEach(q=>b+=line(p[0],p[1],q[0],q[1],"#a39b8f",3)));
+      pts.forEach(([x,y],i)=>b+=box(x-92,y-38,184,76,["Linus","subsystem","driver dev","maintainer","contributor"][i],"full repo",{size:25,subSize:21}));
+      b+=`<rect x="195" y="278" width="310" height="80" rx="10" fill="${C.paper}" stroke="${C.line}" stroke-width="2"/>`+
+        text(350,312,"no central server",24,C.ink,"middle",600)+text(350,342,"patches + pulls between peers",21,C.muted,"middle");
+      return svg(b,"Five peers, each with a full repository, exchanging patches with no central server",700,540);
     }
     function treeDiagram() {
       let b="";
@@ -802,12 +805,12 @@
         <a href="https://www.linkedin.com/in/behinddwalls/" target="_blank" rel="noopener">${qr.linkedin}<strong>Connect on LinkedIn</strong>linkedin.com/in/behinddwalls</a></div>`,
       "- One line: Code Developer Experience at LinkedIn; before that Developer Platform at Uber, where GitFarm comes from; before that Amazon.\n- Keep it to ten seconds and move on.\n- The QR code goes to LinkedIn for anyone who wants to connect.",
       ["linkedin"]);
-    add("2005: built for one very unusual project","Part 1 · Origins",50,
-      `<div class="split" style="grid-template-columns:1fr 600px;gap:60px"><ul class="list">
-        <li><strong>April 2005</strong><span>The free BitKeeper license for kernel developers is withdrawn.</span></li>
-        <li><strong>7 April 2005</strong><span>Linus Torvalds makes Git's first commit: “the information manager from hell.”</span></li>
-        <li><strong>June 2005</strong><span>Linux 2.6.12, the first kernel release managed in Git.</span></li>
-       </ul><div style="height:470px">${peersDiagram()}</div></div>
+    add("Built for one very unusual project: Linux","Part 1 · Origins",50,
+      `<div class="split" style="grid-template-columns:1fr 700px;gap:50px"><ul class="list origins">
+        <li><strong>April 2005</strong><span>BitKeeper's free license for kernel developers is withdrawn.</span></li>
+        <li><strong>7 April 2005</strong><span>Linus makes Git's first commit: “the information manager from hell.”</span></li>
+        <li><strong>June 2005</strong><span>Linux 2.6.12: the first release managed in Git.</span></li>
+       </ul><div style="height:540px">${peersDiagram()}</div></div>
        <p class="bottom-line">No server in the design. <span class="accent">Every clone is the whole repository.</span></p>`,
       "- Linus Torvalds wrote Git for the kernel's decentralized workflow: many maintainers, patches and pulls between peers.\n- The original design has no privileged copy. Every clone holds the entire history.\n- Keep that in mind: everything later in this talk is about making one copy special again.",
       []);
