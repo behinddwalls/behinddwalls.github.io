@@ -501,11 +501,10 @@
         `<rect x="0" y="14" width="${W}" height="100" rx="6" fill="${C.white}" stroke="${tc}" stroke-width="2"/>`+
         `<rect x="${hashX}" y="72" width="${W-hashX-6}" height="36" fill="${hc===C.green?C.greenSoft:C.soft}"/>`+
         (copy?`<path d="M6 20H${W-6}V68H${hashX-6}V108H6Z" fill="none" stroke="${C.green}" stroke-width="2.5" stroke-dasharray="7 5"/>`:"")+
-        [["pack.ts","b8e2…",C.ink],["server.ts",hash,hc]].map(([n,h,c],i)=>{const yy=56+i*40;
-          return mono(18,yy,"100644",22,C.muted)+mono(130,yy,n,22,C.ink)+mono(W-16,yy,h,22,c,"end",i?600:400);}).join("")+
-        // Byte ruler: which bytes are the shared prefix and which are the hash.
-        [[6,hashX-4,"bytes 0–51",C.muted],[hashX+2,W-6,"52–71",hc]].map(([x1,x2,l,c])=>
-          `<path d="M${x1} 120V128H${x2}V120" fill="none" stroke="${c}" stroke-width="1.8"/>`+mono((x1+x2)/2,148,l,17,c,"middle",600)).join("")+`</g>`;
+        // Each entry is labelled with the bytes it occupies: pack.ts 0–34, server.ts's name 35–51, its hash 52–71.
+        [["0–34","pack.ts","b8e2…",C.ink],["35–51","server.ts",hash,hc]].map(([r,n,h,c],i)=>{const yy=56+i*40;
+          return mono(14,yy,r,19,C.muted,"start",600)+mono(88,yy,"100644",22,C.muted)+mono(190,yy,n,22,C.ink)+mono(W-16,yy,h,22,c,"end",i?600:400);}).join("")+
+        mono(hashX-10,96,"52–71",19,hc,"end",600)+`</g>`;
       const R=760;
       b+=S("1",`<g transform="translate(0,-52)">`+
         line(690,70,690,500,C.line,2)+
