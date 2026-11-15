@@ -502,9 +502,9 @@
         treeTable(520,"D's src/ · stored as Δ",C.accent,"d431…")+
         text(0,250,"The two trees differ in one place: server.ts's hash.",26,C.ink,"start",600)+
         `<rect x="0" y="275" width="960" height="150" rx="6" fill="#ebe6dc"/>`+
-        mono(24,315,"D's src/ = Δ against E's src/",24,C.muted)+
-        mono(24,360,"COPY   bytes 0–51",24,C.green,"start",600)+mono(470,360,"pack.ts entry + server.ts name",21,C.muted)+
-        mono(24,405,"INSERT 20 bytes d431…",24,C.accent,"start",600)+mono(470,405,"the old hash",21,C.muted)+
+        mono(24,315,"D's src/ = Δ against E's src/",24,C.muted)+mono(470,315,"# the two sizes: 2 B",21,C.muted)+
+        mono(24,360,"COPY   bytes 0–51",24,C.green,"start",600)+mono(470,360,"# a pointer into E, not the bytes: 2 B",21,C.muted)+
+        mono(24,405,"INSERT 20 bytes d431…",24,C.accent,"start",600)+mono(470,405,"# the old hash, stored as-is: 21 B",21,C.muted)+
         text(0,490,"25 bytes instead of 72.",34,C.accent,"start",600)+
         text(0,534,"A 2,000-file directory (≈ 80 KB): still ≈ 40 bytes.",24,C.muted));
       let dots=(x0,y,n)=>{let d="";for(let k=0;k<n;k++){if(k)d+=line(x0+(k-1)*60+11,y,x0+k*60-11,y,C.accent,2.5);d+=`<circle cx="${x0+k*60}" cy="${y}" r="11" fill="${C.soft}" stroke="${C.accent}" stroke-width="2.5"/>`;}return d;};
@@ -517,7 +517,7 @@
         text(0,340,"≈ 35 KB instead of 1.2 MB",34,C.accent,"start",600)+
         text(0,382,"All 100 versions kept. Newest is whole, so it reads fastest.",24,C.muted)+
         text(0,520,"Deltas are made when packing, reused when sending, resolved when read.",25,C.ink,"start",600));
-      return svg(b,"Left: a tree delta copies 52 bytes, inserts a 20-byte hash, and copies 35 bytes. Right: 100 versions of server.ts packed as one whole copy plus small deltas, about 35 KB instead of 1.2 MB.");
+      return svg(b,"Step 1: D's src/ tree is stored as a 25-byte delta against E's: copy bytes 0–51, then insert the old 20-byte hash. Step 2: 100 versions of server.ts packed as one whole copy plus small deltas, about 35 KB instead of 1.2 MB.");
     }
     // Sequence diagrams: client lane at x=130, server lane at x=760.
     const CL=130, SV=760;
