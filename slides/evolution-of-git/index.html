@@ -505,9 +505,9 @@
         text(0,490,"≈ 26 bytes instead of 72.",34,C.accent,"start",600)+
         text(0,530,"An 80 KB directory: still ≈ 30 bytes.",24,C.muted));
       let dots=(x0,y,n)=>{let d="";for(let k=0;k<n;k++){if(k)d+=line(x0+(k-1)*60+11,y,x0+k*60-11,y,C.accent,2.5);d+=`<circle cx="${x0+k*60}" cy="${y}" r="11" fill="${C.soft}" stroke="${C.accent}" stroke-width="2.5"/>`;}return d;};
-      b+=S("2",text(0,30,"server.ts edited 100 times",28,C.ink,"start",600)+
+      b+=S("2",text(0,30,"server.ts (~12 KB) edited 100 times",28,C.ink,"start",600)+
         Array.from({length:20},(_,i)=>`<rect x="${i*30}" y="56" width="22" height="40" fill="${C.white}" stroke="${C.muted}" stroke-width="1.5"/>`).join("")+
-        text(640,86,"loose: 100 full copies · ≈ 1.2 MB",24,C.muted,"start",600)+
+        text(640,86,"loose: 100 full copies × 12 KB ≈ 1.2 MB",24,C.muted,"start",600)+
         text(0,180,"packed",22,C.muted,"start",650)+
         box(0,200,190,56,"v100 · whole","",{size:22,color:C.green,fill:C.greenSoft})+line(190,228,225,228,C.accent,2.5)+dots(236,228,8)+
         text(720,235,"v99 … v1 · small deltas, ≈ 200 B each",22,C.muted)+
