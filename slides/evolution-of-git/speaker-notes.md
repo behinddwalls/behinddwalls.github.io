@@ -1,6 +1,6 @@
 # Evolution of Git — speaker cues
 
-Planned at about 31 minutes for a 30–45 minute slot · 30 slides. Each slide has three short cues, and build slides also have one cue per step.
+Planned at about 28 minutes for a 30–45 minute slot · 29 slides. Each slide has three short cues, and build slides also have one cue per step.
 
 ## Run of show
 
@@ -25,17 +25,16 @@ Planned at about 31 minutes for a 30–45 minute slot · 30 slides. Each slide h
 | 17 | 17:20 | 01:25 | Stage 2: Distributed Git — replicate Git, not disks |
 | 18 | 18:45 | 01:00 | Stage 2b: packs in blobs, refs in a database |
 | 19 | 19:45 | 02:00 | Stage 3: WAL-Git — a write-ahead log is the repo |
-| 20 | 21:45 | 01:55 | What a push writes to the blob store |
-| 21 | 23:40 | 00:25 | Storage scales. Every client still clones. |
-| 22 | 24:05 | 00:45 | The cost of a local checkout |
-| 23 | 24:50 | 00:40 | Warm checkouts: remote devboxes and GitFarm |
-| 24 | 25:30 | 00:55 | GitFarm: Git as a service |
-| 25 | 26:25 | 00:55 | One request, end to end |
-| 26 | 27:20 | 00:55 | Stateful sessions: many commands, one repo state |
-| 27 | 28:15 | 00:50 | Identity, freshness, isolation |
-| 28 | 29:05 | 00:45 | Who needs Git without a clone? |
-| 29 | 29:50 | 00:25 | The infrastructure went distributed |
-| 30 | 30:15 | 00:10 | Thank you |
+| 20 | 21:45 | 00:25 | Storage scales. Every client still clones. |
+| 21 | 22:10 | 00:45 | The cost of a local checkout |
+| 22 | 22:55 | 00:40 | Warm checkouts: remote devboxes and GitFarm |
+| 23 | 23:35 | 00:55 | GitFarm: Git as a service |
+| 24 | 24:30 | 00:55 | One request, end to end |
+| 25 | 25:25 | 00:55 | Stateful sessions: many commands, one repo state |
+| 26 | 26:20 | 00:50 | Identity, freshness, isolation |
+| 27 | 27:10 | 00:45 | Who needs Git without a clone? |
+| 28 | 27:55 | 00:25 | The infrastructure went distributed |
+| 29 | 28:20 | 00:10 | Thank you |
 
 ## Speaking cues
 
@@ -257,7 +256,8 @@ Builds:
 - The local Git repo is a warm cache. Replicas learn from lossy gossip but verify every read with a conditional GET, so reads are consistent.
 - There is no primary: any node can take a push (the CAS on the blob store decides) and any node can serve a read, rebuilding from the WAL if it has no copy. Rendezvous hashing just picks a preferred node to avoid CAS retries, and that node does compaction; idle repos are dropped and rebuilt on demand. Kept from distributed Git: real Git on local disk. Kept from blob + DB: blob storage as truth. Dropped: quorum, primary, routing DB, database. Cursor reports about 120 pushes/s on S3 Standard and 300+ on S3 Express One Zone, with reads scaling linearly to 100 replicas.
 
-Sources: [Cursor · Git at any scale (Vicent Martí, Aug 2026)](https://cursor.com/blog/git-at-any-scale) · [walgit · open-source Git server on object storage (Continuity design)](https://github.com/tobi/walgit)
+- Where the WAL index lives is the design choice. Cursor keeps it in the blob store and publishes with one CAS on it, so every push to the repo goes through that one object. GitHub's Rubicon (2026) keeps packs in blob storage too but moves the log into Ref-CAS, a separate quorum service that locks only the refs a push touches, so pushes to different branches don't wait on each other.
+Sources: [Cursor · Git at any scale (Vicent Martí, Aug 2026)](https://cursor.com/blog/git-at-any-scale) · [walgit · open-source Git server on object storage (Continuity design)](https://github.com/tobi/walgit) · [GitHub · Inside GitHub's new Git storage architecture (Nov 2026)](https://github.blog/engineering/architecture-optimization/inside-githubs-new-git-storage-architecture/)
 
 Builds:
 
@@ -267,27 +267,9 @@ Builds:
 4. **Any node can serve a read.** UDP gossip tells other nodes there is news; it can be lost, and correctness doesn't depend on it. A fetch starts with the same GET index as a push. A warm node sends If-None-Match with the version it has: 304 in under 10 ms means serve now; 200 means pull the new WAL entries first. Cold node 3 has no version yet, so it does a plain GET, learns e2 and head 42, rebuilds the repo from the WAL, then serves.
 5. **Any node can take a push.** There is no primary role. Node 2 read e2 and tries to publish #43 with If-Match: e2. If another node got there first, it gets a 412: re-read the index, re-check the ref, retry. Pushes usually go to the rendezvous #1 node only because that avoids retries.
 
-### 20 · What a push writes to the blob store
+### 20 · Storage scales. Every client still clones.
 
-21:45–23:40 · 4 builds
-
-- The contract, as implemented by walgit (an open-source take on Cursor's design): per repository, one tiny mutable WAL index and everything else immutable: log entries, packs, checkpoints. walgit calls the index manifest.pb; Cursor calls it gitwal.pb.
-- A push writes a pack, its .idx, and a PUSH log entry holding the pack reference and the ref transaction (main: E to F). Only the conditional PUT on the manifest makes it visible; git hears ok after that.
-- After the push: the lease holder compacts packs and publishes a COMPACT entry; a checkpoint snapshots all refs and packs so a cold node starts from it plus the log tail. (Races were covered on the previous slide.)
-- Same pattern elsewhere: GitHub's new storage (Rubicon, 2026) also writes packs to blob storage first, then commits one CAS. Cursor's CAS is a conditional write on one blob for the whole repo; GitHub's is Ref-CAS, a quorum log that locks only the refs a push touches. GitHub reports 7,200 pushes/s in internal testing.
-
-Sources: [walgit · open-source Git server on object storage (Continuity design)](https://github.com/tobi/walgit) · [Cursor · Git at any scale (Vicent Martí, Aug 2026)](https://cursor.com/blog/git-at-any-scale) · [GitHub · Inside GitHub's new Git storage architecture (Nov 2026)](https://github.blog/engineering/architecture-optimization/inside-githubs-new-git-storage-architecture/)
-
-Builds:
-
-1. **The contract.** Five kinds of objects per repository. Only the WAL index is mutable, and only by compare-and-swap. Entries, packs, and checkpoints are written once and never change.
-2. **What one push writes.** Resolve and verify the pack locally (index-pack --fix-thin, connectivity, policy). Write pack P42 and entry #42 (kind PUSH, pack P42, refs main: E to F, plus metadata: writer node, client, pusher); they are written in parallel and are durable but invisible. Then CAS the WAL index: only if it is still at version e1, set head 42 and add P42. That is the commit point; git hears ok only after it.
-3. **Compaction and checkpoints.** Later, the node holding the compaction lease merges P1, P2 and P42 into P-all, writes entry #43 COMPACT, and CASes the index to e3; other nodes download P-all instead of repacking. A checkpoint then snapshots all refs and the pack set at #43, so a cold node loads it and replays only newer entries.
-4. **Same pattern, two kinds of CAS.** GitHub's new storage (Rubicon, Nov 2026) follows the same recipe: index the pack, upload it to blob storage, then one CAS transaction lists the pack and moves the refs. The difference is the CAS. Cursor does it as a conditional write on one blob, so every push to the repo serializes on it; GitHub tried that first and topped out in the mid-hundreds of writes/s. Rubicon moves refs into Ref-CAS, a small quorum log service that stores only pointers and locks only the refs a push touches, so pushes to different branches commit in parallel. GitHub reports 7,200 pushes/s to one repo in internal testing; it doesn't publish the test setup.
-
-### 21 · Storage scales. Every client still clones.
-
-23:40–24:05
+21:45–22:10
 
 - Everything up to WAL-Git makes the server side scale.
 - But each automation still pulls a full checkout before it can run one git command.
@@ -295,9 +277,9 @@ Builds:
 
 Sources: [GitFarm: Git as a Service for Large-Scale Monorepos (arXiv 2604.11977)](https://arxiv.org/abs/2604.11977) · [Uber Engineering · GitFarm as a Service (Jul 2026)](https://www.uber.com/blog/gitfarm-as-a-service/)
 
-### 22 · The cost of a local checkout
+### 21 · The cost of a local checkout
 
-24:05–24:50
+22:10–22:55
 
 - Cloning a large monorepo takes about 15 minutes and a meaningful slice of a machine: 40+ GB of disk, plus cores and memory.
 - Each automation system kept and synced its own checkouts, multiplying upstream load.
@@ -305,9 +287,9 @@ Sources: [GitFarm: Git as a Service for Large-Scale Monorepos (arXiv 2604.11977)
 
 Sources: [GitFarm: Git as a Service for Large-Scale Monorepos (arXiv 2604.11977)](https://arxiv.org/abs/2604.11977) · [Uber Engineering · GitFarm as a Service (Jul 2026)](https://www.uber.com/blog/gitfarm-as-a-service/)
 
-### 23 · Warm checkouts: remote devboxes and GitFarm
+### 22 · Warm checkouts: remote devboxes and GitFarm
 
-24:50–25:30
+22:55–23:35
 
 - A remote devbox (or devpod) is a dev machine in the data center that already has the monorepo checked out and kept in sync in the background. A developer connects with their IDE or shell and starts working: no 15-minute clone.
 - GitFarm does the same for automation. Each node keeps a bare clone fresh from push events plus a periodic fetch, and a pool of warm checkouts.
@@ -315,9 +297,9 @@ Sources: [GitFarm: Git as a Service for Large-Scale Monorepos (arXiv 2604.11977)
 
 Sources: [GitFarm: Git as a Service for Large-Scale Monorepos (arXiv 2604.11977)](https://arxiv.org/abs/2604.11977) · [Uber Engineering · GitFarm as a Service (Jul 2026)](https://www.uber.com/blog/gitfarm-as-a-service/)
 
-### 24 · GitFarm: Git as a service
+### 23 · GitFarm: Git as a service
 
-25:30–26:25
+23:35–24:30
 
 - Clients call a gRPC API. The gateway authenticates, authorizes per repo, and places the request.
 - Every node runs three containers: backend serves the request; sandbox keeps a pool of sandboxes and executes the commands; repo-manager keeps the bare clone, synced by push events plus a 5-minute fetch, and a pool of pre-warmed checkouts.
@@ -325,9 +307,9 @@ Sources: [GitFarm: Git as a Service for Large-Scale Monorepos (arXiv 2604.11977)
 
 Sources: [GitFarm: Git as a Service for Large-Scale Monorepos (arXiv 2604.11977)](https://arxiv.org/abs/2604.11977) · [Uber Engineering · GitFarm as a Service (Jul 2026)](https://www.uber.com/blog/gitfarm-as-a-service/)
 
-### 25 · One request, end to end
+### 24 · One request, end to end
 
-26:25–27:20 · 5 builds
+24:30–25:25 · 5 builds
 
 - Request, authenticate, place on the node with the most free checkouts, or throttle.
 - The backend takes a sandbox from the sandbox container's pool and a checkout from repo-manager's pool, mounts one into the other, and runs the commands as the caller.
@@ -343,9 +325,9 @@ Builds:
 4. **Acquire sandbox + checkout.** The backend first asks repo-manager for a pre-warmed checkout from its pool, then mounts it on a pre-started sandbox.
 5. **Execute as caller.** Commands run inside the sandbox with the caller's identity, not the service's. Fetches and pushes go from the sandbox straight to upstream; repo-manager also fetches from upstream to keep its bare clone fresh. When the commands finish, the backend releases the sandbox and the checkout back to their pools.
 
-### 26 · Stateful sessions: many commands, one repo state
+### 25 · Stateful sessions: many commands, one repo state
 
-27:20–28:15 · 3 builds
+25:25–26:20 · 3 builds
 
 - The API takes a repo, a workspace type, and a list of commands; a session can chain commands that depend on earlier output.
 - Guarantees: isolation, one consistent repo state, ordered execution. Fatal errors end the session.
@@ -359,33 +341,33 @@ Builds:
 2. **rev-parse.** Same session, same repo state: resolve the tip. Output streams back; the next step can use it.
 3. **push.** Push from the sandbox. It goes through exactly the receive-pack path we walked earlier: quarantine, connectivity, ref compare-and-swap.
 
-### 27 · Identity, freshness, isolation
+### 26 · Identity, freshness, isolation
 
-28:15–29:05
+26:20–27:10
 
 - Identity is decoupled from the client environment: the caller's identity flows into the sandbox.
 - Freshness is eventual with a 5-minute backstop; clients that need the newest state fetch first.
 - Workload isolation by cluster avoids noisy neighbours.
 
-### 28 · Who needs Git without a clone?
+### 27 · Who needs Git without a clone?
 
-29:05–29:50
+27:10–27:55
 
 - Two axes: does the workload write, and is someone waiting on it. Agents and review automation fill every quadrant, which is why a shared execution layer pays off.
 - Security scanning (secrets, vulnerable dependencies) is a read-only batch job: it needs the code at a commit, not a clone.
 - Measured in production: compliance audits went from 110–160 s p50 on Buildkite to 20–30 s, more than 80% lower, and the code ownership service dropped from about 90 to 16 cores and 472 to 32 GB of memory. Agents open a session in under a second instead of a 15-minute, 40 GB clone.
 
-### 29 · The infrastructure went distributed
+### 28 · The infrastructure went distributed
 
-29:50–30:15
+27:55–28:20
 
 - Storage, agreement, and execution each moved from a single machine to a distributed service.
 - The thread the whole way: big immutable packs, tiny atomic ref updates.
 - Agents are driving the next round, at both the storage and the execution layer.
 
-### 30 · Thank you
+### 29 · Thank you
 
-30:15–30:25
+28:20–28:30
 
 - Thank you.
 - Open the floor: questions on Git internals, the server designs, or GitFarm.

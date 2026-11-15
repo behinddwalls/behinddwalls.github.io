@@ -4,7 +4,7 @@
 
 Speaker: Preetam Dwivedi. Event: Seattle Systems, "From Kernel to Codebase: Engineering Systems at Scale".
 
-This is a self-contained HTML presentation for a 30–45 minute slot, planned at about 31 minutes. It has 30 slides, 13 of which have step-by-step builds.
+This is a self-contained HTML presentation for a 30–45 minute slot, planned at about 28 minutes. It has 29 slides, 12 of which have step-by-step builds.
 
 ## Files
 
@@ -45,5 +45,5 @@ Spec examples: `"2"` means step 2 only, `"2-"` means step 2 onwards, `"1-3"` mea
 
 1. **The data model.** What an object is, blobs, trees, commits, refs, reachability, and where objects live: loose files, packfiles, and the pack index. How a delta is stored (a tree delta byte by byte, and server.ts edited 100 times). One A–E history runs through the pack, fetch, and push slides.
 2. **Fetch and push.** Both sides of the wire, with the client and server steps shown separately. This part ends on the key split: a push is a packfile plus a ref transaction.
-3. **Server evolution.** One box, then RAID + DRBD pairs, then distributed Git (GitHub Spokes, GitLab Gitaly Cluster, Bitbucket Mesh), then packs in blob storage with refs in a database (JGit DFS, Azure DevOps, CodeCommit), then WAL-Git (Cursor Continuity) and what a push writes to the blob store (walgit's format), with GitHub's Rubicon as the same pattern using a per-ref CAS service.
+3. **Server evolution.** One box, then RAID + DRBD pairs, then distributed Git (GitHub Spokes, GitLab Gitaly Cluster, Bitbucket Mesh), then packs in blob storage with refs in a database (JGit DFS, Azure DevOps, CodeCommit), then WAL-Git: Cursor keeps the WAL index in the blob store, GitHub's Rubicon keeps it in a separate per-ref CAS service.
 4. **GitFarm.** The problem, how remote devboxes keep a warm monorepo for developers and GitFarm does it for automation, the architecture, the request flow, stateful sessions, and the design choices. Then a map of use cases, with the measured results in the speaker notes.
