@@ -842,11 +842,11 @@ hello
       `<p class="eyebrow">Part 2 · Fetch and push</p><p class="statement divider-q">How does it move <span class="accent">between machines?</span></p><p class="statement-sub">What fetch and push send, step by step.</p>`,
       "- That's the data on one machine. Now move it between two.\n- Fetch, then push, with the same A–E history.",
       [],{theme:"dark",custom:true});
-    add("git fetch, end to end","Part 2 · Fetch and push · Client and server",120,
+    add("git fetch origin main","Part 2 · Fetch and push · Client and server",120,
       fetchDiagram(),
       "- Both ends are just Git: fetch is fetch-pack talking to upload-pack, push is send-pack talking to receive-pack, over ssh or HTTPS.\n- Same history as the pack slide: the server has A–E (A–C packed, D and E loose); the client stopped at B.\n- want names ref tips; have walks back through the client's history until the server recognizes a commit. The server then walks from E back to B, finding objects loose or through the .idx.\n- It ships C, D, E as one fresh pack; the client re-indexes it into its own pack, and only then moves origin/main. At scale, the first step is the expensive one: protocol v0 advertises every ref before any work (a million refs is tens of MB), so v2's ls-refs lets the client ask only for the prefixes it needs.",
       ["protocolv2","packprotocol"],{builds:fetchBuilds});
-    add("git push, end to end","Part 2 · Fetch and push · Client and server",120,
+    add("git push origin main","Part 2 · Fetch and push · Client and server",120,
       pushDiagram(),
       "- Continuing the A–E story: the client commits F on top of E and pushes. It sends only what the server lacks, plus the command E F refs/heads/main.\n- The server quarantines, verifies connectivity, runs hooks, then does a ref transaction: lock, check old, write.\n- That ref transaction is a compare-and-swap. Keep it in mind for every architecture that follows.",
       ["packprotocol","receivepack"],{builds:pushBuilds});

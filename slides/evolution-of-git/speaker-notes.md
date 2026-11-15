@@ -17,8 +17,8 @@ Planned at about 26 minutes for a 30–45 minute slot · 29 slides. Each slide h
 | 09 | 06:20 | 01:30 | Where objects live: loose files and packs |
 | 10 | 07:50 | 01:00 | How a delta is stored |
 | 11 | 08:50 | 00:10 | Part 2: How does it move between machines? |
-| 12 | 09:00 | 02:00 | git fetch, end to end |
-| 13 | 11:00 | 02:00 | git push, end to end |
+| 12 | 09:00 | 02:00 | git fetch origin main |
+| 13 | 11:00 | 02:00 | git push origin main |
 | 14 | 13:00 | 00:20 | Part 3: How do you serve it to everyone? |
 | 15 | 13:20 | 00:40 | Stage 0: one box |
 | 16 | 14:00 | 00:45 | Why not just put the repos on NFS? |
@@ -154,7 +154,7 @@ Builds:
 - That's the data on one machine. Now move it between two.
 - Fetch, then push, with the same A–E history.
 
-### 12 · git fetch, end to end
+### 12 · git fetch origin main
 
 09:00–11:00 · 5 builds
 
@@ -171,7 +171,7 @@ Builds:
 4. **Server builds one pack.** The sender builds; the receiver resolves. pack-objects puts C, D, E and their new trees and blobs in one pack. C's bytes are reused from the existing pack (CRC-checked, never re-inflated); D and E are compressed now. Deltas against B's objects are allowed: a thin pack.
 5. **Client resolves and moves the ref.** Whoever receives a pack resolves it. Pack entries carry no hashes, so index-pack rebuilds every delta from its base, SHA-1s the result, and writes the .idx. Thin bases come from the client's own store (B) and are appended. Only after the connectivity check does origin/main move to E.
 
-### 13 · git push, end to end
+### 13 · git push origin main
 
 11:00–13:00 · 6 builds
 
