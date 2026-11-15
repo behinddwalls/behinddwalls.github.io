@@ -498,26 +498,29 @@
         `<rect x="${hashX}" y="72" width="${W-hashX-6}" height="36" fill="${hc===C.green?C.greenSoft:C.soft}"/>`+
         (copy?`<path d="M6 20H${W-6}V68H${hashX-6}V108H6Z" fill="none" stroke="${C.green}" stroke-width="2.5" stroke-dasharray="7 5"/>`:"")+
         [["pack.ts","b8e2…",C.ink],["server.ts",hash,hc]].map(([n,h,c],i)=>{const yy=56+i*40;
-          return mono(18,yy,"100644",22,C.muted)+mono(130,yy,n,22,C.ink)+mono(W-16,yy,h,22,c,"end",i?600:400);}).join("")+`</g>`;
+          return mono(18,yy,"100644",22,C.muted)+mono(130,yy,n,22,C.ink)+mono(W-16,yy,h,22,c,"end",i?600:400);}).join("")+
+        // Byte ruler: which bytes are the shared prefix and which are the hash.
+        [[6,hashX-4,"bytes 0–51",C.muted],[hashX+2,W-6,"52–71",hc]].map(([x1,x2,l,c])=>
+          `<path d="M${x1} 120V128H${x2}V120" fill="none" stroke="${c}" stroke-width="1.8"/>`+mono((x1+x2)/2,148,l,17,c,"middle",600)).join("")+`</g>`;
       const R=760;
-      b+=S("1",text(0,30,"A tree delta: src/ in commits D and E",28,C.ink,"start",600)+
-        line(690,70,690,470,C.line,2)+
+      b+=S("1",`<g transform="translate(0,-52)">`+
+        line(690,70,690,500,C.line,2)+
         // Left: no delta, both trees whole.
         text(0,88,"Without delta: both stored whole",24,C.ink,"start",600)+
         treeTable(0,132,"E's src/ · 72 B",C.ink,"f7a9…",C.green)+
-        treeTable(0,292,"D's src/ · 72 B",C.ink,"d431…",C.accent)+
-        text(0,462,"144 B: the first 52 bytes stored twice",23,C.muted,"start",600)+
+        treeTable(0,316,"D's src/ · 72 B",C.ink,"d431…",C.accent)+
+        text(0,504,"144 B: the first 52 bytes stored twice",23,C.muted,"start",600)+
         // Right: E whole, D as a recipe against it.
         text(R,88,"With delta: E whole, D as a recipe",24,C.accent,"start",600)+
         treeTable(R,132,"E's src/ · whole · 72 B (the base)",C.green,"f7a9…",C.green,true)+
-        text(R,292,"D's src/ · stored as Δ · 25 B",22,C.accent,"start",650)+
-        `<rect x="${R}" y="306" width="${W}" height="112" rx="6" fill="#ebe6dc"/>`+
-        mono(R+20,340,"sizes 72, 72",21,C.muted)+mono(R+W-16,340,"2 B",21,C.muted,"end")+
-        mono(R+20,375,"COPY   bytes 0–51",21,C.green,"start",650)+mono(R+W-16,375,"pointer into E · 2 B",21,C.muted,"end")+
-        mono(R+20,410,"INSERT d431…",21,C.accent,"start",650)+mono(R+W-16,410,"stored as-is · 21 B",21,C.muted,"end")+
-        line(R+10,368,R-30,368,C.green,2.5,"7 5")+line(R-30,368,R-30,200,C.green,2.5,"7 5")+arrow(R-30,200,R+4,200,C.green,2.5)+
-        text(R,462,"97 B: every byte stored once",23,C.muted,"start",600)+
-        text(0,530,"D's src/: 25 bytes instead of 72.",32,C.accent,"start",600)+
+        text(R,316,"D's src/ · stored as Δ · 25 B",22,C.accent,"start",650)+
+        `<rect x="${R}" y="330" width="${W}" height="112" rx="6" fill="#ebe6dc"/>`+
+        mono(R+20,364,"sizes 72, 72",21,C.muted)+mono(R+W-16,364,"2 B",21,C.muted,"end")+
+        mono(R+20,399,"COPY   bytes 0–51",21,C.green,"start",650)+mono(R+W-16,399,"pointer into E · 2 B",21,C.muted,"end")+
+        mono(R+20,434,"INSERT d431…",21,C.accent,"start",650)+mono(R+W-16,434,"stored as-is · 21 B",21,C.muted,"end")+
+        line(R+10,392,R-30,392,C.green,2.5,"7 5")+line(R-30,392,R-30,200,C.green,2.5,"7 5")+arrow(R-30,200,R+4,200,C.green,2.5)+
+        text(R,504,"97 B: every byte stored once",23,C.muted,"start",600)+`</g>`+
+        text(0,528,"D's src/: 25 bytes instead of 72.",32,C.accent,"start",600)+
         text(0,570,"A 2,000-file directory (≈ 80 KB): still ≈ 40 bytes.",23,C.muted));
       let dots=(x0,y,n)=>{let d="";for(let k=0;k<n;k++){if(k)d+=line(x0+(k-1)*60+11,y,x0+k*60-11,y,C.accent,2.5);d+=`<circle cx="${x0+k*60}" cy="${y}" r="11" fill="${C.soft}" stroke="${C.accent}" stroke-width="2.5"/>`;}return d;};
       b+=S("2",text(0,30,"server.ts (~12 KB) edited 100 times",28,C.ink,"start",600)+
