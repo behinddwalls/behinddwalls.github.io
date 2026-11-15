@@ -208,6 +208,9 @@
       .toolbar #jump, .toolbar #fullscreen { display: none; }
       .position { min-width: 50px; }
     }
+    /* Phones and tablets: pull-to-refresh is unreliable here, so show a reload button. */
+    #reload { font-size: 1.3em; line-height: 1; }
+    @media (hover: hover) and (pointer: fine) { .touch-only { display: none; } }
     @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
     @page { size: 16in 9in; margin: 0; }
     @media print {
@@ -246,6 +249,7 @@
     <button id="presenter-open" class="optional" title="Open a second window with speaker notes">Presenter ↗</button>
     <button id="fullscreen" title="Fullscreen (F)">Fullscreen</button>
     <button id="help-open" aria-label="Keyboard shortcuts" title="Keyboard shortcuts (?)">?</button>
+    <button id="reload" class="touch-only" aria-label="Reload the deck" title="Reload">↻</button>
   </nav>
   <dialog id="overview" aria-labelledby="overview-title">
     <button class="close-panel" data-close="overview" aria-label="Close overview">Close</button>
@@ -1115,6 +1119,8 @@ hello
     document.getElementById("overview-open").addEventListener("click",()=>document.getElementById("overview").showModal());
     document.getElementById("help-open").addEventListener("click",()=>document.getElementById("help").showModal());
     document.getElementById("fullscreen").addEventListener("click",toggleFullscreen);
+    // Reload on the same slide and step (they live in the hash); the query busts the cache.
+    document.getElementById("reload").addEventListener("click",()=>{const u=new URL(location.href);u.searchParams.set("r",Date.now());location.replace(u);});
     document.getElementById("timer-toggle").addEventListener("click",()=>toggleTimer());
     document.getElementById("elapsed").addEventListener("click",()=>toggleTimer());
     document.getElementById("presenter-open").addEventListener("click",()=>{
