@@ -729,7 +729,8 @@
         text(0,120,"cold: rebuild from the WAL, serve",22,C.ink)+`</g>`);
       b+=S("5",H("5",box(0,348,160,64,"git push","",{size:22,color:C.blue})+arrow(162,380,236,380,C.blue)+arrow(572,368,780,236,C.accent,3,"7 5"))+
         `<g transform="translate(830,330)">`+mono(0,0,"#43: CAS only if still e2",22,C.accent,"start",600)+text(0,44,"Lost the race → re-read, retry",22,C.ink)+
-        text(0,86,"No primary: the CAS is the agreement.",24,C.ink,"start",600)+text(0,126,"The preferred node just avoids retries.",22,C.muted)+`</g>`);
+        text(0,86,"No primary: the CAS is the agreement.",24,C.ink,"start",600)+text(0,126,"The preferred node just avoids retries.",22,C.muted)+
+        text(0,178,"Reads scale by adding nodes.",22,C.accent,"start",600)+text(0,212,"Writes share one CAS per repo.",22,C.accent,"start",600)+`</g>`);
       return svg(b,"WAL-based Git: pushes are WAL entries in blob storage published by compare-and-swap on an index; replicas learn via gossip and validate with conditional GETs.");
     }
     function architectureDiagram() {
