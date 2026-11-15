@@ -129,13 +129,13 @@ Builds:
 
 07:40–09:10 · 2 builds
 
-- A delta is a list of COPY and INSERT instructions against a base object. A tree is just a list of mode, name, hash entries, so one changed file changes 20 bytes of each tree on its path, and the older tree becomes a ~26-byte delta against the newer one.
+- A delta is a list of COPY and INSERT instructions against a base object. A tree is just a list of mode, name, hash entries, so one changed file changes 20 bytes of each tree on its path, and the older tree becomes a ~25-byte delta against the newer one.
 - server.ts edited 100 times is 100 objects, all kept. Packed, that's one or two whole copies plus about 200-byte deltas; depth is capped at 50, so Git branches or restarts chains as needed.
 - Deltas are made when packing, reused when sending, and resolved whenever someone reads an old version.
 
 Builds:
 
-1. **A tree delta.** src/ is a tree: two entries (pack.ts, server.ts) of mode, name, and file hash, 72 bytes. Editing server.ts in commit E changes only its hash. Matching the newest-whole rule, E's src/ is stored whole and D's src/ becomes: copy bytes 0–51, insert the old 20-byte hash. About 26 bytes instead of 72. A commit is mostly new hashes and timestamps, so it usually stays whole.
+1. **A tree delta.** src/ is a tree: two entries (pack.ts, server.ts) of mode, name, and file hash, 72 bytes. Editing server.ts in commit E changes only its hash. Matching the newest-whole rule, E's src/ is stored whole and D's src/ becomes: copy bytes 0–51, insert the old 20-byte hash. 25 bytes instead of 72 (2 for the two sizes, 2 for the COPY, 21 for the INSERT). A commit is mostly new hashes and timestamps, so it usually stays whole.
 2. **server.ts edited 100 times.** 100 versions, all kept. Loose they are 100 full copies, about 1.2 MB. Packed, the newest is stored whole and older ones as small deltas, about 35 KB in total. Git caps a delta chain at 50 steps (it branches or starts a fresh base when needed), so even the oldest version is a bounded number of hops away.
 
 ### 10 · Further down the rabbit hole
