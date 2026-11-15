@@ -679,7 +679,7 @@
     }
     const blobBuilds=[
       {label:"Pack → blob store",cue:"Packs are immutable files. Any stateless frontend can write one to blob storage."},
-      {label:"Ref → database transaction",cue:"The ref update becomes a conditional write in a database: old value must match."},
+      {label:"Ref → database transaction",cue:"The database has one row per ref holding its current value, nothing more. A push is one transaction: UPDATE refs SET value = F WHERE name = main AND value = E. If no row matches, someone moved main first and the push is rejected; that is the compare-and-swap. There is no log of pushes: a frontend that needs main just reads the row. (The database has its own internal transaction log, but nothing in the Git design reads it.) Keep this in mind for the next slide, where every push becomes an entry in a log instead."},
       {label:"Reads through a cache",cue:"Git reads packs in small random pieces: the .idx, then each object and its delta bases. A blob read is 10–50 ms versus about 0.1 ms on a local SSD, so each frontend keeps recently used pack and index blocks in memory (JGit's DfsBlockCache, 64 KB blocks by default). Packs never change, so cached blocks never go stale; only misses go to the blob store."}
     ];
     function blobDiagram() {
@@ -688,9 +688,14 @@
       b+=`<rect x="276" y="168" width="290" height="190" rx="8" fill="${C.white}" stroke="${C.muted}" stroke-width="2"/>`+`<rect x="268" y="176" width="290" height="190" rx="8" fill="${C.white}" stroke="${C.muted}" stroke-width="2"/>`;
       b+=box(260,184,290,190,"stateless frontends","own Git implementation",{size:24,subSize:20});
       b+=box(780,60,330,130,"blob store","packs as immutable objects",{size:26,color:C.green});
-      b+=box(780,330,330,130,"database","refs: conditional update",{size:26,color:C.blue});
+      b+=box(780,330,330,130,"database","one row per ref: current value",{size:26,subSize:20,color:C.blue});
       b+=S("1-",H("1",arrow(552,230,776,130,C.green,3)+text(650,160,"1 write pack",20,C.green,"middle",600)));
       b+=S("2-",H("2",arrow(552,320,776,395,C.blue,3)+text(700,410,"2 old → new",20,C.blue,"middle",600)));
+      // Step 2: the database stores current values, not a history of pushes.
+      b+=S("2",`<g transform="translate(0,470)">`+text(0,0,"The database holds each ref's current value. No log to replay.",22,C.ink,"start",600)+
+        mono(0,40,"refs/heads/main",21,C.ink)+mono(260,40,"E → F",21,C.blue,"start",650)+
+        mono(400,40,"refs/tags/v1.0",21,C.ink)+mono(640,40,"A",21,C.muted)+
+        mono(0,90,"UPDATE refs SET value='F' WHERE name='main' AND value='E'",20,C.blue)+`</g>`);
       // Step 3: the cache sits on each frontend; only misses go to the blob store.
       b+=S("3",H("3",box(260,388,290,64,"block cache · in memory","hot pack + .idx blocks",{size:21,subSize:19,color:C.accent})+
         `<path class="edge" d="M780 175C700 230 640 400 556 420" fill="none" stroke="${C.ink}" stroke-width="2.5" stroke-dasharray="7 5"/>`+text(728,252,"3 on a miss",20,C.ink,"start",600))+

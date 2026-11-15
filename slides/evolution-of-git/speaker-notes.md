@@ -247,7 +247,7 @@ Sources: [JGit · DFS storage layer](https://github.com/eclipse-jgit/jgit/tree/m
 Builds:
 
 1. **Pack → blob store.** Packs are immutable files. Any stateless frontend can write one to blob storage.
-2. **Ref → database transaction.** The ref update becomes a conditional write in a database: old value must match.
+2. **Ref → database transaction.** The database has one row per ref holding its current value, nothing more. A push is one transaction: UPDATE refs SET value = F WHERE name = main AND value = E. If no row matches, someone moved main first and the push is rejected; that is the compare-and-swap. There is no log of pushes: a frontend that needs main just reads the row. (The database has its own internal transaction log, but nothing in the Git design reads it.) Keep this in mind for the next slide, where every push becomes an entry in a log instead.
 3. **Reads through a cache.** Git reads packs in small random pieces: the .idx, then each object and its delta bases. A blob read is 10–50 ms versus about 0.1 ms on a local SSD, so each frontend keeps recently used pack and index blocks in memory (JGit's DfsBlockCache, 64 KB blocks by default). Packs never change, so cached blocks never go stale; only misses go to the blob store.
 
 ### 19 · Stage 3: WAL-Git — a write-ahead log is the repo
