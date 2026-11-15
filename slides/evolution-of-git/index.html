@@ -797,6 +797,10 @@
        <p class="bottom-line">No server in the design. <span class="accent">Every clone is the whole repository.</span></p>`,
       "- Linus Torvalds wrote Git for the kernel's decentralized workflow: many maintainers, patches and pulls between peers.\n- The original design has no privileged copy. Every clone holds the entire history.\n- Keep that in mind: everything later in this talk is about making one copy special again.",
       []);
+    add("Part 1: What's actually in a repository?","Part 1 · The data model",10,
+      `<p class="eyebrow">Part 1 · The data model</p><p class="statement">What's actually<br><span class="accent">in a repository?</span></p>`,
+      "- Every clone is the whole repository. So what's actually in it?\n- Four kinds of object, a few refs, and how they're stored.",
+      [],{theme:"dark",custom:true});
     add("Everything in Git is an object","Part 1 · Data model · Objects",60,
       `<div class="split" style="grid-template-columns:600px 1fr;gap:56px"><div>
         <div style="height:224px;margin-bottom:24px">${objectBytesDiagram()}</div>
@@ -808,7 +812,7 @@
         </ul>
        </div><div style="height:520px">${objectTypesDiagram()}</div></div>
        <p class="bottom-line">Objects are append-only and content-addressed. <span class="accent">Refs are the only thing that changes.</span></p>`,
-      "- So what's actually in that repository? Four kinds of object.\n- Everything Git stores is an object: type, size, and content, compressed and named by its SHA-1. Commit, tree, and blob are the chain that matters; the fourth type is the tag object, used by annotated and signed tags (the tag ref points to it; a lightweight tag is just a ref, like a branch). The stored bytes are a small header (type, a space, the size, a NUL byte) followed by the content; the SHA-1 of those bytes is the object's name.\n- Objects never change. Editing a file creates a new blob; the old one is still there under its old name.\n- On top sits a ref: not an object, just a file holding a SHA, and the only mutable thing in Git. That split drives the rest of the talk. (Try it: git cat-file -t ce0136 prints blob; git cat-file -t HEAD prints commit.)\n- Coming in Git 3.0 (no release date yet): new repositories default to SHA-256 instead of SHA-1. Existing repos keep SHA-1, and the object model is the same; only the hash, and so the names, get longer (64 hex digits instead of 40).",
+      "- Everything Git stores is an object: type, size, and content, compressed and named by its SHA-1. Commit, tree, and blob are the chain that matters; the fourth type is the tag object, used by annotated and signed tags (the tag ref points to it; a lightweight tag is just a ref, like a branch). The stored bytes are a small header (type, a space, the size, a NUL byte) followed by the content; the SHA-1 of those bytes is the object's name.\n- Objects never change. Editing a file creates a new blob; the old one is still there under its old name.\n- On top sits a ref: not an object, just a file holding a SHA, and the only mutable thing in Git. That split drives the rest of the talk. (Try it: git cat-file -t ce0136 prints blob; git cat-file -t HEAD prints commit.)\n- Coming in Git 3.0 (no release date yet): new repositories default to SHA-256 instead of SHA-1. Existing repos keep SHA-1, and the object model is the same; only the hash, and so the names, get longer (64 hex digits instead of 40).",
       ["objects","breaking"]);
     add("Files are blobs, directories are trees","Part 1 · Data model · Blobs and trees",70,
       `<div class="split" style="grid-template-columns:720px 1fr;gap:50px"><div>
@@ -842,9 +846,13 @@ hello
       deltaDiagram(),
       "- A delta is a list of COPY and INSERT instructions against a base object. A tree is just a list of mode, name, hash entries, so one changed file changes 20 bytes of each tree on its path, and the older tree becomes a ~25-byte delta against the newer one.\n- server.ts edited 100 times is 100 objects, all kept. Packed, the newest is stored whole and the rest as ~200-byte deltas; Git starts a new base only if a chain would pass 50 steps.\n- Deltas are made when packing, reused when sending, and resolved whenever someone reads an old version.",
       ["packformat"],{builds:deltaBuilds});
+    add("Part 2: How does it move between machines?","Part 2 · Fetch and push",10,
+      `<p class="eyebrow">Part 2 · Fetch and push</p><p class="statement">How does it move<br><span class="accent">between machines?</span></p>`,
+      "- That's the data on one machine. Now move it between two.\n- Fetch, then push, with the same A–E history.",
+      [],{theme:"dark",custom:true});
     add("git fetch, end to end","Part 2 · Fetch and push · Client and server",120,
       fetchDiagram(),
-      "- That's the data on one machine. Now move it between two.\n- Both ends are just Git: fetch is fetch-pack talking to upload-pack, push is send-pack talking to receive-pack, over ssh or HTTPS.\n- Same history as the pack slide: the server has A–E (A–C packed, D and E loose); the client stopped at B.\n- want names ref tips; have walks back through the client's history until the server recognizes a commit. The server then walks from E back to B, finding objects loose or through the .idx.\n- It ships C, D, E as one fresh pack; the client re-indexes it into its own pack, and only then moves origin/main. At scale, the first step is the expensive one: protocol v0 advertises every ref before any work (a million refs is tens of MB), so v2's ls-refs lets the client ask only for the prefixes it needs.",
+      "- Both ends are just Git: fetch is fetch-pack talking to upload-pack, push is send-pack talking to receive-pack, over ssh or HTTPS.\n- Same history as the pack slide: the server has A–E (A–C packed, D and E loose); the client stopped at B.\n- want names ref tips; have walks back through the client's history until the server recognizes a commit. The server then walks from E back to B, finding objects loose or through the .idx.\n- It ships C, D, E as one fresh pack; the client re-indexes it into its own pack, and only then moves origin/main. At scale, the first step is the expensive one: protocol v0 advertises every ref before any work (a million refs is tens of MB), so v2's ls-refs lets the client ask only for the prefixes it needs.",
       ["protocolv2","packprotocol"],{builds:fetchBuilds});
     add("git push, end to end","Part 2 · Fetch and push · Client and server",120,
       pushDiagram(),
@@ -856,6 +864,10 @@ hello
        <p class="bottom-line">Every server design that follows answers two questions: <span class="accent">where do packs live, and who agrees on refs?</span></p>`,
       "- The pack is bulk data, content-addressed and idempotent: write it twice and nothing breaks, so it can land on any disk, at any time, before anyone agrees.\n- The ref update is a few bytes that must be atomic and ordered; it is the only part of a push that needs agreement.\n- Use this lens for every stage: one box, RAID pairs, distributed Git, blob plus database, WAL.",
       [],{theme:"dark"});
+    add("Part 3: How do you serve it to everyone?","Part 3 · Server evolution",10,
+      `<p class="eyebrow">Part 3 · Server evolution</p><p class="statement">How do you serve it<br><span class="accent">to everyone?</span></p>`,
+      "- Git was built with no server. Hosting made one copy special.\n- Each stage that follows answers the same two questions: where do packs live, and who agrees on refs?",
+      [],{theme:"dark",custom:true});
     add("Stage 0: one box","Part 3 · Server evolution",40,
       oneBoxDiagram(),
       "- The simplest Git server is one machine: sshd or git-daemon runs upload-pack and receive-pack against bare repos on local disk.\n- Packs and refs both live on that disk, and the box agrees with itself.\n- It is fast and simple until the disk, the CPU, or the machine runs out.",
@@ -880,6 +892,10 @@ hello
       walDiagram(),
       "- Cursor's Continuity: a push is a WAL entry in the blob store; it becomes visible only when a compare-and-swap on the WAL index succeeds. Pushes are linearizable.\n- The local Git repo is a warm cache. Replicas learn from lossy gossip but verify every read with a conditional GET, so reads are consistent.\n- There is no primary: any node can take a push (the CAS on the blob store decides) and any node can serve a read, rebuilding from the WAL if it has no copy. Rendezvous hashing just picks a preferred node to avoid CAS retries, and that node does compaction; idle repos are dropped and rebuilt on demand. Kept from distributed Git: real Git on local disk. Kept from blob + DB: blob storage as truth. Dropped: quorum, primary, routing DB, database. Cursor reports about 120 pushes/s on S3 Standard and 300+ on S3 Express One Zone, with reads scaling linearly to 100 replicas.\n- Where the WAL index lives is the design choice. Cursor keeps it in the blob store and publishes with one CAS on it, so every push to the repo goes through that one object. GitHub's Rubicon (2026) keeps packs in blob storage too but moves the log into Ref-CAS, a separate quorum service that locks only the refs a push touches, so pushes to different branches don't wait on each other.",
       ["cursor","walgit","rubicon"],{builds:walBuilds});
+    add("Part 4: What if clients never clone?","Part 4 · GitFarm",10,
+      `<p class="eyebrow">Part 4 · GitFarm</p><p class="statement">What if clients<br><span class="accent">never clone?</span></p>`,
+      "- Storage scales now, but every client still clones.\n- Agents, review bots and automation don't need a copy of the repo; they need to run Git against it.",
+      [],{theme:"dark",custom:true});
     add("The cost of a local checkout","Part 4 · GitFarm · The problem",45,
       `<div class="split" style="grid-template-columns:1fr 1.2fr;gap:90px;align-items:center;margin-top:20px"><div class="stat-grid" style="grid-template-columns:1fr;gap:56px">
         <div class="stat"><p class="num">~15<small>min</small></p><p class="label">to clone a large monorepo<span>before any work starts</span></p></div>
@@ -889,7 +905,7 @@ hello
         <li><strong>CI caches help, partly</strong><span>Per-agent caches diverge; cold starts take minutes.</span></li>
         <li><strong>Checkout sits on the critical path</strong><span>even for a 2-second git command.</span></li>
        </ul></div>`,
-      "- Open Part 4: storage scales now, but every client still clones. Agents, review bots and automation don't need a copy of the repo; they need to run Git against it.\n- Cloning a large monorepo takes about 15 minutes and a meaningful slice of a machine: 40+ GB of disk, plus cores and memory.\n- Each automation system kept and synced its own checkouts, multiplying upstream load.\n- CI caches reduce clone time but add cold starts, drift, and upkeep.",
+      "- Cloning a large monorepo takes about 15 minutes and a meaningful slice of a machine: 40+ GB of disk, plus cores and memory.\n- Each automation system kept and synced its own checkouts, multiplying upstream load.\n- CI caches reduce clone time but add cold starts, drift, and upkeep.",
       ["paper"]);
     add("Warm checkouts: remote devboxes and GitFarm","Part 4 · GitFarm · The idea",40,
       (()=>{let b="";
@@ -955,7 +971,7 @@ hello
       "Stage 3: WAL-Git — a write-ahead log is the repo":["cursor","walgit","rubicon"]
     };
     // GitFarm slides that speak from experience rather than the paper.
-    const noCite = new Set(["Identity, freshness, isolation","Who needs Git without a clone?"]);
+    const noCite = new Set(["Identity, freshness, isolation","Who needs Git without a clone?","Part 1: What's actually in a repository?","Part 2: How does it move between machines?","Part 3: How do you serve it to everyone?","Part 4: What if clients never clone?"]);
     slides.forEach(s=>{
       s.cite = noCite.has(s.title) ? null : cites[s.title] || (s.chapter.startsWith("Part 4") ? ["paper","uberblog"] : null);
       if(s.cite) s.refs = [...new Set([...s.refs, ...s.cite])];
