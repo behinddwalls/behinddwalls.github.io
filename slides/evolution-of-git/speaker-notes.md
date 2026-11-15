@@ -63,6 +63,7 @@ Planned at about 26 minutes for a 30–45 minute slot · 26 slides. Each slide h
 
 01:25–02:25
 
+- So what's actually in that repository? Four kinds of object.
 - Everything Git stores is an object: type, size, and content, compressed and named by its SHA-1. Commit, tree, and blob are the chain that matters; the fourth type is the tag object, used by annotated and signed tags (the tag ref points to it; a lightweight tag is just a ref, like a branch). The stored bytes are a small header (type, a space, the size, a NUL byte) followed by the content; the SHA-1 of those bytes is the object's name.
 - Objects never change. Editing a file creates a new blob; the old one is still there under its old name.
 - On top sits a ref: not an object, just a file holding a SHA, and the only mutable thing in Git. That split drives the rest of the talk. (Try it: git cat-file -t ce0136 prints blob; git cat-file -t HEAD prints commit.)
@@ -125,7 +126,7 @@ Builds:
 07:40–09:10 · 2 builds
 
 - A delta is a list of COPY and INSERT instructions against a base object. A tree is just a list of mode, name, hash entries, so one changed file changes 20 bytes of each tree on its path, and the older tree becomes a ~25-byte delta against the newer one.
-- server.ts edited 100 times is 100 objects, all kept. Packed, that's one or two whole copies plus about 200-byte deltas; depth is capped at 50, so Git branches or restarts chains as needed.
+- server.ts edited 100 times is 100 objects, all kept. Packed, the newest is stored whole and the rest as ~200-byte deltas; Git starts a new base only if a chain would pass 50 steps.
 - Deltas are made when packing, reused when sending, and resolved whenever someone reads an old version.
 
 Builds:
@@ -137,6 +138,7 @@ Builds:
 
 09:10–11:10 · 5 builds
 
+- That's the data on one machine. Now move it between two.
 - Both ends are just Git: fetch is fetch-pack talking to upload-pack, push is send-pack talking to receive-pack, over ssh or HTTPS.
 - Same history as the pack slide: the server has A–E (A–C packed, D and E loose); the client stopped at B.
 - want names ref tips; have walks back through the client's history until the server recognizes a commit. The server then walks from E back to B, finding objects loose or through the .idx.
