@@ -530,8 +530,8 @@
     // Sequence diagrams: client lane at x=130, server lane at x=760.
     const CL=130, SV=760;
     function lanes(clientLabel,serverLabel) {
-      return box(CL-120,0,240,50,clientLabel,"",{size:20,mono:true,color:C.blue})+box(SV-140,0,280,50,serverLabel,"",{size:20,mono:true,color:C.accent})+
-        line(CL,52,CL,585,C.blue,2,"4 6")+line(SV,52,SV,585,C.accent,2,"4 6");
+      return box(CL-125,0,250,64,"Client · your machine",clientLabel,{size:21,subSize:19,color:C.blue})+box(SV-150,0,300,64,"Server · Git host",serverLabel,{size:21,subSize:19,color:C.accent})+
+        line(CL,66,CL,585,C.blue,2,"4 6")+line(SV,66,SV,585,C.accent,2,"4 6");
     }
     const msg = (y,dir,label,o={}) => (dir>0?arrow(CL,y,SV,y,o.color||C.ink,o.width||3):arrow(SV,y,CL,y,o.color||C.ink,o.width||3))+mono((CL+SV)/2,y-11,label,o.size||20,o.color||C.ink,"middle");
     const proc = (x,y,w,h,rows,o={}) => `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="6" fill="${C.white}" stroke="${o.color||C.ink}" stroke-width="2.5"/>`+rows.map((r,i)=>(i===0?text:mono)(x+18,y+30+i*29,r,i===0?21:20,i===0?C.ink:C.muted,"start",i===0?600:400)).join("");
@@ -568,7 +568,7 @@
       return svg(b,"Fetch of main when the server has commits A to E (A to C packed, D and E loose) and the client has A and B: want E, have B, walk back to B, send C, D, E as one pack.");
     }
     const pushBuilds=[
-      {label:"1 · Server advertises refs",cue:"receive-pack opens by telling the client where every ref points right now."},
+      {label:"1 · Connect, server advertises refs",cue:"The client goes first: it connects over ssh or HTTPS and asks the server to run receive-pack. From then on the server speaks first, telling the client where every ref points right now."},
       {label:"2 · Client builds the pack",cue:"The client committed F on top of E. On push the client is the sender, so it builds: only objects reachable from F but not from E (F, its new trees, the changed blob), possibly as thin deltas against E's objects."},
       {label:"3 · Commands + pack",cue:"Each command is old, new, ref: here E F refs/heads/main. The pack follows on the same stream."},
       {label:"4 · Server resolves in quarantine",cue:"Now the server is the receiver, so it resolves: index-pack rebuilds every delta, SHA-1s each object, fills thin bases from E's objects, and writes the .idx, all inside a quarantine directory. Then the connectivity check on F. If anything fails, the quarantine is deleted and nothing becomes visible."},
@@ -577,13 +577,13 @@
     ];
     function pushDiagram() {
       let b=lanes("send-pack","receive-pack");
-      b+=S("1-",H("1",msg(95,-1,"refs/heads/main → E")));
-      b+=S("2-",H("2",proc(10,116,560,78,["Client builds the pack (pack-objects)","in F, not in E → F + new trees + blob"])));
-      b+=S("3-",H("3",msg(225,1,"E F refs/heads/main + PACK",{width:5})));
-      b+=S("4-",H("4",proc(540,248,440,104,["Server resolves, in quarantine","rebuild Δ · SHA-1 · .idx","connectivity on F"])));
-      b+=S("5-",H("5",`<rect x="540" y="364" width="440" height="150" rx="6" fill="${C.white}" stroke="${C.accent}" stroke-width="3"/>`+
-        text(558,396,"pre-receive → ref transaction",21,C.ink,"start",600)+mono(558,432,"lock   main.lock",22,C.muted)+mono(558,468,"verify main == E",24,C.accent,"start",650)+mono(558,502,"write  F, commit",22,C.muted)));
-      b+=S("6",H("6",msg(545,-1,"post-receive · ok refs/heads/main")));
+      b+=S("1-",H("1",arrow(CL,92,SV,92,C.muted,2,"7 5")+text((CL+SV)/2,82,"connect over ssh / https: run receive-pack",19,C.muted,"middle")+msg(132,-1,"refs/heads/main → E")));
+      b+=S("2-",H("2",proc(10,150,560,78,["Client builds the pack (pack-objects)","in F, not in E → F + new trees + blob"])));
+      b+=S("3-",H("3",msg(264,1,"E F refs/heads/main + PACK",{width:5})));
+      b+=S("4-",H("4",proc(540,284,440,104,["Server resolves, in quarantine","rebuild Δ · SHA-1 · .idx","connectivity on F"])));
+      b+=S("5-",H("5",`<rect x="540" y="400" width="440" height="140" rx="6" fill="${C.white}" stroke="${C.accent}" stroke-width="3"/>`+
+        text(558,430,"pre-receive → ref transaction",21,C.ink,"start",600)+mono(558,464,"lock   main.lock",22,C.muted)+mono(558,498,"verify main == E",24,C.accent,"start",650)+mono(558,528,"write  F, commit",22,C.muted)));
+      b+=S("6",H("6",msg(570,-1,"post-receive · ok refs/heads/main")));
       b+=S("5-",`<g transform="translate(1030,320)">`+text(0,0,"Compare-and-swap",24,C.accent,"start",600)+
         lines(0,44,["If someone pushed G first,","main ≠ E and this push is","rejected (fetch, rebase, retry).","--atomic: all refs or none."],22,C.ink,1.42)+`</g>`);
       b+=S("1-",`<g transform="translate(1030,80)">`+text(0,0,"Two payloads",24,C.ink,"start",600)+lines(0,44,["The pack: new objects.","The commands: which refs","move, and from where."],22,C.muted,1.42)+`</g>`);

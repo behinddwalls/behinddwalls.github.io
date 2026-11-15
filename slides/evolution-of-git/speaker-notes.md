@@ -171,7 +171,7 @@ Builds:
 
 Builds:
 
-1. **Server advertises refs.** receive-pack opens by telling the client where every ref points right now.
+1. **Connect, server advertises refs.** The client goes first: it connects over ssh or HTTPS and asks the server to run receive-pack. From then on the server speaks first, telling the client where every ref points right now.
 2. **Client builds the pack.** The client committed F on top of E. On push the client is the sender, so it builds: only objects reachable from F but not from E (F, its new trees, the changed blob), possibly as thin deltas against E's objects.
 3. **Commands + pack.** Each command is old, new, ref: here E F refs/heads/main. The pack follows on the same stream.
 4. **Server resolves in quarantine.** Now the server is the receiver, so it resolves: index-pack rebuilds every delta, SHA-1s each object, fills thin bases from E's objects, and writes the .idx, all inside a quarantine directory. Then the connectivity check on F. If anything fails, the quarantine is deleted and nothing becomes visible.
