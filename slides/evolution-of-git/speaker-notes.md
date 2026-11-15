@@ -52,7 +52,7 @@ Planned at about 31 minutes for a 30–45 minute slot · 31 slides. Each slide h
 
 00:20–00:35
 
-- One line: Developer Platform at LinkedIn; before that Developer Platform at Uber, where GitFarm comes from; before that Amazon.
+- One line: Code Developer Experience at LinkedIn; before that Developer Platform at Uber, where GitFarm comes from; before that Amazon.
 - Keep it to ten seconds and move on.
 - The QR code goes to LinkedIn for anyone who wants to connect.
 
