@@ -396,11 +396,9 @@
         text(75,334,"shared",21,C.accent,"middle",650)+text(370,474,"shared",21,C.accent,"middle",650));
       b+=`<g transform="translate(820,0)">`+
         S("1",lines(0,40,["A commit stores a pointer to a","root tree, its parent commit(s),","author, committer, and message.","","It is a full snapshot,","not a diff."],27,C.ink,1.4))+
-        S("2-",`<rect x="0" y="0" width="596" height="230" rx="6" fill="#ebe6dc"/>`+
-          text(24,46,"Inside commit E",26,C.ink,"start",600)+
-          mono(24,98,"tree   f021…",24,C.ink,"start",600)+text(300,98,"→ the snapshot",22,C.muted)+
-          mono(24,144,"parent 9d2a…",24,C.accent,"start",600)+text(300,144,"→ commit D",22,C.muted)+
-          text(24,196,"+ author, date, message",22,C.muted))+
+        S("2-",`<rect x="0" y="0" width="596" height="250" rx="6" fill="#ebe6dc"/>`+
+          mono(22,40,"$ git cat-file -p c8f3",20,C.muted)+mono(22,78,"tree f021…",20,C.ink,"start",600)+mono(22,108,"parent 9d2a…",20,C.accent,"start",600)+
+          mono(22,138,"author Alice <alice@x.dev> 1730400000 +0000",20,C.muted)+mono(22,168,"committer Alice <alice@x.dev> 1730400000 +0000",20,C.muted)+mono(22,215,"Speed up pack reads",20))+
         S("3",text(0,330,"1 file changed →",34,C.ink,"start",550)+text(0,380,"1 blob + 2 trees + 1 commit",34,C.accent,"start",550)+
           text(0,446,"Hashes of hashes: a Merkle DAG.",28,C.ink,"start",600)+lines(0,488,["One commit hash covers every file","and all of history."],24,C.muted))+`</g>`;
       return svg(b,"Two commits. The second commit reuses unchanged blobs and trees and adds only a new blob, two trees, and a commit.");
