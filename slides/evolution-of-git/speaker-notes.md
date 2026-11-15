@@ -171,8 +171,8 @@ Builds:
 
 13:10–13:55
 
-- The pack is bulk data that can be copied anywhere without coordination.
-- The ref update is a few bytes that must be agreed on, atomically.
+- The pack is bulk data, content-addressed and idempotent: write it twice and nothing breaks, so it can land on any disk, at any time, before anyone agrees.
+- The ref update is a few bytes that must be atomic and ordered; it is the only part of a push that needs agreement.
 - Use this lens for every stage: one box, RAID pairs, distributed Git, blob plus database, WAL.
 
 ### 13 · Stage 0: one box

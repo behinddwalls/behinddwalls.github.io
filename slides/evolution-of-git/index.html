@@ -851,12 +851,11 @@ hello
       "- Continuing the A–E story: the client commits F on top of E and pushes. It sends only what the server lacks, plus the command E F refs/heads/main.\n- The server quarantines, verifies connectivity, runs hooks, then does a ref transaction: lock, check old, write.\n- That ref transaction is a compare-and-swap. Keep it in mind for every architecture that follows.",
       ["packprotocol","receivepack"],{builds:pushBuilds});
     add("A push is two different things","Part 2 · The key split",45,
-      `<div class="split" style="margin-top:20px"><div><p class="compare-label">Packfile</p><p class="contract">Large. Immutable.<br>Content-addressed.</p><p class="under">Idempotent: write it twice and nothing breaks. It can land on any disk, at any time, before anyone agrees.</p></div>
-       <div><p class="compare-label">Ref transaction</p><p class="contract accent">Tiny. Mutable.<br>Compare-and-swap.</p><p class="under">Must be atomic and ordered. This is the only part of a push that needs agreement.</p></div></div>
+      `<div class="split" style="margin-top:20px"><div><p class="compare-label">Packfile</p><p class="contract">Big. Immutable.</p><p class="under">Store it anywhere. No agreement needed.</p></div>
+       <div><p class="compare-label">Ref update</p><p class="contract accent">Tiny. Mutable.</p><p class="under">Needs agreement: compare-and-swap.</p></div></div>
        <p class="bottom-line">Every server design that follows answers two questions: <span class="accent">where do packs live, and who agrees on refs?</span></p>`,
-      "- The pack is bulk data that can be copied anywhere without coordination.\n- The ref update is a few bytes that must be agreed on, atomically.\n- Use this lens for every stage: one box, RAID pairs, distributed Git, blob plus database, WAL.",
+      "- The pack is bulk data, content-addressed and idempotent: write it twice and nothing breaks, so it can land on any disk, at any time, before anyone agrees.\n- The ref update is a few bytes that must be atomic and ordered; it is the only part of a push that needs agreement.\n- Use this lens for every stage: one box, RAID pairs, distributed Git, blob plus database, WAL.",
       [],{theme:"dark"});
-
     add("Stage 0: one box","Part 3 · Server evolution",40,
       oneBoxDiagram(),
       "- The simplest Git server is one machine: sshd or git-daemon runs upload-pack and receive-pack against bare repos on local disk.\n- Packs and refs both live on that disk, and the box agrees with itself.\n- It is fast and simple until the disk, the CPU, or the machine runs out.",
