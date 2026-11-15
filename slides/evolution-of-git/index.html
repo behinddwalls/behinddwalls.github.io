@@ -131,7 +131,7 @@
     .close-step.last { border-color: var(--peach); }
     .close-step.last b { color: var(--peach); }
     .close-arrow { align-self: center; font-size: 40px; color: var(--muted); }
-    .close-tag { margin-top: 80px; font-size: 44px; letter-spacing: -.02em; color: var(--peach); }
+    .close-tag { margin-top: 70px; font-size: 44px; line-height: 1.25; letter-spacing: -.02em; color: var(--peach); }
     /* Builds: elements opt in with data-show / data-hl / data-dim step specs such as "2", "2-", "1-3", "1,4". */
     [data-show], [data-dim] { transition: opacity .35s ease; }
     [data-show].off { opacity: 0; }
@@ -980,8 +980,8 @@ hello
         <div class="close-step"><b>Mirrored disks</b><span>RAID + DRBD pairs</span></div><div class="close-arrow">→</div>
         <div class="close-step"><b>Quorum replicas</b><span>distributed Git, 3PC</span></div><div class="close-arrow">→</div>
         <div class="close-step last"><b>A log in the blob store</b><span>one compare-and-swap</span></div></div>
-       <p class="close-tag">Git stayed the same. Everything underneath changed.</p>`,
-      "- Storage, agreement, and execution each moved from a single machine to a distributed service. If you want the full path: storage went one disk, mirrored disks, replicas, a log in the blob store; agreement went the box, the active node, 3PC, a database, one compare-and-swap; execution went every client's clone to a shared, pre-warmed service.\n- The thread the whole way: big immutable packs, tiny atomic ref updates.\n- Agents are driving the next round, at both the storage and the execution layer.",
+       <p class="close-tag">Born distributed. Hosted centrally.<br>Now the center itself is distributed.</p>`,
+      "- Storage, agreement, and execution each moved from a single machine to a distributed service. If you want the full path: storage went one disk, mirrored disks, replicas, a log in the blob store; agreement went the box, the active node, 3PC, a database, one compare-and-swap; execution went every client's clone to a shared, pre-warmed service. Close on the arc: Git was built so every clone is a full repo, then the world hosted it centrally, and now that central host is itself a distributed system.\n- The thread the whole way: big immutable packs, tiny atomic ref updates.\n- Agents are driving the next round, at both the storage and the execution layer.",
       [],{theme:"dark"});
     add("Thank you","Closing",10,
       `<p class="eyebrow">Seattle Systems</p><h1 class="thanks-title">Thank you</h1><p class="thanks-qa">Questions?</p>
