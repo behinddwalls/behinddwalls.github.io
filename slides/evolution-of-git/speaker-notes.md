@@ -1,6 +1,6 @@
 # Evolution of Git — speaker cues
 
-Planned at about 26 minutes for a 30–45 minute slot · 29 slides. Each slide has three short cues, and build slides also have one cue per step.
+Planned at about 27 minutes for a 30–45 minute slot · 30 slides. Each slide has three short cues, and build slides also have one cue per step.
 
 ## Run of show
 
@@ -24,17 +24,18 @@ Planned at about 26 minutes for a 30–45 minute slot · 29 slides. Each slide h
 | 16 | 14:00 | 00:45 | Why not just put the repos on NFS? |
 | 17 | 14:45 | 01:05 | Stage 1: RAID + DRBD pairs |
 | 18 | 15:50 | 01:25 | Stage 2: Distributed Git — replicate Git, not disks |
-| 19 | 17:15 | 01:00 | Stage 2b: packs in blobs, refs in a database |
-| 20 | 18:15 | 02:00 | Stage 3: WAL-Git — a write-ahead log is the repo |
-| 21 | 20:15 | 00:10 | Part 4: What if clients never clone? |
-| 22 | 20:25 | 00:45 | The cost of a local checkout |
-| 23 | 21:10 | 00:40 | Warm checkouts: remote devboxes and GitFarm |
-| 24 | 21:50 | 00:55 | GitFarm: Git as a service |
-| 25 | 22:45 | 00:55 | One request, end to end |
-| 26 | 23:40 | 00:45 | Identity, freshness, isolation |
-| 27 | 24:25 | 00:45 | Who needs Git without a clone? |
-| 28 | 25:10 | 00:25 | The infrastructure went distributed |
-| 29 | 25:35 | 00:10 | Thank you |
+| 19 | 17:15 | 01:00 | Stage 2b: refs in a database, packs on replicas |
+| 20 | 18:15 | 01:00 | Stage 2c: packs in blobs, refs in a database |
+| 21 | 19:15 | 02:00 | Stage 3: WAL-Git — a write-ahead log is the repo |
+| 22 | 21:15 | 00:10 | Part 4: What if clients never clone? |
+| 23 | 21:25 | 00:45 | The cost of a local checkout |
+| 24 | 22:10 | 00:40 | Warm checkouts: remote devboxes and GitFarm |
+| 25 | 22:50 | 00:55 | GitFarm: Git as a service |
+| 26 | 23:45 | 00:55 | One request, end to end |
+| 27 | 24:40 | 00:45 | Identity, freshness, isolation |
+| 28 | 25:25 | 00:45 | Who needs Git without a clone? |
+| 29 | 26:10 | 00:25 | The infrastructure went distributed |
+| 30 | 26:35 | 00:10 | Thank you |
 
 ## Speaking cues
 
@@ -244,11 +245,27 @@ Builds:
 2. **3PC on the ref transaction.** Only the tiny ref update needs agreement. Phase 1 asks every replica: can you apply these ref updates? Each runs Git's own ref transaction: lock the refs, check the old values. Phase 2: a majority said yes, so get ready. Phase 3: commit, or roll back everywhere. Spokes then compares a checksum of every replica's refs; one that disagrees is marked unhealthy and repaired. About four round trips per push.
 3. **Reads go to any replica.** Any replica can serve a fetch; a routing DB says which servers hold each repo. Say the cost out loud: every push waits for the slowest replica, even idle repos need 3+ copies, adding replicas slows pushes, and the replicas need checksums, repair jobs and that routing DB.
 
-### 19 · Stage 2b: packs in blobs, refs in a database
+### 19 · Stage 2b: refs in a database, packs on replicas
 
-17:15–18:15 · 2 builds
+17:15–18:15 · 3 builds
 
-- The other road: put immutable packs in blob storage and refs in a database. JGit got here second: its first backend at Google, a DHT, stored single objects and made clones too slow (Git always sends packs); JGit DFS stores whole packs and is what Google's Gerrit hosting runs on. JGit DFS, Azure DevOps, and CodeCommit all follow this pattern, and so does Jigit at Uber: built on JGit, with MySQL and a blob store.
+- Entire (launched Oct 2026) keeps Stage 2's replicas for packs but takes refs out of them: refs live in PostgreSQL, one row per ref, updated by compare-and-swap. No voting among replicas.
+- A push: stage the pack on the repo's nodes, wait for at least two availability zones to confirm, promote it to durable storage (two zones again), check every object the new refs reach is present, then one CAS on PostgreSQL. Objects are durable before the ref moves. A cell is one PostgreSQL plus a set of nodes; each repo lives in one home cell, and regional mirror cells serve reads.
+- These stages are design steps, not a timeline: the next slide's blob + database designs (Azure DevOps, JGit DFS) are years older. If asked for numbers: Entire's own benchmark reports 418 pushes/s; the posts don't say how many nodes a cell has or what happens if PostgreSQL fails.
+
+Sources: [Entire · A Git Forge Without a Center (Oct 2026)](https://entire.com/blog/a-git-forge-without-a-center)
+
+Builds:
+
+1. **Pack → nodes in two or more zones.** The node that takes the push stages the pack and streams it to the repo's other nodes. Staging is invisible to readers. At least two nodes in different availability zones must confirm, then the pack is promoted to durable storage, again confirmed by two zones. Remaining nodes catch up later. Packs still need no agreement, just enough copies.
+2. **Ref → one CAS in PostgreSQL.** Here is the change from Stage 2. Nobody votes. Refs live in PostgreSQL, one row per ref with its current value. After the pack is durable and a node has checked that every object the new ref reaches is present, the push is one compare-and-swap on main's row: E to F, only if it is still E. The push becomes visible the moment that succeeds.
+3. **Reads go to any node.** Any node in the cell serves a fetch from its own disk and reads refs from the same PostgreSQL, so refs are strongly consistent. Regional mirror cells add read capacity. The packs still live on the nodes' disks, which is the next thing to go.
+
+### 20 · Stage 2c: packs in blobs, refs in a database
+
+18:15–19:15 · 2 builds
+
+- Next, the packs leave the nodes too: put immutable packs in blob storage and keep refs in a database. JGit got here second: its first backend at Google, a DHT, stored single objects and made clones too slow (Git always sends packs); JGit DFS stores whole packs and is what Google's Gerrit hosting runs on. JGit DFS, Azure DevOps, and CodeCommit all follow this pattern, and so does Jigit at Uber: built on JGit, with MySQL and a blob store.
 - Compute becomes stateless and storage durable, with no replica babysitting.
 - The price: you no longer run stock Git on a local repo, so you own a Git implementation and a database.
 
@@ -259,9 +276,9 @@ Builds:
 1. **Pack → blob store.** Packs are immutable files. Any stateless frontend can write one to blob storage.
 2. **Ref → database transaction.** The database has one row per ref holding its current value, nothing more. A push is one transaction: UPDATE refs SET value = F WHERE name = main AND value = E. If no row matches, someone moved main first and the push is rejected; that is the compare-and-swap. There is no log of pushes: a frontend that needs main just reads the row. (The database has its own internal transaction log, but nothing in the Git design reads it.) Keep this in mind for the next slide, where every push becomes an entry in a log instead.
 
-### 20 · Stage 3: WAL-Git — a write-ahead log is the repo
+### 21 · Stage 3: WAL-Git — a write-ahead log is the repo
 
-18:15–20:15 · 5 builds
+19:15–21:15 · 5 builds
 
 - Cursor's Continuity: a push is a WAL entry in the blob store; it becomes visible only when a compare-and-swap on the WAL index succeeds. Pushes are linearizable.
 - The local Git repo is a warm cache. Replicas learn from lossy gossip but verify every read with a conditional GET, so reads are consistent.
@@ -278,16 +295,16 @@ Builds:
 4. **Any node can serve a read.** UDP gossip tells other nodes there is news; it can be lost, and correctness doesn't depend on it. A fetch starts with the same GET index as a push. A warm node sends If-None-Match with the version it has: 304 in under 10 ms means serve now; 200 means pull the new WAL entries first. Cold node 3 has no version yet, so it does a plain GET, learns e2 and head 42, rebuilds the repo from the WAL, then serves.
 5. **Any node can take a push.** There is no primary role. Node 2 read e2 and tries to publish #43 with If-Match: e2. If another node got there first, it gets a 412: re-read the index, re-check the ref, retry. Pushes usually go to the rendezvous #1 node only because that avoids retries.
 
-### 21 · Part 4: What if clients never clone?
+### 22 · Part 4: What if clients never clone?
 
-20:15–20:25
+21:15–21:25
 
 - Storage scales now, but every client still clones.
 - Agents, review bots and automation don't need a copy of the repo; they need to run Git against it.
 
-### 22 · The cost of a local checkout
+### 23 · The cost of a local checkout
 
-20:25–21:10
+21:25–22:10
 
 - Cloning a large monorepo takes about 15 minutes and a meaningful slice of a machine: 40+ GB of disk, plus cores and memory.
 - Each automation system kept and synced its own checkouts, multiplying upstream load.
@@ -295,9 +312,9 @@ Builds:
 
 Sources: [GitFarm: Git as a Service for Large-Scale Monorepos (arXiv 2604.11977)](https://arxiv.org/abs/2604.11977) · [Uber Engineering · GitFarm as a Service (Jul 2026)](https://www.uber.com/blog/gitfarm-as-a-service/)
 
-### 23 · Warm checkouts: remote devboxes and GitFarm
+### 24 · Warm checkouts: remote devboxes and GitFarm
 
-21:10–21:50
+22:10–22:50
 
 - A remote devbox (or devpod) is a dev machine in the data center that already has the monorepo checked out and kept in sync in the background. A developer connects with their IDE or shell and starts working: no 15-minute clone.
 - GitFarm does the same for automation. Each node keeps a bare clone fresh from push events plus a periodic fetch, and a pool of warm checkouts.
@@ -305,9 +322,9 @@ Sources: [GitFarm: Git as a Service for Large-Scale Monorepos (arXiv 2604.11977)
 
 Sources: [GitFarm: Git as a Service for Large-Scale Monorepos (arXiv 2604.11977)](https://arxiv.org/abs/2604.11977) · [Uber Engineering · GitFarm as a Service (Jul 2026)](https://www.uber.com/blog/gitfarm-as-a-service/)
 
-### 24 · GitFarm: Git as a service
+### 25 · GitFarm: Git as a service
 
-21:50–22:45
+22:50–23:45
 
 - Clients call a gRPC API. The gateway authenticates, authorizes per repo, and places the request.
 - Every node runs three containers: backend serves the request; sandbox keeps a pool of sandboxes and executes the commands; repo-manager keeps the bare clone, synced by push events plus a 5-minute fetch, and a pool of pre-warmed checkouts.
@@ -315,9 +332,9 @@ Sources: [GitFarm: Git as a Service for Large-Scale Monorepos (arXiv 2604.11977)
 
 Sources: [GitFarm: Git as a Service for Large-Scale Monorepos (arXiv 2604.11977)](https://arxiv.org/abs/2604.11977) · [Uber Engineering · GitFarm as a Service (Jul 2026)](https://www.uber.com/blog/gitfarm-as-a-service/)
 
-### 25 · One request, end to end
+### 26 · One request, end to end
 
-22:45–23:40 · 5 builds
+23:45–24:40 · 5 builds
 
 - Request, authenticate, place on the node with the most free checkouts, or throttle.
 - The backend takes a sandbox from the sandbox container's pool and a checkout from repo-manager's pool, mounts one into the other, and runs the commands as the caller.
@@ -334,33 +351,33 @@ Builds:
 4. **Acquire sandbox + checkout.** The backend first asks repo-manager for a pre-warmed checkout from its pool, then mounts it on a pre-started sandbox.
 5. **Execute as caller.** Commands run inside the sandbox with the caller's identity, not the service's. Fetches and pushes go from the sandbox straight to upstream; repo-manager also fetches from upstream to keep its bare clone fresh. When the commands finish, the backend releases the sandbox and the checkout back to their pools.
 
-### 26 · Identity, freshness, isolation
+### 27 · Identity, freshness, isolation
 
-23:40–24:25
+24:40–25:25
 
 - Identity: the gateway checks the caller's access to the repo, and the sandbox runs with the caller's privileges, not the client host's.
 - Freshness: push events plus a periodic fetch every 5 minutes keep bare clones current. Need the newest state? Start the session with git fetch. Can tolerate lag? Skip it and save the latency. Contrast with WAL-Git: strong consistency at the storage layer; GitFarm lets each request choose.
 - Isolation: heavy or latency-sensitive workloads get their own cluster; a shared cluster onboards the rest. New use cases go through a sizing review: pool sizes, limits, sync policy.
 
-### 27 · Who needs Git without a clone?
+### 28 · Who needs Git without a clone?
 
-24:25–25:10
+25:25–26:10
 
 - Two axes: does the workload write, and is someone waiting on it. Agents and review automation fill every quadrant, which is why a shared execution layer pays off.
 - Security scanning (secrets, vulnerable dependencies) is a read-only batch job: it needs the code at a commit, not a clone.
 - Measured in production: compliance audits went from 110–160 s p50 on Buildkite to 20–30 s, more than 80% lower, and the code ownership service dropped from about 90 to 16 cores and 472 to 32 GB of memory. Agents open a session in under a second instead of a 15-minute, 40 GB clone.
 
-### 28 · The infrastructure went distributed
+### 29 · The infrastructure went distributed
 
-25:10–25:35
+26:10–26:35
 
 - Storage, agreement, and execution each moved from a single machine to a distributed service. If you want the full path: storage went one disk, mirrored disks, replicas, a log in the blob store; agreement went the box, the active node, 3PC, a database, one compare-and-swap; execution went every client's clone to a shared, pre-warmed service. Close on the arc: Git was built so every clone is a full repo, then the world hosted it centrally, and now that central host is itself a distributed system.
 - The thread the whole way: big immutable packs, tiny atomic ref updates.
 - Agents are driving the next round, at both the storage and the execution layer.
 
-### 29 · Thank you
+### 30 · Thank you
 
-25:35–25:45
+26:35–26:45
 
 - Thank you.
 - Open the floor: questions on Git internals, the server designs, or GitFarm.

@@ -25,7 +25,7 @@ Each server generation answers the same two questions: *where do packs live, and
 3. The wire:
    - fetch-pack talks to upload-pack: ls-refs, then want/have negotiation, then the reachability walk, then pack-objects over sideband, then index-pack and the connectivity check.
    - send-pack talks to receive-pack: ref advertisement, then the commands and the pack, then quarantine, the connectivity check, pre-receive, the ref transaction, post-receive, and report-status.
-4. Server evolution: one box → RAID + DRBD pairs → Spokes (3PC on the ref transaction) → blob + DB → WAL-Git (object-store WAL + CAS index).
+4. Server evolution: one box → RAID + DRBD pairs → Spokes (3PC on the ref transaction) → refs in a database, packs on replicas (Entire) → blob + DB → WAL-Git (object-store WAL + CAS index). The stages are design steps, not a timeline: blob + DB designs predate Entire.
 5. GitFarm: architecture, request flow, sessions, design choices, and use cases (results are in the speaker notes).
 
 ## Figures and how to read them
@@ -113,6 +113,13 @@ Each server generation answers the same two questions: *where do packs live, and
 - Bitbucket Mesh (Data Center 8.0, 2022) replaces NFS for Git storage. It moves Git processing next to local disks and replicates each repository across several Mesh nodes. Every replica serves both reads and writes.
 - Git LFS objects still live on the shared home.
 
+### Entire: refs in a database, packs on replicas (Oct 2026)
+
+- A cell is one PostgreSQL database holding refs (one row per ref, current value) plus a set of EntireDB nodes holding loose objects and packfiles on local disk. Each repo has one home cell; regional mirror cells serve reads.
+- Push: the receiving node stages the pack and streams it to the repo's other nodes; at least two nodes in distinct availability zones must confirm staging, then promotion to durable storage. A node checks that every object the new refs reach is present, then one compare-and-swap on PostgreSQL makes the push visible.
+- No WAL or push log is described; only the current ref value. The posts don't give a node count per cell, PostgreSQL failover, or whether nodes sit on blob storage.
+- Entire's own benchmark (forgemark) reports 418 pushes/s; vendor numbers, not independently checked. EntireDB is to be open-sourced later.
+
 ### Blob + DB pattern
 
 - **JGit DFS** stores standard pack and index files on an abstract DFS. It replaced the slower DHT layer and was built at Google for hosted Gerrit.
@@ -133,3 +140,4 @@ Each server generation answers the same two questions: *where do packs live, and
 - [AWS CodeCommit features](https://aws.amazon.com/codecommit/features/)
 - [walgit](https://github.com/tobi/walgit)
 - [GitHub · Inside GitHub's new Git storage architecture](https://github.blog/engineering/architecture-optimization/inside-githubs-new-git-storage-architecture/)
+- [Entire · A Git Forge Without a Center](https://entire.com/blog/a-git-forge-without-a-center)
