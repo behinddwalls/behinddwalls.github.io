@@ -958,9 +958,9 @@ hello
       ["paper"],{builds:sessionBuilds});
     add("Identity, freshness, isolation","Part 4 · GitFarm · Design choices",45,
       `<div class="three design-big">
-        <div class="col"><p class="compare-label">Identity</p><h3>Runs as the caller</h3><p>Not as the service that hosts it.</p></div>
+        <div class="col"><p class="compare-label">Identity</p><h3>Passthrough identity</h3><p>Commands run as the caller, not the service.</p></div>
         <div class="col"><p class="compare-label">Freshness</p><h3>Eventually consistent</h3><p>Need the latest? <span class="mono">git fetch</span> first.</p></div>
-        <div class="col"><p class="compare-label">Isolation</p><h3>A cluster per heavy workload</h3><p>Everyone else shares one.</p></div>
+        <div class="col"><p class="compare-label">Isolation</p><h3>Isolation by use case</h3><p>Heavy workloads get their own cluster.</p></div>
        </div>`,
       "- Identity: the gateway checks the caller's access to the repo, and the sandbox runs with the caller's privileges, not the client host's.\n- Freshness: push events plus a periodic fetch every 5 minutes keep bare clones current. Need the newest state? Start the session with git fetch. Can tolerate lag? Skip it and save the latency. Contrast with WAL-Git: strong consistency at the storage layer; GitFarm lets each request choose.\n- Isolation: heavy or latency-sensitive workloads get their own cluster; a shared cluster onboards the rest. New use cases go through a sizing review: pool sizes, limits, sync policy.",
       []);
