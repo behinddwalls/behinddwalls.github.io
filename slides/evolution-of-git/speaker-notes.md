@@ -137,6 +137,13 @@ Builds:
 - A delta is a list of COPY and INSERT instructions against a base object. A tree is just a list of mode, name, hash entries, so one changed file changes 20 bytes of each tree on its path, and the older tree becomes a ~25-byte delta against the newer one.
 - server.ts edited 100 times is 100 objects, all kept. Packed, the newest is stored whole and the rest as ~200-byte deltas; Git starts a new base only if a chain would pass 50 steps.
 - Deltas are made when packing, reused when sending, and resolved whenever someone reads an old version.
+- If asked why 52: bytes 0–34 are "100644 pack.ts\\0" plus pack.ts's hash (6 + 1 + 7 + 1 + 20 = 35 B); bytes 35–51 are "100644 server.ts\\0" (6 + 1 + 9 + 1 = 17 B); bytes 52–71 are server.ts's hash (20 B).
+
+  | Bytes | Contents | Size |
+  |---|---|---|
+  | 0–34 | `100644 pack.ts\0` + pack.ts hash | 35 B (6 + 1 + 7 + 1 + 20) |
+  | 35–51 | `100644 server.ts\0` | 17 B (6 + 1 + 9 + 1) |
+  | 52–71 | server.ts hash | 20 B |
 
 Builds:
 
