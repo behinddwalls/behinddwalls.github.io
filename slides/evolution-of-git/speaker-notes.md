@@ -278,7 +278,7 @@ Builds:
 
 ### 21 · Stage 3: WAL-Git — a write-ahead log is the repo
 
-19:15–21:15 · 5 builds
+19:15–21:15 · 6 builds
 
 - Cursor's Continuity: a push is a WAL entry in the blob store; it becomes visible only when a compare-and-swap on the WAL index succeeds. Pushes are linearizable.
 - The local Git repo is a warm cache. Replicas learn from lossy gossip but verify every read with a conditional GET, so reads are consistent.
@@ -290,11 +290,12 @@ Sources: [Cursor · Git at any scale (Vicent Martí, Aug 2026)](https://cursor.c
 
 Builds:
 
-1. **Read the index first.** Before advertising refs to the pusher, the node does the same conditional GET as any read. Now it knows the log is at version e1 with head 41, so this push will be entry #42. The version is the object's ETag on S3 or its generation on GCS.
-2. **Persist the push as WAL entry #42.** Write the pack to local disk and upload entry #42 to the blob store at the same time. Durable, but nothing points at it yet.
-3. **Publish with compare-and-swap.** Lock main and check it is still E, then PUT the index with If-Match: e1, the version read in step 1. Success gives e2: the push is acknowledged and linearized.
-4. **Any node can serve a read.** UDP gossip tells other nodes there is news; it can be lost, and correctness doesn't depend on it. A fetch starts with the same GET index as a push. A warm node sends If-None-Match with the version it has: 304 in under 10 ms means serve now; 200 means pull the new WAL entries first. Cold node 3 has no version yet, so it does a plain GET, learns e2 and head 42, rebuilds the repo from the WAL, then serves.
-5. **Any node can take a push.** There is no primary role. Node 2 read e2 and tries to publish #43 with If-Match: e2. If another node got there first, it gets a 412: re-read the index, re-check the ref, retry. Pushes usually go to the rendezvous #1 node only because that avoids retries.
+1. **1 · Read the index first.** Before advertising refs to the pusher, the node does the same conditional GET as any read. Now it knows the log is at version e1 with head 41, so this push will be entry #42. The version is the object's ETag on S3 or its generation on GCS.
+2. **2 · Persist the push as WAL entry #42.** Write the pack to local disk and upload entry #42 to the blob store at the same time. Durable, but nothing points at it yet.
+3. **3 · Publish with compare-and-swap.** Lock main and check it is still E, then PUT the index with If-Match: e1, the version read in step 1. Success gives e2: the push is acknowledged and linearized.
+4. **4 · Any node can serve a read.** UDP gossip tells other nodes there is news; it can be lost, and correctness doesn't depend on it. A fetch starts with the same GET index as a push. A warm node sends If-None-Match with the version it has: 304 in under 10 ms means serve now; 200 means pull the new WAL entries first. Cold node 3 has no version yet, so it does a plain GET, learns e2 and head 42, rebuilds the repo from the WAL, then serves.
+5. **5 · A push loses the race.** There is no primary role: node 2 takes a push too. It read e2, so it writes its entry as #43 and tries the CAS: only if still e2. But another push got #43 published first, so the index is e3 and node 2 gets a 412. Its entry is durable but never published, so no reader ever sees it. Node 2 re-reads the index (e3, head 43) and re-checks the old value of every ref it is updating. If one of them moved, the push is rejected, just like a non-fast-forward. If not, it retries.
+6. **6 · Retry and publish as #44.** Node 2 rewrites its entry at the next number, #44, and tries again: CAS only if still e3. It succeeds, the index becomes e4, and only now does node 2 ack its client. Pushes usually go to the rendezvous #1 node only because that avoids these retries; walgit also batches concurrent pushes on one node into a single CAS.
 
 ### 22 · Part 4: What if clients never clone?
 
