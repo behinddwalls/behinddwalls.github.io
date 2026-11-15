@@ -21,7 +21,7 @@ Planned at about 31 minutes for a 30–45 minute slot · 30 slides. Each slide h
 | 13 | 13:50 | 00:45 | A push is two different things |
 | 14 | 14:35 | 00:40 | Stage 0: one box |
 | 15 | 15:15 | 01:00 | Why not just put the repos on NFS? |
-| 16 | 16:15 | 01:05 | Stage 1: RAID + DRBD pairs |
+| 16 | 16:15 | 01:05 | Stage 1: RAID + DRBD pairs (2009–2016) |
 | 17 | 17:20 | 01:25 | Stage 2: Spokes — replicate Git, not disks |
 | 18 | 18:45 | 01:15 | Stage 2b: packs in blobs, refs in a database |
 | 19 | 20:00 | 02:00 | Stage 3: WAL-Git — a write-ahead log is the repo |
@@ -202,15 +202,15 @@ Builds:
 - Git assumes a local disk. Delta walks become many small network reads, and ref updates depend on lock files and atomic rename over NFS. Atlassian's own docs call NFS fine for streaming packs but punishing for refs and loose objects; GitHub tried it early, and Bitbucket Data Center ran on it for years before Bitbucket Mesh. I ran Phabricator's repositories on NFS at Uber, so this is first-hand: say what broke first.
 - Conclusion: Git needs local disk, or you rewrite Git around remote storage. "Local disk" from here on means a fast local SSD (NVMe): microseconds per random read instead of a network round trip.
 
-### 16 · Stage 1: RAID + DRBD pairs
+### 16 · Stage 1: RAID + DRBD pairs (2009–2016)
 
 16:15–17:20 · 3 builds
 
-- RAID-1 (Redundant Array of Independent Disks) mirrors two disks inside one server; DRBD (Distributed Replicated Block Device) mirrors every disk write over the network to a second server. GitHub's pre-2016 design: an active fileserver with RAID, mirrored block-by-block to a dedicated hot spare with DRBD.
+- RAID 10 (Redundant Array of Independent Disks) mirrors disks in pairs inside one server; DRBD (Distributed Replicated Block Device) mirrors every disk write over the network to a second server. GitHub's pre-2016 design: an active fileserver with RAID, mirrored block-by-block to a dedicated hot spare with DRBD.
 - Packs and refs both live on the active disk; DRBD copies bytes without knowing they are Git.
 - Failover was manual, the spare served nothing, and a pair outage took every repo on it offline.
 
-Sources: [GitHub · Introducing DGit (2016)](https://github.blog/engineering/architecture-optimization/introducing-dgit/)
+Sources: [GitHub · How We Made GitHub Fast (2009)](https://github.blog/news-insights/the-library/how-we-made-github-fast/) · [GitHub · Introducing DGit (2016)](https://github.blog/engineering/architecture-optimization/introducing-dgit/)
 
 Builds:
 
