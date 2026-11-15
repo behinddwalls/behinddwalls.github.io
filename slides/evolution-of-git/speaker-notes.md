@@ -1,4 +1,4 @@
-# The Evolution of Git — speaker cues
+# Evolution of Git — speaker cues
 
 Planned at about 31 minutes for a 30–45 minute slot · 31 slides. Each slide has three short cues, and build slides also have one cue per step.
 
@@ -6,7 +6,7 @@ Planned at about 31 minutes for a 30–45 minute slot · 31 slides. Each slide h
 
 | Slide | Start | Length | Title |
 | --- | --- | --- | --- |
-| 01 | 00:00 | 00:20 | The Evolution of Git |
+| 01 | 00:00 | 00:20 | Evolution of Git |
 | 02 | 00:20 | 00:15 | About me |
 | 03 | 00:35 | 00:50 | 2005: built for one very unusual project |
 | 04 | 01:25 | 01:00 | Everything in Git is an object |
@@ -40,7 +40,7 @@ Planned at about 31 minutes for a 30–45 minute slot · 31 slides. Each slide h
 
 ## Speaking cues
 
-### 01 · The Evolution of Git
+### 01 · Evolution of Git
 
 00:00–00:20
 

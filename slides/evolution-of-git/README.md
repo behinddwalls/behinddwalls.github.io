@@ -1,4 +1,4 @@
-# The Evolution of Git
+# Evolution of Git
 
 **From Kernel to Codebase**
 
