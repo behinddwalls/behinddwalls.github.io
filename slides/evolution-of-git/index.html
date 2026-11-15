@@ -657,7 +657,7 @@
     const spokesBuilds=[
       {label:"Fan out the pack",cue:"Packs are idempotent, so send them to every replica in parallel: 3 at launch, 5 by default today. No agreement needed yet."},
       {label:"3PC on the ref transaction",cue:"Only the tiny ref update needs agreement. Phase 1 asks every replica: can you apply these ref updates? Each runs Git's own ref transaction: lock the refs, check the old values. Phase 2: a majority said yes, so get ready. Phase 3: commit, or roll back everywhere. Spokes then compares a checksum of every replica's refs; one that disagrees is marked unhealthy and repaired. About four round trips per push."},
-      {label:"Reads, and the bill",cue:"Any replica can serve a fetch. The price: tail latency, a fixed floor and ceiling on replicas, and repos you have to babysit."}
+      {label:"Reads go to any replica",cue:"Any replica can serve a fetch; a routing DB says which servers hold each repo. Say the cost out loud: every push waits for the slowest replica, even idle repos need 3+ copies, adding replicas slows pushes, and the replicas need checksums, repair jobs and that routing DB."}
     ];
     function spokesDiagram() {
       let b="";
@@ -671,9 +671,7 @@
       b+=S("2",`<g transform="translate(1150,40)">`+text(0,0,"Three-phase commit",23,C.accent,"start",600)+
         [["1 Can you?","lock ref, check old SHA"],["2 Get ready","a majority said yes"],["3 Commit","or abort everywhere"]]
           .map(([k,v],i)=>text(0,50+i*74,k,22,C.ink,"start",600)+text(0,78+i*74,v,19,C.muted)).join("")+`</g>`);
-      b+=S("3",box(0,450,170,64,"git fetch","",{size:22,color:C.blue})+arrow(172,482,756,445,C.blue,3)+box(260,500,280,70,"routing DB","repo → replicas",{size:21,subSize:19,color:C.muted})+
-        `<g transform="translate(1150,30)">`+text(0,0,"The bill",22,C.red,"start",600)+
-        lines(0,42,["Latency = slowest","replica","Floor: 3+ copies of","every idle repo","Ceiling: more replicas,","slower pushes","Pets: checksums,","repair jobs, routing DB"],20,C.ink,1.38)+`</g>`);
+      b+=S("3",box(0,450,170,64,"git fetch","",{size:22,color:C.blue})+arrow(172,482,756,445,C.blue,3)+box(260,500,280,70,"routing DB","repo → replicas",{size:21,subSize:19,color:C.muted}));
       b+=text(930,545,"GitHub: 3 replicas at launch · 5 by default today",21,C.muted,"middle",600);
       return svg(b,"Distributed Git fans the pack out to three replicas, then runs three-phase commit on the ref transaction; reads go to any replica.");
     }
