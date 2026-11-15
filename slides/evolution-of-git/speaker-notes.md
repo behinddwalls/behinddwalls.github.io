@@ -140,7 +140,7 @@ Builds:
 
 Builds:
 
-1. **A tree delta.** src/ is a tree: two entries (pack.ts, server.ts) of mode, name, and file hash, 72 bytes. Editing server.ts in commit E changes only its hash. Matching the newest-whole rule, E's src/ is stored whole and D's src/ becomes: copy bytes 0–51, insert the old 20-byte hash. 25 bytes instead of 72 (2 for the two sizes, 2 for the COPY, 21 for the INSERT). A commit is mostly new hashes and timestamps, so it usually stays whole.
+1. **A tree delta.** src/ is a tree: two entries (pack.ts, server.ts) of mode, name, and file hash, 72 bytes. Editing server.ts in commit E changes only its hash. Matching the newest-whole rule, E's src/ is stored whole and D's src/ becomes: copy bytes 0–51, insert the old 20-byte hash. 25 bytes instead of 72 (2 for the two sizes, 2 for the COPY, 21 for the INSERT). Left vs right: without a delta both trees are stored whole, 144 B, and the first 52 bytes are stored twice; with a delta it is 72 + 25 = 97 B. A commit is mostly new hashes and timestamps, so it usually stays whole.
 2. **server.ts edited 100 times.** 100 versions, all kept. Loose they are 100 full copies, about 1.2 MB. Packed, the newest is stored whole and older ones as small deltas, about 35 KB in total. Git caps a delta chain at 50 steps (it branches or starts a fresh base when needed), so even the oldest version is a bounded number of hops away.
 
 ### 11 · Part 2: How does it move between machines?

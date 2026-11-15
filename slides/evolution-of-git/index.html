@@ -485,28 +485,40 @@
       return svg(b,"Commits A to E. All start as loose objects; gc packs A to C into pack-3f1c with an index while D and E stay loose. The pack stores deltas; the index maps hash to offset.");
     }
     const deltaBuilds=[
-      {label:"A tree delta",cue:"src/ is a tree: two entries (pack.ts, server.ts) of mode, name, and file hash, 72 bytes. Editing server.ts in commit E changes only its hash. Matching the newest-whole rule, E's src/ is stored whole and D's src/ becomes: copy bytes 0–51, insert the old 20-byte hash. 25 bytes instead of 72 (2 for the two sizes, 2 for the COPY, 21 for the INSERT). A commit is mostly new hashes and timestamps, so it usually stays whole."},
+      {label:"A tree delta",cue:"src/ is a tree: two entries (pack.ts, server.ts) of mode, name, and file hash, 72 bytes. Editing server.ts in commit E changes only its hash. Matching the newest-whole rule, E's src/ is stored whole and D's src/ becomes: copy bytes 0–51, insert the old 20-byte hash. 25 bytes instead of 72 (2 for the two sizes, 2 for the COPY, 21 for the INSERT). Left vs right: without a delta both trees are stored whole, 144 B, and the first 52 bytes are stored twice; with a delta it is 72 + 25 = 97 B. A commit is mostly new hashes and timestamps, so it usually stays whole."},
       {label:"server.ts edited 100 times",cue:"100 versions, all kept. Loose they are 100 full copies, about 1.2 MB. Packed, the newest is stored whole and older ones as small deltas, about 35 KB in total. Git caps a delta chain at 50 steps (it branches or starts a fresh base when needed), so even the oldest version is a bounded number of hops away."}
     ];
     function deltaDiagram() {
       let b="";
       // Each build replaces the previous one, so both halves get the full width.
-      const treeTable=(x,title,tc,hash)=>`<g transform="translate(${x},80)">`+text(0,0,title,22,tc,"start",650)+
-        `<rect x="0" y="14" width="440" height="100" rx="6" fill="${C.white}" stroke="${tc}" stroke-width="2"/>`+
-        `<rect x="6" y="72" width="428" height="36" fill="${C.soft}"/>`+
-        [["pack.ts","b8e2…",C.ink],["server.ts",hash,C.accent]].map(([n,h,c],i)=>{const y=56+i*40;
-          return mono(18,y,"100644",22,C.muted)+mono(130,y,n,22,c,"start",c===C.accent?600:400)+mono(424,y,h,22,c,"end",c===C.accent?600:400);}).join("")+`</g>`;
+      // Step 1: the same two trees stored without and with a delta, side by side.
+      const W=620, hashX=520;
+      const treeTable=(x,y,title,tc,hash,hc,copy=false)=>`<g transform="translate(${x},${y})">`+text(0,0,title,22,tc,"start",650)+
+        `<rect x="0" y="14" width="${W}" height="100" rx="6" fill="${C.white}" stroke="${tc}" stroke-width="2"/>`+
+        `<rect x="${hashX}" y="72" width="${W-hashX-6}" height="36" fill="${hc===C.green?C.greenSoft:C.soft}"/>`+
+        (copy?`<path d="M6 20H${W-6}V68H${hashX-6}V108H6Z" fill="none" stroke="${C.green}" stroke-width="2.5" stroke-dasharray="7 5"/>`:"")+
+        [["pack.ts","b8e2…",C.ink],["server.ts",hash,hc]].map(([n,h,c],i)=>{const yy=56+i*40;
+          return mono(18,yy,"100644",22,C.muted)+mono(130,yy,n,22,C.ink)+mono(W-16,yy,h,22,c,"end",i?600:400);}).join("")+`</g>`;
+      const R=760;
       b+=S("1",text(0,30,"A tree delta: src/ in commits D and E",28,C.ink,"start",600)+
-        treeTable(0,"E's src/ · whole · 72 bytes",C.green,"f7a9…")+
-        arrow(446,155,512,155,C.accent,3)+text(479,140,"base",20,C.accent,"middle",600)+
-        treeTable(520,"D's src/ · stored as Δ",C.accent,"d431…")+
-        text(0,250,"The two trees differ in one place: server.ts's hash.",26,C.ink,"start",600)+
-        `<rect x="0" y="275" width="960" height="150" rx="6" fill="#ebe6dc"/>`+
-        mono(24,315,"D's src/ = Δ against E's src/",24,C.muted)+mono(470,315,"# the two sizes: 2 B",21,C.muted)+
-        mono(24,360,"COPY   bytes 0–51",24,C.green,"start",600)+mono(470,360,"# a pointer into E, not the bytes: 2 B",21,C.muted)+
-        mono(24,405,"INSERT 20 bytes d431…",24,C.accent,"start",600)+mono(470,405,"# the old hash, stored as-is: 21 B",21,C.muted)+
-        text(0,490,"25 bytes instead of 72.",34,C.accent,"start",600)+
-        text(0,534,"A 2,000-file directory (≈ 80 KB): still ≈ 40 bytes.",24,C.muted));
+        line(690,70,690,470,C.line,2)+
+        // Left: no delta, both trees whole.
+        text(0,88,"Without delta: both stored whole",24,C.ink,"start",600)+
+        treeTable(0,132,"E's src/ · 72 B",C.ink,"f7a9…",C.green)+
+        treeTable(0,292,"D's src/ · 72 B",C.ink,"d431…",C.accent)+
+        text(0,462,"144 B: the first 52 bytes stored twice",23,C.muted,"start",600)+
+        // Right: E whole, D as a recipe against it.
+        text(R,88,"With delta: E whole, D as a recipe",24,C.accent,"start",600)+
+        treeTable(R,132,"E's src/ · whole · 72 B (the base)",C.green,"f7a9…",C.green,true)+
+        text(R,292,"D's src/ · stored as Δ · 25 B",22,C.accent,"start",650)+
+        `<rect x="${R}" y="306" width="${W}" height="112" rx="6" fill="#ebe6dc"/>`+
+        mono(R+20,340,"sizes 72, 72",21,C.muted)+mono(R+W-16,340,"2 B",21,C.muted,"end")+
+        mono(R+20,375,"COPY   bytes 0–51",21,C.green,"start",650)+mono(R+W-16,375,"pointer into E · 2 B",21,C.muted,"end")+
+        mono(R+20,410,"INSERT d431…",21,C.accent,"start",650)+mono(R+W-16,410,"stored as-is · 21 B",21,C.muted,"end")+
+        line(R+10,368,R-30,368,C.green,2.5,"7 5")+line(R-30,368,R-30,200,C.green,2.5,"7 5")+arrow(R-30,200,R+4,200,C.green,2.5)+
+        text(R,462,"97 B: every byte stored once",23,C.muted,"start",600)+
+        text(0,530,"D's src/: 25 bytes instead of 72.",32,C.accent,"start",600)+
+        text(0,570,"A 2,000-file directory (≈ 80 KB): still ≈ 40 bytes.",23,C.muted));
       let dots=(x0,y,n)=>{let d="";for(let k=0;k<n;k++){if(k)d+=line(x0+(k-1)*60+11,y,x0+k*60-11,y,C.accent,2.5);d+=`<circle cx="${x0+k*60}" cy="${y}" r="11" fill="${C.soft}" stroke="${C.accent}" stroke-width="2.5"/>`;}return d;};
       b+=S("2",text(0,30,"server.ts (~12 KB) edited 100 times",28,C.ink,"start",600)+
         Array.from({length:20},(_,i)=>`<rect x="${i*30}" y="56" width="22" height="40" fill="${C.white}" stroke="${C.muted}" stroke-width="1.5"/>`).join("")+
