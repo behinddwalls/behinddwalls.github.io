@@ -115,14 +115,17 @@
     .cover-author { position: absolute; left: 92px; bottom: 82px; }
     .cover-name { font-size: 32px; font-weight: 550; line-height: 1.45; }
     .cover-event { font-size: 24px; color: var(--muted); line-height: 1.45; }
-    .about-mini { position: absolute; left: 0; right: 0; top: 50%; transform: translateY(-50%); display: grid; grid-template-columns: 340px auto 280px; gap: 72px; align-items: center; justify-content: center; }
-    .about-mini img { display: block; width: 340px; height: 340px; object-fit: cover; }
-    .about-mini .name { font-size: 60px; font-weight: 600; letter-spacing: -.04em; }
-    .about-mini .role { margin-top: 12px; font-size: 32px; }
-    .about-mini .prev { margin-top: 6px; font-size: 28px; color: var(--muted); line-height: 1.4; }
-    .about-mini .role + .prev { margin-top: 34px; font-size: 17px; letter-spacing: .12em; text-transform: uppercase; font-weight: 650; }
-    .about-mini a { display: block; text-align: center; color: var(--muted); text-decoration: none; font-size: 17px; }
-    .about-mini a svg { display: block; width: 280px; height: 280px; background: #fff; margin-bottom: 10px; }
+    .about-mini { position: absolute; left: 0; right: 0; top: 50%; transform: translateY(-50%); display: grid; grid-template-columns: 400px auto 260px; gap: 64px; align-items: center; justify-content: center; }
+    .about-mini img { display: block; width: 400px; height: 400px; object-fit: cover; border-radius: 10px; }
+    .about-mini .name { font-size: 68px; font-weight: 600; letter-spacing: -.04em; line-height: 1.05; }
+    .about-mini .role { margin-top: 18px; font-size: 32px; line-height: 1.35; }
+    .about-mini .team { color: var(--accent); font-weight: 600; }
+    .about-mini .prev-label { margin-top: 40px; padding-top: 24px; border-top: 2px solid var(--line, #d8d2c6); font-size: 19px; letter-spacing: .12em; text-transform: uppercase; font-weight: 650; color: var(--muted); }
+    .about-mini .prev { margin-top: 10px; font-size: 28px; color: var(--muted); line-height: 1.35; }
+    .about-mini .prev strong { color: var(--ink, inherit); font-weight: 600; }
+    .about-mini a { display: block; text-align: center; color: var(--muted); text-decoration: none; font-size: 20px; }
+    .about-mini a strong { display: block; margin-top: 14px; font-size: 22px; color: var(--ink, inherit); font-weight: 600; }
+    .about-mini a svg { display: block; width: 260px; height: 260px; background: #fff; padding: 10px; border-radius: 10px; box-sizing: border-box; }
     .cover-art { position: absolute; right: 70px; bottom: 70px; width: 780px; height: 360px; }
     .close-lines { margin-top: 56px; display: grid; gap: 34px; max-width: 1380px; }
     .close-lines p { font-size: 40px; line-height: 1.3; letter-spacing: -.02em; }
@@ -828,9 +831,9 @@
     add("About me","Speaker",15,
       `<div class="about-mini"><img src="${portrait}" alt="Preetam Dwivedi"><div>
         <p class="name">Preetam Dwivedi</p>
-        <p class="role">Senior Staff Software Engineer<br>Code Developer Experience @ LinkedIn</p>
-        <p class="prev">Previously</p><p class="prev">Uber · Developer Platform</p><p class="prev">Amazon · Prime, Catalog Systems, Payments</p></div>
-        <a href="https://www.linkedin.com/in/behinddwalls/" target="_blank" rel="noopener">${qr.linkedin}linkedin.com/in/behinddwalls</a></div>`,
+        <p class="role">Senior Staff Software Engineer<br><span class="team">Code Developer Experience @ LinkedIn</span></p>
+        <p class="prev-label">Previously</p><p class="prev"><strong>Uber</strong> · Developer Platform</p><p class="prev"><strong>Amazon</strong> · Prime, Catalog Systems, Payments</p></div>
+        <a href="https://www.linkedin.com/in/behinddwalls/" target="_blank" rel="noopener">${qr.linkedin}<strong>Connect on LinkedIn</strong>linkedin.com/in/behinddwalls</a></div>`,
       "- One line: Code Developer Experience at LinkedIn; before that Developer Platform at Uber, where GitFarm comes from; before that Amazon.\n- Keep it to ten seconds and move on.\n- The QR code goes to LinkedIn for anyone who wants to connect.",
       ["linkedin"]);
     add("2005: built for one very unusual project","Part 1 · Origins",50,
