@@ -124,13 +124,13 @@
     .about-mini a strong { display: block; margin-top: 14px; font-size: 22px; color: var(--ink, inherit); font-weight: 600; }
     .about-mini a svg { display: block; width: 260px; height: 260px; background: #fff; padding: 10px; border-radius: 10px; box-sizing: border-box; }
     .cover-art { position: absolute; right: 70px; bottom: 70px; width: 780px; height: 360px; }
-    .close-flow { display: flex; align-items: stretch; gap: 18px; margin-top: 80px; }
-    .close-step { flex: 1; border: 2px solid var(--line); border-radius: 10px; padding: 30px 26px; }
-    .close-step b { display: block; font-size: 34px; font-weight: 600; letter-spacing: -.02em; line-height: 1.15; }
+    .close-flow { display: flex; align-items: stretch; gap: 14px; margin-top: 80px; }
+    .close-step { flex: 1; border: 2px solid var(--line); border-radius: 10px; padding: 28px 22px; }
+    .close-step b { display: block; font-size: 30px; font-weight: 600; letter-spacing: -.02em; line-height: 1.15; }
     .close-step span { display: block; margin-top: 14px; font-size: 22px; line-height: 1.35; color: var(--muted); }
     .close-step.last { border-color: var(--peach); }
     .close-step.last b { color: var(--peach); }
-    .close-arrow { align-self: center; font-size: 40px; color: var(--muted); }
+    .close-arrow { align-self: center; font-size: 34px; color: var(--muted); }
     .close-tag { margin-top: 70px; font-size: 44px; line-height: 1.25; letter-spacing: -.02em; color: var(--peach); }
     /* Builds: elements opt in with data-show / data-hl / data-dim step specs such as "2", "2-", "1-3", "1,4". */
     [data-show], [data-dim] { transition: opacity .35s ease; }
@@ -976,11 +976,12 @@ hello
       []);
     add("The infrastructure went distributed","Closing",25,
       `<div class="close-flow">
-        <div class="close-step"><b>One box</b><span>one disk, one machine</span></div><div class="close-arrow">→</div>
-        <div class="close-step"><b>Mirrored disks</b><span>RAID + DRBD pairs</span></div><div class="close-arrow">→</div>
-        <div class="close-step"><b>Quorum replicas</b><span>distributed Git, 3PC</span></div><div class="close-arrow">→</div>
-        <div class="close-step last"><b>A log in the blob store</b><span>one compare-and-swap</span></div></div>
-       <p class="close-tag">Distributed clients.<br>Centralized &amp; distributed Git servers.<br>GitFarm: the clients become a distributed service.</p>`,
+        <div class="close-step"><b>One box</b><span>one machine</span></div><div class="close-arrow">→</div>
+        <div class="close-step"><b>Mirrored disks</b><span>RAID + DRBD</span></div><div class="close-arrow">→</div>
+        <div class="close-step"><b>Quorum replicas</b><span>3PC on refs</span></div><div class="close-arrow">→</div>
+        <div class="close-step"><b>A log in the blob store</b><span>one CAS</span></div><div class="close-arrow">→</div>
+        <div class="close-step last"><b>Git as a service</b><span>GitFarm, no clone</span></div></div>
+       <p class="close-tag">Distributed clients.<br>Centralized &amp; distributed Git servers.</p>`,
       "- Storage, agreement, and execution each moved from a single machine to a distributed service. If you want the full path: storage went one disk, mirrored disks, replicas, a log in the blob store; agreement went the box, the active node, 3PC, a database, one compare-and-swap; execution went every client's clone to a shared, pre-warmed service. Close on the arc: Git was built so every clone is a full repo, then the world hosted it centrally, and now that central host is itself a distributed system.\n- The thread the whole way: big immutable packs, tiny atomic ref updates.\n- Agents are driving the next round, at both the storage and the execution layer.",
       [],{theme:"dark"});
     add("Thank you","Closing",10,
