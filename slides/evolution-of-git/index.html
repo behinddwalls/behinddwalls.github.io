@@ -797,7 +797,7 @@
       "- Linus Torvalds wrote Git for the kernel's decentralized workflow: many maintainers, patches and pulls between peers.\n- The original design has no privileged copy. Every clone holds the entire history.\n- Keep that in mind: everything later in this talk is about making one copy special again.",
       []);
     add("Part 1: What's actually in a repository?","Part 1 · The data model",10,
-      `<p class="eyebrow">Part 1 · The data model</p><p class="statement divider-q">What's actually <span class="accent">in a repository?</span></p>`,
+      `<p class="eyebrow">Part 1 · The data model</p><p class="statement divider-q">What's actually <span class="accent">in a repository?</span></p><p class="statement-sub">Objects, refs, and how they're stored on disk.</p>`,
       "- Every clone is the whole repository. So what's actually in it?\n- Four kinds of object, a few refs, and how they're stored.",
       [],{theme:"dark",custom:true});
     add("Everything in Git is an object","Part 1 · Data model · Objects",60,
@@ -846,7 +846,7 @@ hello
       "- A delta is a list of COPY and INSERT instructions against a base object. A tree is just a list of mode, name, hash entries, so one changed file changes 20 bytes of each tree on its path, and the older tree becomes a ~25-byte delta against the newer one.\n- server.ts edited 100 times is 100 objects, all kept. Packed, the newest is stored whole and the rest as ~200-byte deltas; Git starts a new base only if a chain would pass 50 steps.\n- Deltas are made when packing, reused when sending, and resolved whenever someone reads an old version.",
       ["packformat"],{builds:deltaBuilds});
     add("Part 2: How does it move between machines?","Part 2 · Fetch and push",10,
-      `<p class="eyebrow">Part 2 · Fetch and push</p><p class="statement divider-q">How does it move <span class="accent">between machines?</span></p>`,
+      `<p class="eyebrow">Part 2 · Fetch and push</p><p class="statement divider-q">How does it move <span class="accent">between machines?</span></p><p class="statement-sub">What fetch and push send, step by step.</p>`,
       "- That's the data on one machine. Now move it between two.\n- Fetch, then push, with the same A–E history.",
       [],{theme:"dark",custom:true});
     add("git fetch, end to end","Part 2 · Fetch and push · Client and server",120,
@@ -886,7 +886,7 @@ hello
       "- Cursor's Continuity: a push is a WAL entry in the blob store; it becomes visible only when a compare-and-swap on the WAL index succeeds. Pushes are linearizable.\n- The local Git repo is a warm cache. Replicas learn from lossy gossip but verify every read with a conditional GET, so reads are consistent.\n- There is no primary: any node can take a push (the CAS on the blob store decides) and any node can serve a read, rebuilding from the WAL if it has no copy. Rendezvous hashing just picks a preferred node to avoid CAS retries, and that node does compaction; idle repos are dropped and rebuilt on demand. Kept from distributed Git: real Git on local disk. Kept from blob + DB: blob storage as truth. Dropped: quorum, primary, routing DB, database. Cursor reports about 120 pushes/s on S3 Standard and 300+ on S3 Express One Zone, with reads scaling linearly to 100 replicas.\n- Where the WAL index lives is the design choice. Cursor keeps it in the blob store and publishes with one CAS on it, so every push to the repo goes through that one object. GitHub's Rubicon (2026) keeps packs in blob storage too but moves the log into Ref-CAS, a separate quorum service that locks only the refs a push touches, so pushes to different branches don't wait on each other.",
       ["cursor","walgit","rubicon"],{builds:walBuilds});
     add("Part 4: What if clients never clone?","Part 4 · GitFarm",10,
-      `<p class="eyebrow">Part 4 · GitFarm</p><p class="statement divider-q">What if clients <span class="accent">never clone?</span></p>`,
+      `<p class="eyebrow">Part 4 · GitFarm</p><p class="statement divider-q">What if clients <span class="accent">never clone?</span></p><p class="statement-sub">Take repo management off the client.</p>`,
       "- Storage scales now, but every client still clones.\n- Agents, review bots and automation don't need a copy of the repo; they need to run Git against it.",
       [],{theme:"dark",custom:true});
     add("The cost of a local checkout","Part 4 · GitFarm · The problem",45,
