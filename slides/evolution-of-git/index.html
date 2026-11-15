@@ -61,6 +61,8 @@
     .list li { padding: 22px 0; border-top: 1px solid var(--line); font-size: 28px; line-height: 1.3; }
     .list li strong { font-weight: 600; }
     .list.tight li { padding: 12px 0; font-size: 25px; }
+    .obj-note { margin-top: 36px; padding-top: 22px; border-top: 1px solid var(--line); font-size: 25px; color: var(--muted); }
+    .obj-note strong { color: var(--accent); font-weight: 600; }
     .list li span { display: block; color: var(--muted); font-size: 23px; margin-top: 8px; }
     svg { display: block; max-width: 100%; }
     svg text { font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; }
@@ -410,7 +412,6 @@
     }
     const refBuilds=[
       {label:"Kinds of ref",cue:"A ref is a tiny file holding a SHA. Branches under refs/heads move with each commit; tags under refs/tags stay put; refs/remotes/origin/* remember where the server was at the last fetch. HEAD is symbolic: it names a branch, not a commit."},
-      {label:"How refs are stored as they grow",cue:"Git starts with one loose file per ref: simple, but 100k refs means 100k files, and on macOS or Windows two names that differ only in case collide. gc packs them into packed-refs, one sorted text file: fast lookups, but changing or deleting one ref rewrites the whole file, which can be tens of megabytes. reftable (in Git since 2.45; designed at Google for JGit) keeps refs in a small stack of binary files. Inside each file, refs are sorted by name and grouped into blocks of about 4 KB; neighboring names share their prefix (refs/heads/feature-…), so it is stored once. Finding a ref is a binary search, not a scan. An update never edits an existing file: it writes a new tiny table holding only the changed refs and adds it to the top of the stack in one atomic step, so updating many refs at once is all-or-nothing. Readers check the newest table first. In the background, small tables are merged into bigger ones (like compaction in a log-structured store). Git 3.0 plans to make reftable the default for new repos."},
       {label:"Commit E: main moves",cue:"Committing writes the new objects first, then updates one ref: lock main, check it still points at D, write E, rename the lock into place. That compare-and-swap is the whole update. HEAD follows because it names main. Every push ends with the same step on the server."},
       {label:"Reachability defines the repo",cue:"X was committed on a branch that has since been deleted. No ref reaches it, so it is no longer part of the repo and gc eventually prunes it. Everything a ref can reach is kept: every ref is a garbage-collection root."}
     ];
@@ -419,32 +420,29 @@
       const xs={A:70,B:200,C:330,D:460,E:590}, y=360;
       const commit=(k,c=C.ink,cx=xs[k],cy=y)=>`<circle cx="${cx}" cy="${cy}" r="30" fill="${C.white}" stroke="${c}" stroke-width="3"/>`+text(cx,cy+9,k,26,c,"middle",600);
       b+=line(100,y,170,y,C.ink,3)+line(230,y,300,y,C.ink,3)+line(360,y,430,y,C.ink,3)+commit("A")+commit("B")+commit("C")+commit("D");
-      b+=S("3-",line(490,y,560,y,C.ink,3)+commit("E",C.accent));
+      b+=S("2-",line(490,y,560,y,C.ink,3)+commit("E",C.accent));
       // Refs point down (branch, tag) or up (remote-tracking) at commits.
       const ref=(cx,top,w,label,c)=>box(cx-w/2,top,w,46,label,"",{size:21,color:c,mono:true});
       b+=ref(70,230,120,"v1.0",C.amber)+arrow(70,278,70,326,C.amber);
       b+=ref(200,450,180,"origin/main",C.blue)+arrow(200,448,200,394,C.blue);
       const head=x=>ref(x,120,120,"HEAD",C.ink)+arrow(x,168,x,228)+ref(x,230,120,"main",C.accent)+arrow(x,278,x,326,C.accent);
-      b+=S("1-2",head(460))+S("3-",head(590));
-      b+=S("4",line(352,382,438,458,C.red,2.5,"6 5")+commit("X",C.red,460,480)+
+      b+=S("1",head(460))+S("2-",head(590));
+      b+=S("3",line(352,382,438,458,C.red,2.5,"6 5")+commit("X",C.red,460,480)+
         text(505,474,"deleted branch",21,C.red,"start",600)+text(505,502,"no ref → gc prunes it",20,C.muted));
       // Right: the ref files, then one idea per build.
       const row=(yy,name,val,c=C.ink)=>mono(20,yy,name,20,C.muted)+mono(330,yy,val,20,c,"start",600);
       b+=`<g transform="translate(820,0)">`+text(0,30,"Refs are tiny files: name → SHA",26,C.ink,"start",600)+
         `<rect x="0" y="52" width="596" height="196" rx="6" fill="#ebe6dc"/>`+
         row(94,"HEAD","ref: refs/heads/main")+
-        S("1-2",row(136,"refs/heads/main","9d2a…  D",C.accent))+S("3-",row(136,"refs/heads/main","c8f3…  E",C.accent))+
+        S("1",row(136,"refs/heads/main","9d2a…  D",C.accent))+S("2-",row(136,"refs/heads/main","c8f3…  E",C.accent))+
         row(178,"refs/remotes/origin/main","5ac0…  B",C.blue)+row(220,"refs/tags/v1.0","7e05…  A",C.amber)+
         S("1",text(0,306,"Branch: moves with each commit.",23,C.ink)+text(0,344,"Tag: stays put.",23,C.ink)+
-          text(0,382,"Remote-tracking: the server, as of last fetch.",23,C.ink)+text(0,420,"HEAD: names a branch, not a commit.",23,C.ink))+
-        S("2",text(0,306,"As refs grow",24,C.ink,"start",600)+
-          [["Loose files","one file per ref: 100k refs = 100k files"],["packed-refs","one sorted file; changing a ref rewrites it"],["reftable","sorted binary blocks; updates append"]]
-            .map(([k,v],i)=>text(0,350+i*70,k,23,C.ink,"start",600)+text(0,378+i*70,v,21,C.muted)).join("")+
-          text(0,562,"Git 3.0: reftable becomes the default",21,C.accent,"start",600))+
-        S("3",text(0,306,"Moving main is a compare-and-swap (CAS)",24,C.accent,"start",600)+
+          text(0,382,"Remote-tracking: the server, as of last fetch.",23,C.ink)+text(0,420,"HEAD: names a branch, not a commit.",23,C.ink)+
+          text(0,486,"Git 3.0: refs move to reftable, a compact binary format.",21,C.accent,"start",600))+
+        S("2",text(0,306,"Moving main is a compare-and-swap (CAS)",24,C.accent,"start",600)+
           mono(0,350,"lock    main.lock",22)+mono(0,388,"check   main is still 9d2a…",22,C.accent,"start",650)+mono(0,426,"write   c8f3…, rename into place",22)+
           text(0,476,"Objects first, then this one update.",21,C.muted)+text(0,504,"Every push ends with exactly this.",21,C.muted))+
-        S("4",text(0,306,"Reachability defines the repo",24,C.ink,"start",600)+
+        S("3",text(0,306,"Reachability defines the repo",24,C.ink,"start",600)+
           text(0,350,"Kept: everything a ref can reach.",23,C.ink)+text(0,388,"X: no ref reaches it → pruned.",23,C.red)+
           text(0,426,"Every ref is a GC root.",23,C.ink))+`</g>`;
       return svg(b,"Commits A to E with refs: tag v1.0 at A, origin/main at B, main at D then E with HEAD naming main; the ref files map names to SHAs; moving main is a compare-and-swap; commit X on a deleted branch is unreachable.");
@@ -508,8 +506,7 @@
         mono(24,360,"COPY   bytes 0–51",24,C.green,"start",600)+mono(470,360,"pack.ts entry + server.ts name",21,C.muted)+
         mono(24,405,"INSERT 20 bytes d431…",24,C.accent,"start",600)+mono(470,405,"the old hash",21,C.muted)+
         text(0,490,"25 bytes instead of 72.",34,C.accent,"start",600)+
-        text(0,530,"= 2 B for the two sizes + 2 B COPY + 21 B INSERT",24,C.muted)+
-        text(0,566,"A 2,000-file directory (≈ 80 KB): still ≈ 40 bytes.",24,C.muted));
+        text(0,534,"A 2,000-file directory (≈ 80 KB): still ≈ 40 bytes.",24,C.muted));
       let dots=(x0,y,n)=>{let d="";for(let k=0;k<n;k++){if(k)d+=line(x0+(k-1)*60+11,y,x0+k*60-11,y,C.accent,2.5);d+=`<circle cx="${x0+k*60}" cy="${y}" r="11" fill="${C.soft}" stroke="${C.accent}" stroke-width="2.5"/>`;}return d;};
       b+=S("2",text(0,30,"server.ts (~12 KB) edited 100 times",28,C.ink,"start",600)+
         Array.from({length:20},(_,i)=>`<rect x="${i*30}" y="56" width="22" height="40" fill="${C.white}" stroke="${C.muted}" stroke-width="1.5"/>`).join("")+
@@ -519,7 +516,6 @@
         text(720,235,"v99 … v1 · small deltas, ≈ 200 B each",22,C.muted)+
         text(0,340,"≈ 35 KB instead of 1.2 MB",34,C.accent,"start",600)+
         text(0,382,"All 100 versions kept. Newest is whole, so it reads fastest.",24,C.muted)+
-        text(0,418,"Git caps a chain at 50 steps, so old versions stay cheap to read.",24,C.muted)+
         text(0,520,"Deltas are made when packing, reused when sending, resolved when read.",25,C.ink,"start",600));
       return svg(b,"Left: a tree delta copies 52 bytes, inserts a 20-byte hash, and copies 35 bytes. Right: 100 versions of server.ts packed as one whole copy plus small deltas, about 35 KB instead of 1.2 MB.");
     }
@@ -804,12 +800,7 @@
     add("Everything in Git is an object","Part 1 · Data model · Objects",60,
       `<div class="split" style="grid-template-columns:600px 1fr;gap:56px"><div>
         <div style="height:224px;margin-bottom:24px">${objectBytesDiagram()}</div>
-        <ul class="list tight">
-          <li><strong>zlib-compressed</strong>, stored once</li>
-          <li><strong>named by its SHA-1</strong>: same content, same name</li>
-          <li><strong>immutable</strong>: a new version is a new object</li>
-          <li><strong>Git 3.0</strong>: SHA-256 by default for new repos</li>
-        </ul>
+        <p class="obj-note"><strong>Git 3.0:</strong> new repos use SHA-256 instead of SHA-1.</p>
        </div><div style="height:520px">${objectTypesDiagram()}</div></div>
        <p class="bottom-line">Objects are append-only and content-addressed. <span class="accent">Refs are the only thing that changes.</span></p>`,
       "- Everything Git stores is an object: type, size, and content, compressed and named by its SHA-1. Commit, tree, and blob are the chain that matters; the fourth type is the tag object, used by annotated and signed tags (the tag ref points to it; a lightweight tag is just a ref, like a branch). The stored bytes are a small header (type, a space, the size, a NUL byte) followed by the content; the SHA-1 of those bytes is the object's name.\n- Objects never change. Editing a file creates a new blob; the old one is still there under its old name.\n- On top sits a ref: not an object, just a file holding a SHA, and the only mutable thing in Git. That split drives the rest of the talk. (Try it: git cat-file -t ce0136 prints blob; git cat-file -t HEAD prints commit.)\n- Coming in Git 3.0 (no release date yet): new repositories default to SHA-256 instead of SHA-1. Existing repos keep SHA-1, and the object model is the same; only the hash, and so the names, get longer (64 hex digits instead of 40).",
@@ -836,7 +827,7 @@ hello
       ["objects"],{builds:commitBuilds});
     add("Refs give names to commits","Part 1 · Data model · Refs and reachability",75,
       refsDiagram(),
-      "- A ref is a 41-byte file holding a SHA. Branches move with each commit, tags stay put, remote-tracking refs remember the server as of the last fetch, and HEAD names the current branch. As they multiply, Git moves them from loose files to one packed-refs file, or to reftable.\n- Updating a ref is lock, compare, rename: a tiny compare-and-swap. Every write to a repo ends with one, and it is the only mutable thing in Git.\n- Reachability from refs defines what the repo contains. Unreachable objects are eventually garbage-collected.",
+      "- A ref is a 41-byte file holding a SHA. Branches move with each commit, tags stay put, remote-tracking refs remember the server as of the last fetch, and HEAD names the current branch. As they multiply, Git moves them from loose files to one packed-refs file, or to reftable. Git 3.0 plans to make reftable the default for new repos.\n- If asked about reftable: Git starts with one loose file per ref: simple, but 100k refs means 100k files, and on macOS or Windows two names that differ only in case collide. gc packs them into packed-refs, one sorted text file: fast lookups, but changing or deleting one ref rewrites the whole file, which can be tens of megabytes. reftable (in Git since 2.45; designed at Google for JGit) keeps refs in a small stack of binary files. Inside each file, refs are sorted by name and grouped into blocks of about 4 KB; neighboring names share their prefix (refs/heads/feature-…), so it is stored once. Finding a ref is a binary search, not a scan. An update never edits an existing file: it writes a new tiny table holding only the changed refs and adds it to the top of the stack in one atomic step, so updating many refs at once is all-or-nothing. Readers check the newest table first. In the background, small tables are merged into bigger ones (like compaction in a log-structured store).\n- Updating a ref is lock, compare, rename: a tiny compare-and-swap. Every write to a repo ends with one, and it is the only mutable thing in Git.\n- Reachability from refs defines what the repo contains. Unreachable objects are eventually garbage-collected.",
       ["refs"],{builds:refBuilds});
     add("Where objects live: loose files and packs","Part 1 · Data model · Storage",90,
       storageDiagram(),

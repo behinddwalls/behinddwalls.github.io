@@ -102,18 +102,18 @@ Builds:
 
 ### 08 · Refs give names to commits
 
-05:05–06:20 · 4 builds
+05:05–06:20 · 3 builds
 
-- A ref is a 41-byte file holding a SHA. Branches move with each commit, tags stay put, remote-tracking refs remember the server as of the last fetch, and HEAD names the current branch. As they multiply, Git moves them from loose files to one packed-refs file, or to reftable.
+- A ref is a 41-byte file holding a SHA. Branches move with each commit, tags stay put, remote-tracking refs remember the server as of the last fetch, and HEAD names the current branch. As they multiply, Git moves them from loose files to one packed-refs file, or to reftable. Git 3.0 plans to make reftable the default for new repos.
+- If asked about reftable: Git starts with one loose file per ref: simple, but 100k refs means 100k files, and on macOS or Windows two names that differ only in case collide. gc packs them into packed-refs, one sorted text file: fast lookups, but changing or deleting one ref rewrites the whole file, which can be tens of megabytes. reftable (in Git since 2.45; designed at Google for JGit) keeps refs in a small stack of binary files. Inside each file, refs are sorted by name and grouped into blocks of about 4 KB; neighboring names share their prefix (refs/heads/feature-…), so it is stored once. Finding a ref is a binary search, not a scan. An update never edits an existing file: it writes a new tiny table holding only the changed refs and adds it to the top of the stack in one atomic step, so updating many refs at once is all-or-nothing. Readers check the newest table first. In the background, small tables are merged into bigger ones (like compaction in a log-structured store).
 - Updating a ref is lock, compare, rename: a tiny compare-and-swap. Every write to a repo ends with one, and it is the only mutable thing in Git.
 - Reachability from refs defines what the repo contains. Unreachable objects are eventually garbage-collected.
 
 Builds:
 
 1. **Kinds of ref.** A ref is a tiny file holding a SHA. Branches under refs/heads move with each commit; tags under refs/tags stay put; refs/remotes/origin/* remember where the server was at the last fetch. HEAD is symbolic: it names a branch, not a commit.
-2. **How refs are stored as they grow.** Git starts with one loose file per ref: simple, but 100k refs means 100k files, and on macOS or Windows two names that differ only in case collide. gc packs them into packed-refs, one sorted text file: fast lookups, but changing or deleting one ref rewrites the whole file, which can be tens of megabytes. reftable (in Git since 2.45; designed at Google for JGit) keeps refs in a small stack of binary files. Inside each file, refs are sorted by name and grouped into blocks of about 4 KB; neighboring names share their prefix (refs/heads/feature-…), so it is stored once. Finding a ref is a binary search, not a scan. An update never edits an existing file: it writes a new tiny table holding only the changed refs and adds it to the top of the stack in one atomic step, so updating many refs at once is all-or-nothing. Readers check the newest table first. In the background, small tables are merged into bigger ones (like compaction in a log-structured store). Git 3.0 plans to make reftable the default for new repos.
-3. **Commit E: main moves.** Committing writes the new objects first, then updates one ref: lock main, check it still points at D, write E, rename the lock into place. That compare-and-swap is the whole update. HEAD follows because it names main. Every push ends with the same step on the server.
-4. **Reachability defines the repo.** X was committed on a branch that has since been deleted. No ref reaches it, so it is no longer part of the repo and gc eventually prunes it. Everything a ref can reach is kept: every ref is a garbage-collection root.
+2. **Commit E: main moves.** Committing writes the new objects first, then updates one ref: lock main, check it still points at D, write E, rename the lock into place. That compare-and-swap is the whole update. HEAD follows because it names main. Every push ends with the same step on the server.
+3. **Reachability defines the repo.** X was committed on a branch that has since been deleted. No ref reaches it, so it is no longer part of the repo and gc eventually prunes it. Everything a ref can reach is kept: every ref is a garbage-collection root.
 
 ### 09 · Where objects live: loose files and packs
 
