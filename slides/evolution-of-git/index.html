@@ -971,11 +971,11 @@ hello
       []);
     add("The infrastructure went distributed","Closing",25,
       `<div class="close-lines">
-        <p><span>Storage:</span> one disk → mirrored disks → quorum replicas → a log in the blob store.</p>
-        <p><span>Agreement:</span> the box → the active node → 3PC → a database → one compare-and-swap.</p>
-        <p><span>Execution:</span> every client's clone → a shared, pre-warmed, identity-scoped service.</p>
-        <p class="accent">The interface is still Git. Everything underneath changed.</p></div>`,
-      "- Storage, agreement, and execution each moved from a single machine to a distributed service.\n- The thread the whole way: big immutable packs, tiny atomic ref updates.\n- Agents are driving the next round, at both the storage and the execution layer.",
+        <p><span>Storage:</span> one disk → a log in the blob store.</p>
+        <p><span>Agreement:</span> one box → one compare-and-swap.</p>
+        <p><span>Execution:</span> every clone → a shared service.</p>
+        <p class="accent">Git stayed the same. Everything underneath changed.</p></div>`,
+      "- Storage, agreement, and execution each moved from a single machine to a distributed service. If you want the full path: storage went one disk, mirrored disks, replicas, a log in the blob store; agreement went the box, the active node, 3PC, a database, one compare-and-swap; execution went every client's clone to a shared, pre-warmed service.\n- The thread the whole way: big immutable packs, tiny atomic ref updates.\n- Agents are driving the next round, at both the storage and the execution layer.",
       [],{theme:"dark"});
     add("Thank you","Closing",10,
       `<p class="eyebrow">Seattle Systems</p><h1 class="thanks-title">Thank you</h1><p class="thanks-qa">Questions?</p>
