@@ -712,7 +712,7 @@
       b+=box(0,90,160,64,"git push","",{size:22,color:C.blue})+arrow(162,122,236,122,C.blue);
       b+=`<rect x="240" y="40" width="330" height="200" rx="8" fill="${C.white}" stroke="${C.ink}" stroke-width="3"/>`+text(405,78,"node 1 · took this push",22,C.ink,"middle",600)+text(405,106,"preferred node for this repo",20,C.muted,"middle")+
         box(270,130,270,80,"Git repo on local disk","warm cache, not truth",{size:20,subSize:19});
-      b+=`<rect x="760" y="20" width="656" height="250" rx="8" fill="#eef3ea" stroke="${C.green}" stroke-width="3"/>`+text(784,58,"Blob store (S3) · source of truth",24,C.green,"start",600);
+      b+=`<rect x="760" y="20" width="656" height="250" rx="8" fill="#eef3ea" stroke="${C.green}" stroke-width="3"/>`+text(784,58,"Blob store · source of truth",24,C.green,"start",600);
       b+=box(784,85,130,54,"entry #40","",{size:19})+box(930,85,130,54,"entry #41","",{size:19});
       b+=S("2-",H("2",box(1076,85,130,54,"entry #42","",{size:19,color:C.accent,dash:"6 4"})+`<path class="edge" d="M572 72H1141V74" fill="none" stroke="${C.accent}" stroke-width="3"/>`+arrow(1141,72,1141,84,C.accent,3)));
       b+=box(784,170,420,70,"WAL index","the only mutable object",{size:22,subSize:19});
@@ -773,9 +773,8 @@
         text(20,y+38,who,24,c,"start",600)+text(20,y+76,how,22,C.ink)+text(20,y+110,lock,21,C.muted);
       b+=S("4",`<g transform="translate(700,0)">`+text(0,36,"Same pattern elsewhere",30,C.ink,"start",600)+
         text(0,76,"Pack to blob store first, then one CAS moves the refs.",22,C.muted)+
-        casRow(112,"Cursor / walgit","CAS = conditional write on one blob","one CAS for the whole repo · hundreds of pushes/s",C.ink)+
-        casRow(262,"GitHub Rubicon (2026)","CAS = Ref-CAS, a quorum log service","locks only the refs touched · 7,200 pushes/s*",C.accent)+
-        text(0,430,"* GitHub's internal test",19,C.muted)+`</g>`);
+        casRow(112,"Cursor / walgit","WAL index lives in the blob store","one CAS for the whole repo",C.ink)+
+        casRow(262,"GitHub Rubicon (2026)","log lives in Ref-CAS, a separate service","locks only the refs touched",C.accent)+`</g>`);
       b+=text(700,510,"Durable first, visible second:",26,C.ink,"start",600)+S("1-3",text(700,546,"the WAL index CAS is the only commit point.",26,C.ink,"start",600))+
         S("4",text(700,546,"either way, the CAS is the commit point.",26,C.ink,"start",600));
       return svg(b,"Blob storage for one repository as a tree: a mutable WAL index, immutable log entries, packs, checkpoints and leases. A push adds entry #42 and pack P42, then commits by compare-and-swap on the index; compaction later adds P-all.");
