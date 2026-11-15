@@ -980,7 +980,7 @@ hello
         <div class="close-step"><b>Mirrored disks</b><span>RAID + DRBD</span></div><div class="close-arrow">→</div>
         <div class="close-step"><b>Quorum replicas</b><span>3PC on refs</span></div><div class="close-arrow">→</div>
         <div class="close-step"><b>A log in the blob store</b><span>one CAS</span></div><div class="close-arrow">→</div>
-        <div class="close-step last"><b>Git as a service</b><span>GitFarm, no clone</span></div></div>
+        <div class="close-step last"><b>Git as a service</b><span>GitFarm: shared checkouts</span></div></div>
        <p class="close-tag">Distributed clients.<br>Centralized &amp; distributed Git servers.</p>`,
       "- Storage, agreement, and execution each moved from a single machine to a distributed service. If you want the full path: storage went one disk, mirrored disks, replicas, a log in the blob store; agreement went the box, the active node, 3PC, a database, one compare-and-swap; execution went every client's clone to a shared, pre-warmed service. Close on the arc: Git was built so every clone is a full repo, then the world hosted it centrally, and now that central host is itself a distributed system.\n- The thread the whole way: big immutable packs, tiny atomic ref updates.\n- Agents are driving the next round, at both the storage and the execution layer.",
       [],{theme:"dark"});
