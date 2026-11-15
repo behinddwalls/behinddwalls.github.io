@@ -25,7 +25,7 @@ Planned at about 31 minutes for a 30–45 minute slot · 30 slides. Each slide h
 | 17 | 17:20 | 01:25 | Stage 2: Distributed Git — replicate Git, not disks |
 | 18 | 18:45 | 01:00 | Stage 2b: packs in blobs, refs in a database |
 | 19 | 19:45 | 02:00 | Stage 3: WAL-Git — a write-ahead log is the repo |
-| 20 | 21:45 | 01:55 | What a push writes to the object store |
+| 20 | 21:45 | 01:55 | What a push writes to the blob store |
 | 21 | 23:40 | 00:25 | Storage scales. Every client still clones. |
 | 22 | 24:05 | 00:45 | The cost of a local checkout |
 | 23 | 24:50 | 00:40 | Warm checkouts: remote devboxes and GitFarm |
@@ -253,21 +253,21 @@ Builds:
 
 19:45–21:45 · 5 builds
 
-- Cursor's Continuity: a push is a WAL entry in the object store; it becomes visible only when a compare-and-swap on the WAL index succeeds. Pushes are linearizable.
+- Cursor's Continuity: a push is a WAL entry in the blob store; it becomes visible only when a compare-and-swap on the WAL index succeeds. Pushes are linearizable.
 - The local Git repo is a warm cache. Replicas learn from lossy gossip but verify every read with a conditional GET, so reads are consistent.
-- There is no primary: any node can take a push (the CAS on the object store decides) and any node can serve a read, rebuilding from the WAL if it has no copy. Rendezvous hashing just picks a preferred node to avoid CAS retries, and that node does compaction; idle repos are dropped and rebuilt on demand. Kept from distributed Git: real Git on local disk. Kept from blob + DB: object storage as truth. Dropped: quorum, primary, routing DB, database. Cursor reports about 120 pushes/s on S3 Standard and 300+ on S3 Express One Zone, with reads scaling linearly to 100 replicas.
+- There is no primary: any node can take a push (the CAS on the blob store decides) and any node can serve a read, rebuilding from the WAL if it has no copy. Rendezvous hashing just picks a preferred node to avoid CAS retries, and that node does compaction; idle repos are dropped and rebuilt on demand. Kept from distributed Git: real Git on local disk. Kept from blob + DB: blob storage as truth. Dropped: quorum, primary, routing DB, database. Cursor reports about 120 pushes/s on S3 Standard and 300+ on S3 Express One Zone, with reads scaling linearly to 100 replicas.
 
 Sources: [Cursor · Git at any scale (Vicent Martí, Aug 2026)](https://cursor.com/blog/git-at-any-scale) · [walgit · open-source Git server on object storage (Continuity design)](https://github.com/tobi/walgit)
 
 Builds:
 
 1. **Read the index first.** Before advertising refs to the pusher, the node does the same conditional GET as any read. Now it knows the log is at version e1 with head 41, so this push will be entry #42. The version is the object's ETag on S3 or its generation on GCS.
-2. **Persist the push as WAL entry #42.** Write the pack to local disk and upload entry #42 to the object store at the same time. Durable, but nothing points at it yet.
+2. **Persist the push as WAL entry #42.** Write the pack to local disk and upload entry #42 to the blob store at the same time. Durable, but nothing points at it yet.
 3. **Publish with compare-and-swap.** Lock main and check it is still E, then PUT the index with If-Match: e1, the version read in step 1. Success gives e2: the push is acknowledged and linearized.
 4. **Any node can serve a read.** UDP gossip tells other nodes there is news; it can be lost, and correctness doesn't depend on it. A fetch starts with the same GET index as a push. A warm node sends If-None-Match with the version it has: 304 in under 10 ms means serve now; 200 means pull the new WAL entries first. Cold node 3 has no version yet, so it does a plain GET, learns e2 and head 42, rebuilds the repo from the WAL, then serves.
 5. **Any node can take a push.** There is no primary role. Node 2 read e2 and tries to publish #43 with If-Match: e2. If another node got there first, it gets a 412: re-read the index, re-check the ref, retry. Pushes usually go to the rendezvous #1 node only because that avoids retries.
 
-### 20 · What a push writes to the object store
+### 20 · What a push writes to the blob store
 
 21:45–23:40 · 4 builds
 

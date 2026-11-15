@@ -702,7 +702,7 @@
     }
     const walBuilds=[
       {label:"1 · Read the index first",cue:"Before advertising refs to the pusher, the node does the same conditional GET as any read. Now it knows the log is at version e1 with head 41, so this push will be entry #42. The version is the object's ETag on S3 or its generation on GCS."},
-      {label:"2 · Persist the push as WAL entry #42",cue:"Write the pack to local disk and upload entry #42 to the object store at the same time. Durable, but nothing points at it yet."},
+      {label:"2 · Persist the push as WAL entry #42",cue:"Write the pack to local disk and upload entry #42 to the blob store at the same time. Durable, but nothing points at it yet."},
       {label:"3 · Publish with compare-and-swap",cue:"Lock main and check it is still E, then PUT the index with If-Match: e1, the version read in step 1. Success gives e2: the push is acknowledged and linearized."},
       {label:"4 · Any node can serve a read",cue:"UDP gossip tells other nodes there is news; it can be lost, and correctness doesn't depend on it. A fetch starts with the same GET index as a push. A warm node sends If-None-Match with the version it has: 304 in under 10 ms means serve now; 200 means pull the new WAL entries first. Cold node 3 has no version yet, so it does a plain GET, learns e2 and head 42, rebuilds the repo from the WAL, then serves."},
       {label:"5 · Any node can take a push",cue:"There is no primary role. Node 2 read e2 and tries to publish #43 with If-Match: e2. If another node got there first, it gets a 412: re-read the index, re-check the ref, retry. Pushes usually go to the rendezvous #1 node only because that avoids retries."}
@@ -712,7 +712,7 @@
       b+=box(0,90,160,64,"git push","",{size:22,color:C.blue})+arrow(162,122,236,122,C.blue);
       b+=`<rect x="240" y="40" width="330" height="200" rx="8" fill="${C.white}" stroke="${C.ink}" stroke-width="3"/>`+text(405,78,"node 1 · took this push",22,C.ink,"middle",600)+text(405,106,"preferred node for this repo",20,C.muted,"middle")+
         box(270,130,270,80,"Git repo on local disk","warm cache, not truth",{size:20,subSize:19});
-      b+=`<rect x="760" y="20" width="656" height="250" rx="8" fill="#eef3ea" stroke="${C.green}" stroke-width="3"/>`+text(784,58,"Object store · source of truth",24,C.green,"start",600);
+      b+=`<rect x="760" y="20" width="656" height="250" rx="8" fill="#eef3ea" stroke="${C.green}" stroke-width="3"/>`+text(784,58,"Blob store (S3) · source of truth",24,C.green,"start",600);
       b+=box(784,85,130,54,"entry #40","",{size:19})+box(930,85,130,54,"entry #41","",{size:19});
       b+=S("2-",H("2",box(1076,85,130,54,"entry #42","",{size:19,color:C.accent,dash:"6 4"})+`<path class="edge" d="M572 72H1141V74" fill="none" stroke="${C.accent}" stroke-width="3"/>`+arrow(1141,72,1141,84,C.accent,3)));
       b+=box(784,170,420,70,"WAL index","the only mutable object",{size:22,subSize:19});
@@ -730,7 +730,7 @@
       b+=S("5",H("5",box(0,348,160,64,"git push","",{size:22,color:C.blue})+arrow(162,380,236,380,C.blue)+arrow(572,368,780,236,C.accent,3,"7 5"))+
         `<g transform="translate(830,330)">`+mono(0,0,"#43: CAS only if still e2",22,C.accent,"start",600)+text(0,44,"Lost the race → re-read, retry",22,C.ink)+
         text(0,86,"No primary: the CAS is the agreement.",24,C.ink,"start",600)+text(0,126,"The preferred node just avoids retries.",22,C.muted)+`</g>`);
-      return svg(b,"WAL-based Git: pushes are WAL entries in object storage published by compare-and-swap on an index; replicas learn via gossip and validate with conditional GETs.");
+      return svg(b,"WAL-based Git: pushes are WAL entries in blob storage published by compare-and-swap on an index; replicas learn via gossip and validate with conditional GETs.");
     }
     const s3Builds=[
       {label:"The contract",cue:"Five kinds of objects per repository. Only the WAL index is mutable, and only by compare-and-swap. Entries, packs, and checkpoints are written once and never change."},
@@ -742,7 +742,7 @@
       let b="";
       const nm=(x,y,l,c=C.ink,w=400,sz=20)=>mono(x,y,l,sz,c,"start",w), note=(x,y,l,c=C.muted)=>text(x,y,l,19,c);
       b+=`<rect x="0" y="0" width="640" height="570" rx="8" fill="#eef3ea" stroke="${C.green}" stroke-width="2.5"/>`;
-      b+=nm(20,38,"object store / acme/app /",C.green,600,21);
+      b+=nm(20,38,"blob store / acme/app /",C.green,600,21);
       b+=nm(28,82,"WAL index",C.accent,600,22)+note(190,82,"mutable · CAS only",C.accent);
       b+=S("1",nm(52,116,"e1 · head 41 · [P1, P2]",C.muted))+
         S("2",H("2",nm(52,116,"e2 · head 42 · [P1, P2, P42]",C.accent,600)))+
@@ -778,7 +778,7 @@
         text(0,430,"* GitHub's internal test",19,C.muted)+`</g>`);
       b+=text(700,510,"Durable first, visible second:",26,C.ink,"start",600)+S("1-3",text(700,546,"the WAL index CAS is the only commit point.",26,C.ink,"start",600))+
         S("4",text(700,546,"either way, the CAS is the commit point.",26,C.ink,"start",600));
-      return svg(b,"Object storage for one repository as a tree: a mutable WAL index, immutable log entries, packs, checkpoints and leases. A push adds entry #42 and pack P42, then commits by compare-and-swap on the index; compaction later adds P-all.");
+      return svg(b,"Blob storage for one repository as a tree: a mutable WAL index, immutable log entries, packs, checkpoints and leases. A push adds entry #42 and pack P42, then commits by compare-and-swap on the index; compaction later adds P-all.");
     }
     function architectureDiagram() {
       let b="";
@@ -938,11 +938,11 @@ hello
       blobDiagram(),
       "- The other road: put immutable packs in blob storage and refs in a database. JGit got here second: its first backend at Google, a DHT, stored single objects and made clones too slow (Git always sends packs); JGit DFS stores whole packs and is what Google's Gerrit hosting runs on. JGit DFS, Azure DevOps, and CodeCommit all follow this pattern, and so does Jigit at Uber: built on JGit, with MySQL and a blob store.\n- Compute becomes stateless and storage durable, with no replica babysitting.\n- The price: you no longer run stock Git on a local repo, so you own a Git implementation and a database.",
       ["jgitdfs","codecommit","cursor"],{builds:blobBuilds});
-    add("Stage 3: WAL-Git — a write-ahead log is the repo","Part 3 · Server evolution · Object storage as truth",120,
+    add("Stage 3: WAL-Git — a write-ahead log is the repo","Part 3 · Server evolution · Blob storage as truth",120,
       walDiagram(),
-      "- Cursor's Continuity: a push is a WAL entry in the object store; it becomes visible only when a compare-and-swap on the WAL index succeeds. Pushes are linearizable.\n- The local Git repo is a warm cache. Replicas learn from lossy gossip but verify every read with a conditional GET, so reads are consistent.\n- There is no primary: any node can take a push (the CAS on the object store decides) and any node can serve a read, rebuilding from the WAL if it has no copy. Rendezvous hashing just picks a preferred node to avoid CAS retries, and that node does compaction; idle repos are dropped and rebuilt on demand. Kept from distributed Git: real Git on local disk. Kept from blob + DB: object storage as truth. Dropped: quorum, primary, routing DB, database. Cursor reports about 120 pushes/s on S3 Standard and 300+ on S3 Express One Zone, with reads scaling linearly to 100 replicas.",
+      "- Cursor's Continuity: a push is a WAL entry in the blob store; it becomes visible only when a compare-and-swap on the WAL index succeeds. Pushes are linearizable.\n- The local Git repo is a warm cache. Replicas learn from lossy gossip but verify every read with a conditional GET, so reads are consistent.\n- There is no primary: any node can take a push (the CAS on the blob store decides) and any node can serve a read, rebuilding from the WAL if it has no copy. Rendezvous hashing just picks a preferred node to avoid CAS retries, and that node does compaction; idle repos are dropped and rebuilt on demand. Kept from distributed Git: real Git on local disk. Kept from blob + DB: blob storage as truth. Dropped: quorum, primary, routing DB, database. Cursor reports about 120 pushes/s on S3 Standard and 300+ on S3 Express One Zone, with reads scaling linearly to 100 replicas.",
       ["cursor"],{builds:walBuilds});
-    add("What a push writes to the object store","Part 3 · Server evolution · WAL-Git in detail",115,
+    add("What a push writes to the blob store","Part 3 · Server evolution · WAL-Git in detail",115,
       s3WriteDiagram(),
       "- The contract, as implemented by walgit (an open-source take on Cursor's design): per repository, one tiny mutable WAL index and everything else immutable: log entries, packs, checkpoints. walgit calls the index manifest.pb; Cursor calls it gitwal.pb.\n- A push writes a pack, its .idx, and a PUSH log entry holding the pack reference and the ref transaction (main: E to F). Only the conditional PUT on the manifest makes it visible; git hears ok after that.\n- After the push: the lease holder compacts packs and publishes a COMPACT entry; a checkpoint snapshots all refs and packs so a cold node starts from it plus the log tail. (Races were covered on the previous slide.)\n- Same pattern elsewhere: GitHub's new storage (Rubicon, 2026) also writes packs to blob storage first, then commits one CAS. Cursor's CAS is a conditional write on one blob for the whole repo; GitHub's is Ref-CAS, a quorum log that locks only the refs a push touches. GitHub reports 7,200 pushes/s in internal testing.",
       ["walgit","cursor","rubicon"],{builds:s3Builds});
@@ -1022,7 +1022,7 @@ hello
       []);
     add("The infrastructure went distributed","Closing",25,
       `<div class="close-lines">
-        <p><span>Storage:</span> one disk → mirrored disks → quorum replicas → an object-store log.</p>
+        <p><span>Storage:</span> one disk → mirrored disks → quorum replicas → a log in the blob store.</p>
         <p><span>Agreement:</span> the box → the active node → 3PC → a database → one compare-and-swap.</p>
         <p><span>Execution:</span> every client's clone → a shared, pre-warmed, identity-scoped service.</p>
         <p class="accent">The interface is still Git. Everything underneath changed.</p></div>`,
@@ -1040,7 +1040,7 @@ hello
       "Stage 2: Distributed Git — replicate Git, not disks":["dgit","ghagent","mesh"],
       "Stage 2b: packs in blobs, refs in a database":["jgitdfs","codecommit","cursor"],
       "Stage 3: WAL-Git — a write-ahead log is the repo":["cursor","walgit"],
-      "What a push writes to the object store":["walgit","cursor","rubicon"]
+      "What a push writes to the blob store":["walgit","cursor","rubicon"]
     };
     // GitFarm slides that speak from experience rather than the paper.
     const noCite = new Set(["Identity, freshness, isolation","Who needs Git without a clone?"]);
