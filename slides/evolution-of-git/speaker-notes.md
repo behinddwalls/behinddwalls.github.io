@@ -122,6 +122,7 @@ Builds:
 - New objects are written loose, one file each. gc, repack, or a large fetch or push rolls many objects into one packfile plus its .idx.
 - Inside a pack, older versions are deltas against newer ones, placed for size rather than by commit.
 - To read any object, Git checks loose files first, then binary-searches each .idx for the offset. Remember A–E: the fetch slide uses the same history.
+- Database hook: a pack is like an SSTable in an LSM tree (RocksDB, Cassandra). Small writes land loose, gc merges them into one immutable file the way compaction does, and the .idx is the index that finds a key without a scan.
 
 Builds:
 
@@ -137,6 +138,7 @@ Builds:
 - A delta is a recipe: COPY byte ranges from a base object, INSERT the bytes the base doesn't have. src/ is a tree: two entries (pack.ts, server.ts) of mode, name, and file hash, 72 bytes. Editing server.ts in commit E changes only its hash. Matching the newest-whole rule, E's src/ is stored whole and D's src/ becomes: copy bytes 0–51, insert the old 20-byte hash. 25 bytes instead of 72 (2 for the two sizes, 2 for the COPY, 21 for the INSERT). Left vs right: without a delta both trees are stored whole, 144 B, and the first 52 bytes are stored twice; with a delta it is 72 + 25 = 97 B. A commit is mostly new hashes and timestamps, so it usually stays whole.
 - Same idea for file contents: server.ts (~12 KB) edited 100 times is 100 objects, about 1.2 MB loose. Packed, the newest is whole and the rest are ~200-byte deltas, about 35 KB in total; Git starts a new base only if a chain would pass 50 steps.
 - Deltas are made when packing, reused when sending, and resolved whenever someone reads an old version.
+- Database hook: deltas are like MVCC undo chains in InnoDB or Oracle. The newest row is stored whole; older versions are rebuilt by walking the undo chain backward, so history costs a walk and long chains get slow (hence the cap at 50). PostgreSQL keeps full row versions instead, much like loose objects, with VACUUM in roughly gc's role.
 - If asked why 52: bytes 0–34 are "100644 pack.ts\\0" plus pack.ts's hash (6 + 1 + 7 + 1 + 20 = 35 B); bytes 35–51 are "100644 server.ts\\0" (6 + 1 + 9 + 1 = 17 B); bytes 52–71 are server.ts's hash (20 B).
 
   | Bytes | Contents | Size |
