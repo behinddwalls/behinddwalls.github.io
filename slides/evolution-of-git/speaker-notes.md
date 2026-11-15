@@ -226,7 +226,7 @@ Builds:
 - Packs fan out freely; only the ref transaction goes through three-phase commit. Reads go to any replica.
 - Costs: latency bound by the slowest replica; a floor of 3 copies even for idle repos; a ceiling, because every extra replica slows every push, so adding replicas for read load makes pushes slower; and repos as pets. Atlassian landed in the same place later: Bitbucket Mesh (Data Center 8.0, 2022) replaced NFS with repos replicated on local disk across nodes.
 
-Sources: [GitHub · Introducing DGit (2016)](https://github.blog/engineering/architecture-optimization/introducing-dgit/) · [GitHub · Stretching Spokes (2017)](https://github.blog/engineering/infrastructure/stretching-spokes/) · [GitHub · Building Git infrastructure for agent-scale development (Oct 2026)](https://github.blog/engineering/architecture-optimization/building-git-infrastructure-for-agent-scale-development/) · [Atlassian · Bitbucket Mesh (replaces NFS for Git storage)](https://confluence.atlassian.com/display/BitbucketServer/Bitbucket+Mesh)
+Sources: [GitHub · Introducing DGit (2016)](https://github.blog/engineering/architecture-optimization/introducing-dgit/) · [GitHub · Stretching Spokes (2017)](https://github.blog/engineering/infrastructure/stretching-spokes/) · [GitHub · Building Git infrastructure for agent-scale development (Oct 2026)](https://github.blog/engineering/architecture-optimization/building-git-infrastructure-for-agent-scale-development/) · [Atlassian · Bitbucket Mesh (2022, replaces NFS for Git storage)](https://confluence.atlassian.com/display/BitbucketServer/Bitbucket+Mesh)
 
 Builds:
 
