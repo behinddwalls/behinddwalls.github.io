@@ -78,7 +78,7 @@ Planned at about 31 minutes for a 30–45 minute slot · 31 slides. Each slide h
 02:25–03:35
 
 - A blob is the file's bytes with a small header; its name is the SHA-1 of that. No filename, no metadata.
-- A tree maps names and modes to blob or tree hashes. Identical content anywhere in history is stored exactly once.
+- A tree maps names and modes to blob or tree hashes (mode 100644 = file, 100755 = executable, 040000 = directory). Identical content anywhere in history is stored exactly once.
 - Because names are derived from content, any copy can verify any object. That is what makes replication safe later.
 
 ### 06 · A commit is a snapshot that shares structure
