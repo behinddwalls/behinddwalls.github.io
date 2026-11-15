@@ -61,10 +61,6 @@
     .list li { padding: 22px 0; border-top: 1px solid var(--line); font-size: 28px; line-height: 1.3; }
     .list li strong { font-weight: 600; }
     .list.tight li { padding: 12px 0; font-size: 25px; }
-    .skim-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 26px 48px; margin-top: 6px; }
-    .skim { border-top: 3px solid var(--accent); padding-top: 14px; }
-    .skim h3 { font-size: 28px; }
-    .skim p { margin-top: 8px; font-size: 22px; line-height: 1.35; color: var(--muted); }
     .list li span { display: block; color: var(--muted); font-size: 23px; margin-top: 8px; }
     svg { display: block; max-width: 100%; }
     svg text { font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; }
@@ -894,19 +890,6 @@ hello
       deltaDiagram(),
       "- A delta is a list of COPY and INSERT instructions against a base object. A tree is just a list of mode, name, hash entries, so one changed file changes 20 bytes of each tree on its path, and the older tree becomes a ~25-byte delta against the newer one.\n- server.ts edited 100 times is 100 objects, all kept. Packed, that's one or two whole copies plus about 200-byte deltas; depth is capped at 50, so Git branches or restarts chains as needed.\n- Deltas are made when packing, reused when sending, and resolved whenever someone reads an old version.",
       ["packformat"],{builds:deltaBuilds});
-    add("Further down the rabbit hole","Part 1 · Data model · Scaling tricks",35,
-      `<div class="skim-grid">
-        <div class="skim"><h3>commit-graph</h3><p>A cached index of history, so walking commits is fast.</p></div>
-        <div class="skim"><h3>Reachability bitmaps</h3><p>Precomputed answers to “which objects does this commit need?”</p></div>
-        <div class="skim"><h3>Multi-pack index</h3><p>One lookup table across many packs.</p></div>
-        <div class="skim"><h3>Geometric repacking</h3><p>Merge the small packs; leave the big one alone.</p></div>
-        <div class="skim"><h3>Partial &amp; shallow clone</h3><p>Download less history or fewer files; fetch the rest later.</p></div>
-        <div class="skim"><h3>Sparse checkout</h3><p>Put only the folders you need on disk.</p></div>
-       </div>
-       <p class="bottom-line">None of these change the model of objects, packs, and refs. <span class="accent">They make it fast at scale.</span></p>`,
-      "- A quick skim, not a deep dive: these are the indexes and tricks big repos and big hosts depend on.\n- commit-graph, bitmaps and the multi-pack index speed up history walks and lookups; geometric repacking keeps maintenance cheap; partial clone, shallow clone and sparse checkout let a client take less.\n- None of them changes the model from the last few slides. Others worth knowing for Q&A: cruft packs, alternates, reftable, SHA-256.",
-      ["packformat"]);
-
     add("Two programs on each side of the wire","Part 2 · Fetch and push",40,
       transportDiagram(),
       "- Fetch is fetch-pack talking to upload-pack. Push is send-pack talking to receive-pack.\n- Transport is ssh or smart HTTP; framing is pkt-line; protocol v2 adds explicit commands like ls-refs and fetch.\n- The server is the same Git binary running against a bare repo. That is why hosting Git looks easy and isn't.",
