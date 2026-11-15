@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="light dark">
   <title>Evolution of Git — Preetam Dwivedi</title>
-  <meta name="description" content="A 30–45 minute systems talk: Git's data model, what fetch and push do on the wire, how Git servers evolved from one box to RAID pairs, Spokes, blob storage, and WAL-based storage, and GitFarm, Git as an execution service.">
+  <meta name="description" content="A 30–45 minute systems talk: Git's data model, what fetch and push do on the wire, how Git servers evolved from one box to RAID pairs, distributed Git, blob storage, and WAL-based storage, and GitFarm, Git as an execution service.">
   <style>
     :root {
       --paper: #f5f2ec; --ink: #1f1d1a; --muted: #6b665e; --line: #d3cdc2;
@@ -662,7 +662,7 @@
     function spokesDiagram() {
       let b="";
       b+=box(0,215,170,64,"git push","",{size:22,color:C.blue})+arrow(172,247,258,247,C.blue);
-      b+=box(260,200,240,94,"coordinator","Spokes",{size:24});
+      b+=box(260,200,240,94,"coordinator","",{size:24});
       const ys=[40,215,390];
       ys.forEach((y,i)=>b+=box(760,y,340,110,`replica ${i+1}`,"real Git repo · local disk",{size:24}));
       // One arrow per replica; what travels on it changes with the step.
@@ -674,8 +674,8 @@
       b+=S("3",box(0,450,170,64,"git fetch","",{size:22,color:C.blue})+arrow(172,482,756,445,C.blue,3)+box(260,500,280,70,"routing DB","repo → replicas",{size:21,subSize:19,color:C.muted})+
         `<g transform="translate(1150,30)">`+text(0,0,"The bill",22,C.red,"start",600)+
         lines(0,42,["Latency = slowest","replica","Floor: 3+ copies of","every idle repo","Ceiling: more replicas,","slower pushes","Pets: checksums,","repair jobs, routing DB"],20,C.ink,1.38)+`</g>`);
-      b+=text(930,545,"3 replicas at launch · 5 by default today",21,C.muted,"middle",600);
-      return svg(b,"Spokes fans the pack out to three replicas, then runs three-phase commit on the ref transaction; reads go to any replica.");
+      b+=text(930,545,"GitHub: 3 replicas at launch · 5 by default today",21,C.muted,"middle",600);
+      return svg(b,"Distributed Git fans the pack out to three replicas, then runs three-phase commit on the ref transaction; reads go to any replica.");
     }
     const blobBuilds=[
       {label:"Pack → blob store",cue:"Packs are immutable files. Any stateless frontend can write one to blob storage."},
@@ -918,7 +918,7 @@ hello
       `<div class="split" style="margin-top:20px"><div><p class="compare-label">Packfile</p><p class="contract">Large. Immutable.<br>Content-addressed.</p><p class="under">Idempotent: write it twice and nothing breaks. It can land on any disk, at any time, before anyone agrees.</p></div>
        <div><p class="compare-label">Ref transaction</p><p class="contract accent">Tiny. Mutable.<br>Compare-and-swap.</p><p class="under">Must be atomic and ordered. This is the only part of a push that needs agreement.</p></div></div>
        <p class="bottom-line">Every server design that follows answers two questions: <span class="accent">where do packs live, and who agrees on refs?</span></p>`,
-      "- The pack is bulk data that can be copied anywhere without coordination.\n- The ref update is a few bytes that must be agreed on, atomically.\n- Use this lens for every stage: one box, RAID pairs, Spokes, blob plus database, WAL.",
+      "- The pack is bulk data that can be copied anywhere without coordination.\n- The ref update is a few bytes that must be agreed on, atomically.\n- Use this lens for every stage: one box, RAID pairs, distributed Git, blob plus database, WAL.",
       [],{theme:"dark"});
 
     add("Stage 0: one box","Part 3 · Server evolution",40,
@@ -933,9 +933,9 @@ hello
       raidDiagram(),
       "- RAID 10 (Redundant Array of Independent Disks) mirrors disks in pairs inside one server; DRBD (Distributed Replicated Block Device) mirrors every disk write over the network to a second server. GitHub's pre-2016 design: an active fileserver with RAID, mirrored block-by-block to a dedicated hot spare with DRBD.\n- Packs and refs both live on the active disk; DRBD copies bytes without knowing they are Git.\n- Failover was manual, the spare served nothing, and a pair outage took every repo on it offline.",
       ["ghfast","dgit"],{builds:raidBuilds});
-    add("Stage 2: Spokes — replicate Git, not disks","Part 3 · Server evolution · Application-level replication",85,
+    add("Stage 2: Distributed Git — replicate Git, not disks","Part 3 · Server evolution · Application-level replication",85,
       spokesDiagram(),
-      "- DGit, later Spokes: real Git repos on several servers (3 at launch, 5 by default today per GitHub), replicated by Git-aware software, not by blocks.\n- Packs fan out freely; only the ref transaction goes through three-phase commit. Reads go to any replica.\n- Costs: latency bound by the slowest replica; a floor of 3 copies even for idle repos; a ceiling, because every extra replica slows every push, so adding replicas for read load makes pushes slower; and repos as pets. Atlassian landed in the same place later: Bitbucket Mesh (Data Center 8.0, 2022) replaced NFS with repos replicated on local disk across nodes.",
+      "- Distributed Git: GitHub DGit, later Spokes (2016); GitLab Gitaly Cluster (2020); Bitbucket Mesh (2022). Real Git repos on several servers (3 at launch, 5 by default today per GitHub), replicated by Git-aware software, not by blocks.\n- Packs fan out freely; only the ref transaction goes through three-phase commit. Reads go to any replica.\n- Costs: latency bound by the slowest replica; a floor of 3 copies even for idle repos; a ceiling, because every extra replica slows every push, so adding replicas for read load makes pushes slower; and repos as pets. Atlassian landed in the same place later: Bitbucket Mesh (Data Center 8.0, 2022) replaced NFS with repos replicated on local disk across nodes.",
       ["dgit","ghagent","cursor","mesh"],{builds:spokesBuilds});
     add("Stage 2b: packs in blobs, refs in a database","Part 3 · Server evolution · Disaggregated storage",75,
       blobDiagram(),
@@ -943,7 +943,7 @@ hello
       ["jgitdfs","codecommit","cursor"],{builds:blobBuilds});
     add("Stage 3: WAL-Git — a write-ahead log is the repo","Part 3 · Server evolution · Object storage as truth",120,
       walDiagram(),
-      "- Cursor's Continuity: a push is a WAL entry in the object store; it becomes visible only when a compare-and-swap on the WAL index succeeds. Pushes are linearizable.\n- The local Git repo is a warm cache. Replicas learn from lossy gossip but verify every read with a conditional GET, so reads are consistent.\n- There is no primary: any node can take a push (the CAS on the object store decides) and any node can serve a read, rebuilding from the WAL if it has no copy. Rendezvous hashing just picks a preferred node to avoid CAS retries, and that node does compaction; idle repos are dropped and rebuilt on demand. Kept from Spokes: real Git on local disk. Kept from blob + DB: object storage as truth. Dropped: quorum, primary, routing DB, database. Cursor reports about 120 pushes/s on S3 Standard and 300+ on S3 Express One Zone, with reads scaling linearly to 100 replicas.",
+      "- Cursor's Continuity: a push is a WAL entry in the object store; it becomes visible only when a compare-and-swap on the WAL index succeeds. Pushes are linearizable.\n- The local Git repo is a warm cache. Replicas learn from lossy gossip but verify every read with a conditional GET, so reads are consistent.\n- There is no primary: any node can take a push (the CAS on the object store decides) and any node can serve a read, rebuilding from the WAL if it has no copy. Rendezvous hashing just picks a preferred node to avoid CAS retries, and that node does compaction; idle repos are dropped and rebuilt on demand. Kept from distributed Git: real Git on local disk. Kept from blob + DB: object storage as truth. Dropped: quorum, primary, routing DB, database. Cursor reports about 120 pushes/s on S3 Standard and 300+ on S3 Express One Zone, with reads scaling linearly to 100 replicas.",
       ["cursor"],{builds:walBuilds});
     add("What a push writes to the object store","Part 3 · Server evolution · WAL-Git in detail",115,
       s3WriteDiagram(),
@@ -1040,7 +1040,7 @@ hello
     // On-slide source links: storage history slides cite their posts; every GitFarm slide cites the paper and Uber's blog.
     const cites = {
       "Stage 1: RAID + DRBD pairs":["ghfast","dgit"],
-      "Stage 2: Spokes — replicate Git, not disks":["dgit","ghagent","mesh"],
+      "Stage 2: Distributed Git — replicate Git, not disks":["dgit","ghagent","mesh"],
       "Stage 2b: packs in blobs, refs in a database":["jgitdfs","codecommit","cursor"],
       "Stage 3: WAL-Git — a write-ahead log is the repo":["cursor","walgit"],
       "What a push writes to the object store":["walgit","cursor","rubicon"]

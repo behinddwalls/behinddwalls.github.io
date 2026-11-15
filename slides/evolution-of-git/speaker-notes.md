@@ -22,7 +22,7 @@ Planned at about 31 minutes for a 30–45 minute slot · 30 slides. Each slide h
 | 14 | 14:35 | 00:40 | Stage 0: one box |
 | 15 | 15:15 | 01:00 | Why not just put the repos on NFS? |
 | 16 | 16:15 | 01:05 | Stage 1: RAID + DRBD pairs |
-| 17 | 17:20 | 01:25 | Stage 2: Spokes — replicate Git, not disks |
+| 17 | 17:20 | 01:25 | Stage 2: Distributed Git — replicate Git, not disks |
 | 18 | 18:45 | 01:15 | Stage 2b: packs in blobs, refs in a database |
 | 19 | 20:00 | 02:00 | Stage 3: WAL-Git — a write-ahead log is the repo |
 | 20 | 22:00 | 01:55 | What a push writes to the object store |
@@ -184,7 +184,7 @@ Builds:
 
 - The pack is bulk data that can be copied anywhere without coordination.
 - The ref update is a few bytes that must be agreed on, atomically.
-- Use this lens for every stage: one box, RAID pairs, Spokes, blob plus database, WAL.
+- Use this lens for every stage: one box, RAID pairs, distributed Git, blob plus database, WAL.
 
 ### 14 · Stage 0: one box
 
@@ -218,11 +218,11 @@ Builds:
 2. **Failover.** Active dies. A human confirms, promotes the spare, traffic moves. Now the spare has no spare.
 3. **The limits.** Half the hardware idles, one server serves every read for its repos, and losing the pair takes them all offline.
 
-### 17 · Stage 2: Spokes — replicate Git, not disks
+### 17 · Stage 2: Distributed Git — replicate Git, not disks
 
 17:20–18:45 · 3 builds
 
-- DGit, later Spokes: real Git repos on several servers (3 at launch, 5 by default today per GitHub), replicated by Git-aware software, not by blocks.
+- Distributed Git: GitHub DGit, later Spokes (2016); GitLab Gitaly Cluster (2020); Bitbucket Mesh (2022). Real Git repos on several servers (3 at launch, 5 by default today per GitHub), replicated by Git-aware software, not by blocks.
 - Packs fan out freely; only the ref transaction goes through three-phase commit. Reads go to any replica.
 - Costs: latency bound by the slowest replica; a floor of 3 copies even for idle repos; a ceiling, because every extra replica slows every push, so adding replicas for read load makes pushes slower; and repos as pets. Atlassian landed in the same place later: Bitbucket Mesh (Data Center 8.0, 2022) replaced NFS with repos replicated on local disk across nodes.
 
@@ -256,7 +256,7 @@ Builds:
 
 - Cursor's Continuity: a push is a WAL entry in the object store; it becomes visible only when a compare-and-swap on the WAL index succeeds. Pushes are linearizable.
 - The local Git repo is a warm cache. Replicas learn from lossy gossip but verify every read with a conditional GET, so reads are consistent.
-- There is no primary: any node can take a push (the CAS on the object store decides) and any node can serve a read, rebuilding from the WAL if it has no copy. Rendezvous hashing just picks a preferred node to avoid CAS retries, and that node does compaction; idle repos are dropped and rebuilt on demand. Kept from Spokes: real Git on local disk. Kept from blob + DB: object storage as truth. Dropped: quorum, primary, routing DB, database. Cursor reports about 120 pushes/s on S3 Standard and 300+ on S3 Express One Zone, with reads scaling linearly to 100 replicas.
+- There is no primary: any node can take a push (the CAS on the object store decides) and any node can serve a read, rebuilding from the WAL if it has no copy. Rendezvous hashing just picks a preferred node to avoid CAS retries, and that node does compaction; idle repos are dropped and rebuilt on demand. Kept from distributed Git: real Git on local disk. Kept from blob + DB: object storage as truth. Dropped: quorum, primary, routing DB, database. Cursor reports about 120 pushes/s on S3 Standard and 300+ on S3 Express One Zone, with reads scaling linearly to 100 replicas.
 
 Sources: [Cursor · Git at any scale (Vicent Martí, Aug 2026)](https://cursor.com/blog/git-at-any-scale) · [walgit · open-source Git server on object storage (Continuity design)](https://github.com/tobi/walgit)
 
