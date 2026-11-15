@@ -71,8 +71,6 @@
     .codeblock .c { color: var(--muted); }
     .codeblock .hl-out { color: var(--accent); }
     .codeblock .lbl { color: var(--accent); font-weight: 600; }
-    .contract { font-size: 54px; line-height: 1.12; letter-spacing: -.035em; }
-    .under { margin-top: 30px; padding-top: 24px; border-top: 1px solid var(--line); font-size: 28px; color: var(--muted); line-height: 1.4; }
     .statement { font-size: 92px; line-height: 1.06; letter-spacing: -.05em; max-width: 1380px; margin-top: 60px; }
     .divider-q { font-size: 76px; white-space: nowrap; margin-top: 200px; }
     .statement-sub { margin-top: 44px; font-size: 38px; line-height: 1.35; color: var(--muted); max-width: 1200px; }
@@ -859,15 +857,9 @@ hello
       pushDiagram(),
       "- Continuing the A–E story: the client commits F on top of E and pushes. It sends only what the server lacks, plus the command E F refs/heads/main.\n- The server quarantines, verifies connectivity, runs hooks, then does a ref transaction: lock, check old, write.\n- That ref transaction is a compare-and-swap. Keep it in mind for every architecture that follows.",
       ["packprotocol","receivepack"],{builds:pushBuilds});
-    add("A push is two different things","Part 2 · The key split",45,
-      `<div class="split" style="margin-top:20px"><div><p class="compare-label">Packfile</p><p class="contract">Immutable.</p><p class="under">Store it anywhere. No agreement needed.</p></div>
-       <div><p class="compare-label">Ref update</p><p class="contract accent">Mutable.</p><p class="under">Needs agreement: compare-and-swap.</p></div></div>
-       <p class="bottom-line">Every design ahead answers two questions: <span class="accent">where do packs live, and who decides which push wins?</span></p>`,
-      "- The pack is bulk data, content-addressed and idempotent: write it twice and nothing breaks, so it can land on any disk, at any time, before anyone agrees.\n- The ref update is a few bytes that must be atomic and ordered; it is the only part of a push that needs agreement.\n- Use this lens for every stage: one box, RAID pairs, distributed Git, blob plus database, WAL.",
-      [],{theme:"dark"});
-    add("Part 3: How do you serve it to everyone?","Part 3 · Server evolution",10,
-      `<p class="eyebrow">Part 3 · Server evolution</p><p class="statement divider-q">How do you serve it <span class="accent">to everyone?</span></p>`,
-      "- Git was built with no server. Hosting made one copy special.\n- Each stage that follows answers the same two questions: where do packs live, and who decides which push wins?",
+    add("Part 3: How do you serve it to everyone?","Part 3 · Server evolution",20,
+      `<p class="eyebrow">Part 3 · Server evolution</p><p class="statement divider-q">How do you serve it <span class="accent">to everyone?</span></p><p class="statement-sub">Where do packs live, and who decides which push wins?</p>`,
+      "- Git was built with no server. Hosting made one copy special.\n- A push is two different things. The pack is immutable and content-addressed: write it twice and nothing breaks, so it can land on any disk before anyone agrees. The ref update is mutable and must be atomic: it is the only part that needs agreement, a compare-and-swap.\n- So every stage that follows answers the same two questions: where do packs live, and who decides which push wins? Use that lens for one box, RAID pairs, distributed Git, blob plus database, and WAL.",
       [],{theme:"dark",custom:true});
     add("Stage 0: one box","Part 3 · Server evolution",40,
       oneBoxDiagram(),
