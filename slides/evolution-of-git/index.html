@@ -378,19 +378,15 @@
       return svg(b,"An object's stored bytes: the type blob, a space, the size 6, a NUL byte, then the content hello; the SHA-1 of all of it is the object's name.",600,224);
     }
     function objectTypesDiagram() {
-      let b="";
+      // The chain alone, centred: ref → commit → tree → blob. Slides 6–8 explain each one.
+      let b=`<g transform="translate(230,0)">`;
       b+=box(0,0,300,80,"ref","refs/heads/main",{size:28,subSize:20,color:C.accent,mono:true,dash:"8 6"});
-      b+=text(330,34,"a mutable pointer file, not an object",22,C.accent,"start",600)+text(330,62,"→ one commit; the only thing that changes",21,C.ink);
-      b+=arrow(160,82,160,124,C.accent,2.5);
-      const rows=[["commit","snapshot + history","→ one root tree, 0..n parent commits"],
-                  ["tree","a directory","→ blobs and subtrees, by name and mode"],
-                  ["blob","file bytes","→ nothing: no name, no mode, a leaf"]];
-      rows.forEach(([t,d,r],i)=>{const y=128+i*120;
-        b+=box(20,y,280,84,t,d,{size:28,subSize:20,mono:true});
-        b+=text(330,y+50,r,22,C.ink);
-        if(i<2)b+=arrow(160,y+86,160,y+116,C.ink,2.5);});
-      b+=text(20,500,"+ tag object: annotated and signed tags (the tag ref points to it)",21,C.muted);
-      return svg(b,"A ref, a mutable pointer file, points to a commit; the commit points to a tree and the tree to blobs. Tags are a fourth object type.",760,525);
+      b+=arrow(150,82,150,124,C.accent,2.5);
+      [["commit","snapshot + history"],["tree","a directory"],["blob","file bytes"]].forEach(([t,d],i)=>{const y=128+i*120;
+        b+=box(0,y,300,84,t,d,{size:28,subSize:20,mono:true});
+        if(i<2)b+=arrow(150,y+86,150,y+116,C.ink,2.5);});
+      b+=`</g>`+text(380,500,"+ tag object: annotated and signed tags (the tag ref points to it)",21,C.muted,"middle");
+      return svg(b,"A ref points to a commit; the commit points to a tree and the tree to blobs. Tags are a fourth object type.",760,525);
     }
     const commitBuilds=[
       {label:"One commit, one snapshot",cue:"A commit points to one root tree. Walk the tree and you have every file."},
