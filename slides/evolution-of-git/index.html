@@ -434,7 +434,8 @@
           text(0,382,"Remote-tracking: the server, as of last fetch.",23,C.ink)+text(0,420,"HEAD: names a branch, not a commit.",23,C.ink))+
         S("2",text(0,306,"As refs grow",24,C.ink,"start",600)+
           [["Loose files","one file per ref: 100k refs = 100k files"],["packed-refs","one sorted file; changing a ref rewrites it"],["reftable","sorted binary blocks; updates append"]]
-            .map(([k,v],i)=>text(0,350+i*70,k,23,C.ink,"start",600)+text(0,378+i*70,v,21,C.muted)).join(""))+
+            .map(([k,v],i)=>text(0,350+i*70,k,23,C.ink,"start",600)+text(0,378+i*70,v,21,C.muted)).join("")+
+          text(0,562,"Git 3.0: reftable becomes the default",21,C.accent,"start",600))+
         S("3",text(0,306,"Moving main is a compare-and-swap (CAS)",24,C.accent,"start",600)+
           mono(0,350,"lock    main.lock",22)+mono(0,388,"check   main is still 9d2a…",22,C.accent,"start",650)+mono(0,426,"write   c8f3…, rename into place",22)+
           text(0,476,"Objects first, then this one update.",21,C.muted)+text(0,504,"Every push ends with exactly this.",21,C.muted))+
