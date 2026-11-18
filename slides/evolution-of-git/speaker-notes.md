@@ -10,7 +10,7 @@ Planned at about 28 minutes for a 30–45 minute slot · 31 slides. Each slide h
 | 02 | 00:20 | 00:15 | About me |
 | 03 | 00:35 | 00:50 | Built for one very unusual project: Linux |
 | 04 | 01:25 | 00:10 | Part 1: What's actually in a repository? |
-| 05 | 01:35 | 01:00 | Git's data model: objects, and refs that point to them |
+| 05 | 01:35 | 01:00 | Git's data model |
 | 06 | 02:35 | 01:10 | Files are blobs, directories are trees |
 | 07 | 03:45 | 01:20 | A commit is a snapshot that shares structure |
 | 08 | 05:05 | 01:15 | Refs give names to commits |
@@ -71,7 +71,7 @@ Planned at about 28 minutes for a 30–45 minute slot · 31 slides. Each slide h
 - Every clone is the whole repository. So what's actually in it?
 - Four kinds of object, a few refs, and how they're stored.
 
-### 05 · Git's data model: objects, and refs that point to them
+### 05 · Git's data model
 
 01:35–02:35
 
