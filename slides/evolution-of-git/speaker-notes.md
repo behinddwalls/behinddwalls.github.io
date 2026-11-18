@@ -29,7 +29,7 @@ Planned at about 26 minutes for a 30–45 minute slot · 29 slides. Each slide h
 | 21 | 20:30 | 00:10 | Part 4: What if clients never clone? |
 | 22 | 20:40 | 00:45 | The cost of a local checkout |
 | 23 | 21:25 | 00:40 | Warm checkouts: remote devboxes and GitFarm |
-| 24 | 22:05 | 00:55 | GitFarm: Git as a service |
+| 24 | 22:05 | 00:55 | GitFarm: Git Client as a service |
 | 25 | 23:00 | 00:55 | One request, end to end |
 | 26 | 23:55 | 00:45 | Identity, freshness, isolation |
 | 27 | 24:40 | 00:45 | Who needs Git without a clone? |
@@ -309,7 +309,7 @@ Sources: [GitFarm: Git as a Service for Large-Scale Monorepos (arXiv 2604.11977)
 
 Sources: [GitFarm: Git as a Service for Large-Scale Monorepos (arXiv 2604.11977)](https://arxiv.org/abs/2604.11977) · [Uber Engineering · GitFarm as a Service (Jul 2026)](https://www.uber.com/blog/gitfarm-as-a-service/)
 
-### 24 · GitFarm: Git as a service
+### 24 · GitFarm: Git Client as a service
 
 22:05–23:00
 

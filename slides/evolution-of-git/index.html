@@ -920,7 +920,7 @@ hello
         return svg(b,"A remote devbox keeps the monorepo checked out and warm for a developer; GitFarm keeps pooled sandboxes with warm checkouts that agents, bots and services borrow per request and return.");})(),
       "- A remote devbox (or devpod) is a dev machine in the data center that already has the monorepo checked out and kept in sync in the background. A developer connects with their IDE or shell and starts working: no 15-minute clone.\n- GitFarm does the same for automation. Each node keeps a bare clone fresh from push events plus a periodic fetch, and a pool of warm checkouts.\n- An agent, bot or service borrows one checkout per request, runs its git commands, and the checkout goes back to the pool.",
       ["paper"]);
-    add("GitFarm: Git as a service","Part 4 · GitFarm · Architecture",55,
+    add("GitFarm: Git Client as a service","Part 4 · GitFarm · Architecture",55,
       architectureDiagram(),
       "- Clients call a gRPC API. The gateway authenticates, authorizes per repo, and places the request.\n- Every node runs three containers: backend serves the request; sandbox keeps a pool of sandboxes and executes the commands; repo-manager keeps the bare clone, synced by push events plus a 5-minute fetch, and a pool of pre-warmed checkouts.\n- Separate clusters per heavy use case, plus a shared cluster for everyone else.",
       ["paper"]);
