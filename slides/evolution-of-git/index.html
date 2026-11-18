@@ -756,7 +756,6 @@
         text(590,y+32,title,21,c,"start",600)+[0,1,2,3].map(i=>box(590+i*148,y+52,128,64,"node","",{size:20})).join("");
       [[30,"dedicated cluster · workload A",C.muted],[195,"dedicated cluster · workload B",C.muted],[360,"shared cluster · everyone else",C.ink]]
         .forEach(([y,t,c])=>{b+=cluster(y,t,c)+arrow(502,280,566,y+84,C.ink,2.5)+arrow(1192,y+84,1236,280,C.green,2.5);});
-      b+=text(570,540,"Every node runs backend, sandbox and repo-manager.",21,C.muted);
       b+=box(1240,200,176,160,"upstream","Git servers",{size:24,subSize:20,color:C.green})+text(1328,395,"fetch / push",20,C.green,"middle",600);
       return svg(b,"GitFarm: clients call a gateway over gRPC; the gateway places each request on a node in one of several clusters, dedicated clusters for heavy workloads and a shared cluster for the rest; nodes fetch from and push to upstream.");
     }
