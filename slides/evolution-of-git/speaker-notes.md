@@ -294,7 +294,7 @@ Builds:
 20:40–21:25
 
 - Cloning a large monorepo takes about 15 minutes and a meaningful slice of a machine: 40+ GB of disk, plus cores and memory.
-- Say the contrast: an agent that needs one 2-second git command still pays the whole clone first. Checkout sits on the critical path.
+- Say the contrast: an agent that needs a 2-second git command still pays the whole clone first. Checkout sits on the critical path.
 - If asked: each automation system kept and synced its own checkouts, multiplying upstream load. CI caches reduce clone time but add cold starts, drift, and upkeep.
 
 Sources: [GitFarm: Git as a Service for Large-Scale Monorepos (arXiv 2604.11977)](https://arxiv.org/abs/2604.11977) · [Uber Engineering · GitFarm as a Service (Jul 2026)](https://www.uber.com/blog/gitfarm-as-a-service/)
