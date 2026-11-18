@@ -64,6 +64,8 @@
     .list.origins li span { font-size: 26px; line-height: 1.35; }
     .obj-note { margin-top: 36px; padding-top: 22px; border-top: 1px solid var(--line); font-size: 25px; color: var(--muted); }
     .obj-note strong { color: var(--accent); font-weight: 600; }
+    .takeaway { font-size: 44px; line-height: 1.3; font-weight: 500; padding-left: 32px; border-left: 6px solid var(--accent); margin: 0; }
+    .takeaway strong { color: var(--accent); font-weight: 650; white-space: nowrap; }
     .list li span { display: block; color: var(--muted); font-size: 23px; margin-top: 8px; }
     svg { display: block; max-width: 100%; }
     svg text { font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; }
@@ -903,12 +905,8 @@ hello
       `<div class="split" style="grid-template-columns:1fr 1.2fr;gap:90px;align-items:center;margin-top:20px"><div class="stat-grid" style="grid-template-columns:1fr;gap:56px">
         <div class="stat"><p class="num">~15<small>min</small></p><p class="label">to clone a large monorepo<span>before any work starts</span></p></div>
         <div class="stat"><p class="num">40+<small>GB</small></p><p class="label">disk per checkout<span>plus ~4 cores, 16 GB RAM</span></p></div>
-       </div><ul class="list">
-        <li><strong>Every system kept its own checkout</strong><span>and fetched upstream independently, adding server load.</span></li>
-        <li><strong>CI caches help, partly</strong><span>Per-agent caches diverge; cold starts take minutes.</span></li>
-        <li><strong>Checkout sits on the critical path</strong><span>even for a 2-second git command.</span></li>
-       </ul></div>`,
-      "- Cloning a large monorepo takes about 15 minutes and a meaningful slice of a machine: 40+ GB of disk, plus cores and memory.\n- Each automation system kept and synced its own checkouts, multiplying upstream load.\n- CI caches reduce clone time but add cold starts, drift, and upkeep.",
+       </div><p class="takeaway">An agent that needs one <strong>2-second</strong> git command still waits for the <strong>whole clone</strong>.</p></div>`,
+      "- Cloning a large monorepo takes about 15 minutes and a meaningful slice of a machine: 40+ GB of disk, plus cores and memory.\n- Say the contrast: an agent that needs one 2-second git command still pays the whole clone first. Checkout sits on the critical path.\n- If asked: each automation system kept and synced its own checkouts, multiplying upstream load. CI caches reduce clone time but add cold starts, drift, and upkeep.",
       ["paper"]);
     add("Warm checkouts: remote devboxes and GitFarm","Part 4 · GitFarm · The idea",40,
       (()=>{let b="";
