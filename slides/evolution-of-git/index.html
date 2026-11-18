@@ -843,16 +843,16 @@
 
     add("Evolution of Git","Opening",20,
       `<p class="eyebrow">Seattle Systems</p><h1 class="cover-title"><svg class="git-logo" viewBox="0 0 78 78" role="img" aria-label="Git logo by Jason Long, CC BY 3.0"><title>Git logo by Jason Long, CC BY 3.0</title><path fill="#f03c2e" transform="translate(10 10) rotate(-45 29 29)" d="M5,58c-2.76142,0 -5,-2.23858 -5,-5v-48c0,-2.76142 2.23858,-5 5,-5h33v12.54404c-2.06553,0.94801 -3.5,3.03446 -3.5,5.45596c0,0.73514 0.13221,1.43941 0.37415,2.09031l-15.28384,15.28384c-0.6509,-0.24194 -1.35517,-0.37415 -2.09031,-0.37415c-3.31371,0 -6,2.68629 -6,6c0,3.31371 2.68629,6 6,6c3.31371,0 6,-2.68629 6,-6c0,-0.73514 -0.13221,-1.43941 -0.37415,-2.09031l14.87415,-14.87415l0,11.50851c-2.06553,0.94801 -3.5,3.03446 -3.5,5.45596c0,3.31371 2.68629,6 6,6c3.31371,0 6,-2.68629 6,-6c0,-2.42149 -1.43447,-4.50795 -3.5,-5.45596l0,-12.08808c2.06553,-0.94801 3.5,-3.03446 3.5,-5.45596c0,-2.42149 -1.43447,-4.50795 -3.5,-5.45596l0,-12.54404h10c2.76142,0 5,2.23858 5,5v48c0,2.76142 -2.23858,5 -5,5z"/></svg>Evolution of Git</h1><p class="cover-sub">From Kernel to Codebase</p>
-       <div class="cover-author"><p class="cover-name">Preetam Dwivedi</p><p class="cover-event">Senior Staff Software Engineer<br>Code Developer Experience @ LinkedIn</p></div><div class="cover-art">${coverArt()}</div>`,
+       <div class="cover-author"><p class="cover-name">Preetam Dwivedi</p><p class="cover-event">Senior Staff Software Engineer<br>Core Developer Experience @ LinkedIn</p></div><div class="cover-art">${coverArt()}</div>`,
       "- Git was designed with no server. Today it is the center of a distributed system.\n- Four parts: the data model, fetch and push on the wire, how servers evolved, and GitFarm.\n- Goal: you leave knowing what actually happens underneath git push.",
       ["linkedin"],{theme:"dark",custom:true});
     add("About me","Speaker",15,
       `<div class="about-mini"><img src="${portrait}" alt="Preetam Dwivedi"><div>
         <p class="name">Preetam Dwivedi</p>
-        <p class="role">Senior Staff Software Engineer<br><span class="team">Code Developer Experience @ LinkedIn</span></p>
+        <p class="role">Senior Staff Software Engineer<br><span class="team">Core Developer Experience @ LinkedIn</span></p>
         <p class="prev-label">Previously</p><p class="prev"><strong>Uber</strong> · Developer Platform</p><p class="prev"><strong>Amazon</strong> · Prime, Catalog Systems, Payments</p></div>
         <a href="https://www.linkedin.com/in/behinddwalls/" target="_blank" rel="noopener">${qr.linkedin}<strong>Connect on LinkedIn</strong>linkedin.com/in/behinddwalls</a></div>`,
-      "- One line: Code Developer Experience at LinkedIn; before that Developer Platform at Uber, where GitFarm comes from; before that Amazon.\n- Keep it to ten seconds and move on.\n- The QR code goes to LinkedIn for anyone who wants to connect.",
+      "- One line: Core Developer Experience at LinkedIn; before that Developer Platform at Uber, where GitFarm comes from; before that Amazon.\n- Keep it to ten seconds and move on.\n- The QR code goes to LinkedIn for anyone who wants to connect.",
       ["linkedin"]);
     add("Built for one very unusual project: Linux","Part 1 · Origins",50,
       `<div class="split" style="grid-template-columns:1fr 700px;gap:50px"><ul class="list origins">
@@ -867,13 +867,13 @@
       `<p class="eyebrow">Part 1 · The data model</p><p class="statement divider-q">What's actually <span class="accent">in a repository?</span></p><p class="statement-sub">Objects, refs, and how they're stored on disk.</p>`,
       "- Every clone is the whole repository. So what's actually in it?\n- Four kinds of object, a few refs, and how they're stored.",
       [],{theme:"dark",custom:true});
-    add("Everything in Git is an object","Part 1 · Data model · Objects",60,
+    add("Git's data model: objects, and refs that point to them","Part 1 · Data model · Objects",60,
       `<div class="split" style="grid-template-columns:600px 1fr;gap:56px"><div>
         <div style="height:224px;margin-bottom:24px">${objectBytesDiagram()}</div>
         <p class="obj-note"><strong>Git 3.0:</strong> new repos use SHA-256 instead of SHA-1.</p>
        </div><div style="height:520px">${objectTypesDiagram()}</div></div>
        <p class="bottom-line">Objects are append-only and content-addressed. <span class="accent">Refs are the only thing that changes.</span></p>`,
-      "- Everything Git stores is an object: type, size, and content, compressed and named by its SHA-1. Commit, tree, and blob are the chain that matters; the fourth type is the tag object, used by annotated and signed tags (the tag ref points to it; a lightweight tag is just a ref, like a branch). The stored bytes are a small header (type, a space, the size, a NUL byte) followed by the content; the SHA-1 of those bytes is the object's name.\n- Objects never change. Editing a file creates a new blob; the old one is still there under its old name.\n- On top sits a ref: not an object, just a file holding a SHA, and the only mutable thing in Git. That split drives the rest of the talk. (Try it: git cat-file -t ce0136 prints blob; git cat-file -t HEAD prints commit.)\n- Coming in Git 3.0 (no release date yet): new repositories default to SHA-256 instead of SHA-1. Existing repos keep SHA-1, and the object model is the same; only the hash, and so the names, get longer (64 hex digits instead of 40).",
+      "- History is made of objects. Each is a type, a size, and content, stored compressed and named by the SHA-1 of the uncompressed bytes. Commit, tree, and blob are the chain that matters; the fourth type is the tag object, used by annotated and signed tags (the tag ref points to it; a lightweight tag is just a ref, like a branch). The stored bytes are a small header (type, a space, the size, a NUL byte) followed by the content; the SHA-1 of those bytes is the object's name.\n- Objects never change. Editing a file creates a new blob; the old one is still there under its old name.\n- On top sits a ref: not an object, just a file holding a SHA, and the only mutable thing in Git. That split drives the rest of the talk. (Try it: git cat-file -t ce0136 prints blob; git cat-file -t HEAD prints commit.)\n- Coming in Git 3.0 (no release date yet): new repositories default to SHA-256 instead of SHA-1. Existing repos keep SHA-1, and the object model is the same; only the hash, and so the names, get longer (64 hex digits instead of 40).",
       ["objects","breaking"]);
     add("Files are blobs, directories are trees","Part 1 · Data model · Blobs and trees",70,
       `<div class="split" style="grid-template-columns:720px 1fr;gap:50px"><div>

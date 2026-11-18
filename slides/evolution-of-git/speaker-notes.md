@@ -10,7 +10,7 @@ Planned at about 28 minutes for a 30–45 minute slot · 31 slides. Each slide h
 | 02 | 00:20 | 00:15 | About me |
 | 03 | 00:35 | 00:50 | Built for one very unusual project: Linux |
 | 04 | 01:25 | 00:10 | Part 1: What's actually in a repository? |
-| 05 | 01:35 | 01:00 | Everything in Git is an object |
+| 05 | 01:35 | 01:00 | Git's data model: objects, and refs that point to them |
 | 06 | 02:35 | 01:10 | Files are blobs, directories are trees |
 | 07 | 03:45 | 01:20 | A commit is a snapshot that shares structure |
 | 08 | 05:05 | 01:15 | Refs give names to commits |
@@ -52,7 +52,7 @@ Planned at about 28 minutes for a 30–45 minute slot · 31 slides. Each slide h
 
 00:20–00:35
 
-- One line: Code Developer Experience at LinkedIn; before that Developer Platform at Uber, where GitFarm comes from; before that Amazon.
+- One line: Core Developer Experience at LinkedIn; before that Developer Platform at Uber, where GitFarm comes from; before that Amazon.
 - Keep it to ten seconds and move on.
 - The QR code goes to LinkedIn for anyone who wants to connect.
 
@@ -71,11 +71,11 @@ Planned at about 28 minutes for a 30–45 minute slot · 31 slides. Each slide h
 - Every clone is the whole repository. So what's actually in it?
 - Four kinds of object, a few refs, and how they're stored.
 
-### 05 · Everything in Git is an object
+### 05 · Git's data model: objects, and refs that point to them
 
 01:35–02:35
 
-- Everything Git stores is an object: type, size, and content, compressed and named by its SHA-1. Commit, tree, and blob are the chain that matters; the fourth type is the tag object, used by annotated and signed tags (the tag ref points to it; a lightweight tag is just a ref, like a branch). The stored bytes are a small header (type, a space, the size, a NUL byte) followed by the content; the SHA-1 of those bytes is the object's name.
+- History is made of objects. Each is a type, a size, and content, stored compressed and named by the SHA-1 of the uncompressed bytes. Commit, tree, and blob are the chain that matters; the fourth type is the tag object, used by annotated and signed tags (the tag ref points to it; a lightweight tag is just a ref, like a branch). The stored bytes are a small header (type, a space, the size, a NUL byte) followed by the content; the SHA-1 of those bytes is the object's name.
 - Objects never change. Editing a file creates a new blob; the old one is still there under its old name.
 - On top sits a ref: not an object, just a file holding a SHA, and the only mutable thing in Git. That split drives the rest of the talk. (Try it: git cat-file -t ce0136 prints blob; git cat-file -t HEAD prints commit.)
 - Coming in Git 3.0 (no release date yet): new repositories default to SHA-256 instead of SHA-1. Existing repos keep SHA-1, and the object model is the same; only the hash, and so the names, get longer (64 hex digits instead of 40).
