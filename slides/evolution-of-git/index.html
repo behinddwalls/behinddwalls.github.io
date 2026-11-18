@@ -904,7 +904,7 @@ hello
     add("The cost of a local checkout","Part 4 · GitFarm · The problem",45,
       `<div class="split" style="grid-template-columns:1fr 1.2fr;gap:90px;align-items:center;margin-top:20px"><div class="stat-grid" style="grid-template-columns:1fr;gap:56px">
         <div class="stat"><p class="num">~15<small>min</small></p><p class="label">to clone a large monorepo<span>before any work starts</span></p></div>
-        <div class="stat"><p class="num">40+<small>GB</small></p><p class="label">disk per checkout<span>plus ~4 cores, 16 GB RAM</span></p></div>
+        <div class="stat"><p class="num">40+<small>GB</small></p><p class="label">disk per checkout</p></div>
        </div><p class="takeaway">An agent that needs a <strong>2-second</strong> git command still waits for the <strong>whole clone</strong>.</p></div>`,
       "- Cloning a large monorepo takes about 15 minutes and a meaningful slice of a machine: 40+ GB of disk, plus cores and memory.\n- Say the contrast: an agent that needs a 2-second git command still pays the whole clone first. Checkout sits on the critical path.\n- If asked: each automation system kept and synced its own checkouts, multiplying upstream load. CI caches reduce clone time but add cold starts, drift, and upkeep.",
       ["paper"]);
