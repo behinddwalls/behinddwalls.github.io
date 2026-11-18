@@ -116,17 +116,17 @@
     .cover-author { position: absolute; left: 92px; bottom: 82px; }
     .cover-name { font-size: 32px; font-weight: 550; line-height: 1.45; }
     .cover-event { font-size: 24px; color: var(--muted); line-height: 1.45; }
-    .about-mini { position: absolute; left: 0; right: 0; top: 54%; transform: translateY(-50%); display: grid; grid-template-columns: 400px auto 260px; gap: 64px; align-items: center; justify-content: center; }
+    .about-mini { position: absolute; left: 0; right: 0; top: 54%; transform: translateY(-50%); display: grid; grid-template-columns: 400px auto 260px; gap: 64px; align-items: start; justify-content: center; }
     .about-mini img { display: block; width: 400px; height: 400px; object-fit: cover; border-radius: 10px; }
-    .about-mini .name { font-size: 68px; font-weight: 600; letter-spacing: -.04em; line-height: 1.05; }
+    .about-mini .name { font-size: 68px; font-weight: 600; letter-spacing: -.04em; line-height: 1.05; margin-top: -12px; }
     .about-mini .role { margin-top: 18px; font-size: 32px; line-height: 1.35; }
     .about-mini .team { color: var(--accent); font-weight: 600; }
     .about-mini .prev-label { margin-top: 40px; padding-top: 24px; border-top: 2px solid var(--line, #d8d2c6); font-size: 19px; letter-spacing: .12em; text-transform: uppercase; font-weight: 650; color: var(--muted); }
     .about-mini .prev { margin-top: 10px; font-size: 28px; color: var(--muted); line-height: 1.35; }
     .about-mini .prev strong { color: var(--ink, inherit); font-weight: 600; }
-    .about-mini .out-label { margin-top: 28px; padding-top: 18px; }
-    .about-mini .outdoors { display: flex; gap: 12px; margin-top: 16px; }
-    .about-mini .outdoors img { width: 116px; height: 116px; border-radius: 8px; object-fit: cover; }
+    .about-mini > a { align-self: center; }
+    .about-mini .outdoors { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 12px; }
+    .about-mini .outdoors img { width: 100%; height: auto; aspect-ratio: 1; border-radius: 8px; object-fit: cover; }
     .about-mini a { display: block; text-align: center; color: var(--muted); text-decoration: none; font-size: 20px; }
     .about-mini a strong { display: block; margin-top: 14px; font-size: 22px; color: var(--ink, inherit); font-weight: 600; }
     .about-mini a svg { display: block; width: 260px; height: 260px; background: #fff; padding: 10px; border-radius: 10px; box-sizing: border-box; }
@@ -800,12 +800,11 @@
       "- Git was designed with no server. Today it is the center of a distributed system.\n- Four parts: the data model, fetch and push on the wire, how servers evolved, and GitFarm.\n- Goal: you leave knowing what actually happens underneath git push.",
       ["linkedin"],{theme:"dark",custom:true});
     add("About me","Speaker",15,
-      `<div class="about-mini"><img src="${portrait}" alt="Preetam Dwivedi"><div>
+      `<div class="about-mini"><div class="about-left"><img src="${portrait}" alt="Preetam Dwivedi"><div class="outdoors">${outdoors.map(o=>`<img src="${o.src}" alt="${o.alt}" style="object-position:${o.pos}">`).join("")}</div></div><div>
         <p class="name">Preetam Dwivedi</p>
         <p class="role">Senior Staff Software Engineer<br><span class="team">Core Developer Experience @ LinkedIn</span></p>
         <p class="prev-label">Previously</p><p class="prev"><strong>Uber</strong> · Developer Platform</p><p class="prev"><strong>Amazon</strong> · Prime, Catalog Systems, Payments</p>
-        <p class="prev-label out-label">Outside of work</p><p class="prev">Hiking · climbing · skiing · camping</p>
-        <div class="outdoors">${outdoors.map(o=>`<img src="${o.src}" alt="${o.alt}" style="object-position:${o.pos}">`).join("")}</div></div>
+        <p class="prev-label out-label">Outside of work</p><p class="prev">Hiking · climbing · skiing · camping</p></div>
         <a href="https://www.linkedin.com/in/behinddwalls/" target="_blank" rel="noopener">${qr.linkedin}<strong>Connect on LinkedIn</strong>linkedin.com/in/behinddwalls</a></div>`,
       "- One line: Core Developer Experience at LinkedIn; before that Developer Platform at Uber, where GitFarm comes from; before that Amazon.\n- Outside of work: hiking, climbing, skiing, camping. One beat, then move on.\n- The QR code goes to LinkedIn for anyone who wants to connect.",
       ["linkedin"]);
