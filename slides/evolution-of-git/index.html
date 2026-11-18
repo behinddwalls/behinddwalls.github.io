@@ -681,7 +681,7 @@
         text(x,h+38,foot,19,C.muted,"start",600);
             b+=card(X[0],120,"WAL index",C.accent,[["version · head · packs · checkpoint",C.ink],["a few KB · no refs",C.accent]],"changes every push, by CAS");
       b+=card(X[1],120,"Log entry #42",C.ink,[["main: E → F",C.ink,1],["only the refs this push changed",C.muted]],"one per push");
-      b+=card(X[2],148,"Checkpoint: refs.pb",C.green,[["refs/heads/main → E",C.ink,1],["refs/heads/feature-1 → 3a9…",C.ink,1],["… 100,000 refs",C.green]],"every ref · rewritten now and then");
+      b+=card(X[2],148,"Checkpoint",C.green,[["refs/heads/main → E",C.ink,1],["refs/heads/feature-1 → 3a9…",C.ink,1],["… 100,000 refs",C.green]],"every ref · rewritten now and then");
       // Step 2: each node's cache of the latest value per ref.
       const node=(x,title,sub,color,dash)=>box(x,244,W,92,title,sub,{size:23,subSize:19,color,dash,mono:false});
       b+=S("2-",text(0,228,"Each node: packed-refs = latest value per ref (a cache, not truth)",21,C.ink,"start",650)+
