@@ -534,7 +534,7 @@
       {label:"want / have",cue:"want = the tip of each ref the client is missing (E). have = the client's own tips first (B), then older commits in batches only if needed. Once the server ACKs B, it knows the client has everything behind B, including A."},
       {label:"Server walks the graph",cue:"Walk back from E until you hit what the client has. E and D are found loose; C is found through the pack's .idx; B is common, so stop."},
       {label:"Server builds one pack",cue:"The sender builds; the receiver resolves. pack-objects puts C, D, E and their new trees and blobs in one pack. C's bytes are reused from the existing pack (CRC-checked, never re-inflated); D and E are compressed now. Deltas against B's objects are allowed: a thin pack."},
-      {label:"Client resolves and moves the ref",cue:"Whoever receives a pack resolves it. Pack entries don't carry their own hashes, so index-pack rebuilds every delta from its base, SHA-1s the result, and writes the .idx. Thin bases come from the client's own store (B) and are appended. Only after the connectivity check does origin/main move to E."}
+      {label:"Client resolves and moves the ref",cue:"Whoever receives a pack resolves it. Pack entries don't carry their own hashes, so index-pack rebuilds every delta from its base, SHA-1s the result, and writes the .idx. Thin bases come from the client's own store (B) and are appended. Only after the connectivity check does origin/main move to E. origin/main moves with the same local compare-and-swap as slide 8: lock, check it's still B, write E, rename. It only guards your own repo; the server's main is never touched."}
     ];
     function fetchDiagram() {
       let b=lanes("fetch-pack","upload-pack");
@@ -542,7 +542,7 @@
       b+=S("2-",H("2",msg(200,1,"want E · have B")+msg(240,-1,"ACK B · ready")));
       b+=S("3-",H("3",proc(540,266,470,78,["Server walks back from E","E, D loose · C via .idx · stop at B"])));
       b+=S("4-",H("4",proc(540,356,470,78,["Server builds one pack","C, D, E · reuses C's bytes"])+msg(470,-1,"PACK (thin: deltas vs B)",{width:6})));
-      b+=S("5",H("5",proc(10,482,560,104,["Client resolves the pack (index-pack)","rebuild each Δ · SHA-1 · write .idx","connectivity ✓ → origin/main = E"])));
+      b+=S("5",H("5",proc(10,482,560,104,["Client resolves the pack (index-pack)","rebuild each Δ · SHA-1 · write .idx","connectivity ✓ → CAS origin/main: B → E"])));
       // State panel: the same A–E history on both sides.
       const cx=[30,105,180,255,330], nm=["A","B","C","D","E"];
       const graph=(y,n,label)=>{let g=text(0,y-62,label,19,C.muted,"start",650);
@@ -913,7 +913,7 @@ hello
       [],{theme:"dark",custom:true});
     add("git fetch origin main","Part 2 · Fetch and push · Client and server",120,
       fetchDiagram(),
-      "- Both ends are just Git: fetch is fetch-pack talking to upload-pack, push is send-pack talking to receive-pack, over ssh or HTTPS.\n- Same history as the pack slide: the server has A–E (A–C packed, D and E loose); the client stopped at B.\n- want names ref tips; have walks back through the client's history until the server recognizes a commit. The server then walks from E back to B, finding objects loose or through the .idx.\n- It ships C, D, E as one fresh pack; the client re-indexes it into its own pack, and only then moves origin/main. At scale, the first step is the expensive one: protocol v0 advertises every ref before any work (a million refs is tens of MB), so v2's ls-refs lets the client ask only for the prefixes it needs.",
+      "- Both ends are just Git: fetch is fetch-pack talking to upload-pack, push is send-pack talking to receive-pack, over ssh or HTTPS.\n- Same history as the pack slide: the server has A–E (A–C packed, D and E loose); the client stopped at B.\n- want names ref tips; have walks back through the client's history until the server recognizes a commit. The server then walks from E back to B, finding objects loose or through the .idx.\n- It ships C, D, E as one fresh pack; the client re-indexes it into its own pack, and only then moves origin/main, with a local compare-and-swap (still B? then E). At scale, the first step is the expensive one: protocol v0 advertises every ref before any work (a million refs is tens of MB), so v2's ls-refs lets the client ask only for the prefixes it needs.",
       ["protocolv2","packprotocol"],{builds:fetchBuilds});
     add("git push origin main","Part 2 · Fetch and push · Client and server",120,
       pushDiagram(),
