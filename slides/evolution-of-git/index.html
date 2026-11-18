@@ -450,7 +450,7 @@
       return svg(b,"Commits A to E with refs: tag v1.0 at A, origin/main at B, main at D then E with HEAD naming main; the ref files map names to SHAs; moving main is a compare-and-swap; commit X on a deleted branch is unreachable.");
     }
     const storageBuilds=[
-      {label:"Every commit starts loose",cue:"git commit writes each new object (commit, trees, blob) as its own zlib file under .git/objects, named by its hash."},
+      {label:"Every commit starts loose",cue:"Each new object is its own zlib file under .git/objects, named by its hash: git add writes the blob, git commit writes the trees and the commit."},
       {label:"gc rolls them into a pack",cue:"Auto gc runs after commit or fetch once there are about 6,700 loose objects or 50 packs (or on a schedule with git maintenance). A fetch of 100+ objects is kept as a pack; a big push lands as one on the server. The id in the name is a checksum of the contents. D and E came later, so they are still loose."},
       {label:"Inside the pack",cue:"Every object is zlib-compressed. Blobs and trees can be deltas against a similar nearby object, usually newest whole and older as deltas. Chains are capped at 50. Entries are placed for size, not by commit."},
       {label:"The .idx finds things",cue:"The .idx is sorted by hash: a 256-entry fanout jumps to rows sharing the first byte, binary search finds the row, and the row gives the offset (plus a CRC to check the stored bytes). The .pack itself stays in write order."}
@@ -462,7 +462,7 @@
       xs.forEach((x,i)=>b+=`<circle cx="${x}" cy="110" r="28" fill="${C.white}" stroke="${C.ink}" stroke-width="3"/>`+text(x,119,names[i],26,C.ink,"middle",600));
       b+=box(615,0,130,38,"main","",{size:21,mono:true,color:C.accent})+arrow(680,40,680,80,C.accent,3);
       b+=S("1",xs.map(x=>text(x,170,"loose",20,C.muted,"middle",600)).join("")+
-        `<g transform="translate(830,10)">`+text(0,20,"git commit E writes four loose files:",22,C.ink,"start",600)+
+        `<g transform="translate(830,10)">`+text(0,20,"Commit E adds four loose files:",22,C.ink,"start",600)+
         mono(0,58,"objects/c8/f3e912…  commit E",20)+mono(0,90,"objects/f0/21b88e…  tree /",20)+mono(0,122,"objects/6c/81a3d0…  tree src/",20)+mono(0,154,"objects/f7/a9c104…  blob server.ts",20)+`</g>`);
       b+=S("2-",`<rect x="40" y="146" width="380" height="36" rx="6" fill="${C.greenSoft}" stroke="${C.green}" stroke-width="2"/>`+mono(230,171,"pack-3f1c.pack + .idx",20,C.green,"middle",600)+
         text(530,172,"loose",20,C.muted,"middle",600)+text(680,172,"loose",20,C.muted,"middle",600));
@@ -483,7 +483,7 @@
         rows.map(([h,n,c,o],i)=>{const y=426+i*32,hl=n==="commit C",col=hl?C.accent:C.ink,w=hl?600:400;return (hl?`<rect x="6" y="${y-23}" width="548" height="31" fill="${C.soft}"/>`:"")+
           mono(22,y,h,20,col,"start",w)+mono(130,y,n,20,hl?C.accent:C.muted,"start",w)+mono(540,y,`→ ${o}`,20,col,"end",w);}).join("")+
         `<g transform="translate(660,420)">`+text(0,0,"Read commit C (3f7d…):",24,C.accent,"start",600)+
-        lines(0,42,["1. Not loose in objects/3f/","2. fanout[0x3f] → rows starting 3f","3. Binary search → offset 12","4. Seek + inflate (+ base if a delta)"],22,C.ink,1.45)+`</g>`);
+        lines(0,42,["1. fanout[0x3f] → rows starting 3f","2. Binary search → offset 12","3. Seek + inflate (+ base if a delta)","Not in any pack? Check objects/3f/."],22,C.ink,1.45)+`</g>`);
       return svg(b,"Commits A to E. All start as loose objects; gc packs A to C into pack-3f1c with an index while D and E stay loose. The pack stores deltas; the index maps hash to offset.");
     }
     function deltaDiagram() {
@@ -534,7 +534,7 @@
       {label:"want / have",cue:"want = the tip of each ref the client is missing (E). have = the client's own tips first (B), then older commits in batches only if needed. Once the server ACKs B, it knows the client has everything behind B, including A."},
       {label:"Server walks the graph",cue:"Walk back from E until you hit what the client has. E and D are found loose; C is found through the pack's .idx; B is common, so stop."},
       {label:"Server builds one pack",cue:"The sender builds; the receiver resolves. pack-objects puts C, D, E and their new trees and blobs in one pack. C's bytes are reused from the existing pack (CRC-checked, never re-inflated); D and E are compressed now. Deltas against B's objects are allowed: a thin pack."},
-      {label:"Client resolves and moves the ref",cue:"Whoever receives a pack resolves it. Pack entries carry no hashes, so index-pack rebuilds every delta from its base, SHA-1s the result, and writes the .idx. Thin bases come from the client's own store (B) and are appended. Only after the connectivity check does origin/main move to E."}
+      {label:"Client resolves and moves the ref",cue:"Whoever receives a pack resolves it. Pack entries don't carry their own hashes, so index-pack rebuilds every delta from its base, SHA-1s the result, and writes the .idx. Thin bases come from the client's own store (B) and are appended. Only after the connectivity check does origin/main move to E."}
     ];
     function fetchDiagram() {
       let b=lanes("fetch-pack","upload-pack");
@@ -567,7 +567,7 @@
       {label:"3 · Commands + pack",cue:"Each command is old, new, ref: here E F refs/heads/main. The pack follows on the same stream."},
       {label:"4 · Server resolves in quarantine",cue:"Now the server is the receiver, so it resolves: index-pack rebuilds every delta, SHA-1s each object, fills thin bases from E's objects, and writes the .idx, all inside a quarantine directory. Then the connectivity check on F. If anything fails, the quarantine is deleted and nothing becomes visible."},
       {label:"5 · Ref transaction",cue:"pre-receive can reject. Then lock main, check it still points at E, write F, commit. If someone else pushed G first, main is no longer E and this push is rejected. This is compare-and-swap."},
-      {label:"6 · Report status",cue:"post-receive fires (webhooks, CI), and the client gets per-ref ok or ng."}
+      {label:"6 · Report status",cue:"The client gets per-ref ok or ng, then post-receive fires (webhooks, CI)."}
     ];
     function pushDiagram() {
       let b=lanes("send-pack","receive-pack");
@@ -577,7 +577,7 @@
       b+=S("4-",H("4",proc(540,284,440,104,["Server resolves, in quarantine","rebuild Δ · SHA-1 · .idx","connectivity on F"])));
       b+=S("5-",H("5",`<rect x="540" y="400" width="440" height="140" rx="6" fill="${C.white}" stroke="${C.accent}" stroke-width="3"/>`+
         text(558,430,"pre-receive → ref transaction",21,C.ink,"start",600)+mono(558,464,"lock   main.lock",22,C.muted)+mono(558,498,"verify main == E",24,C.accent,"start",650)+mono(558,528,"write  F, commit",22,C.muted)));
-      b+=S("6",H("6",msg(570,-1,"post-receive · ok refs/heads/main")));
+      b+=S("6",H("6",msg(570,-1,"ok refs/heads/main · post-receive")));
       b+=S("5-",`<g transform="translate(1030,320)">`+text(0,0,"Compare-and-swap",24,C.accent,"start",600)+
         lines(0,44,["If someone pushed G first,","main ≠ E and this push is","rejected (fetch, rebase, retry).","--atomic: all refs or none."],22,C.ink,1.42)+`</g>`);
       // State panel: the client has F on top of E; the server gets F, then moves main.
@@ -648,7 +648,7 @@
       return svg(b,"An application routes to an active fileserver that mirrors blocks to a hot spare with DRBD; on failure the spare is promoted manually.");
     }
     const spokesBuilds=[
-      {label:"Fan out the pack",cue:"Packs are idempotent, so send them to every replica in parallel: 3 at launch, 5 by default today. No agreement needed yet."},
+      {label:"Fan out the pack",cue:"Packs are idempotent, so send them to every replica in parallel: 3 at launch, 5 for most repos today. No agreement needed yet."},
       {label:"3PC on the ref transaction",cue:"Only the tiny ref update needs agreement. Phase 1 asks every replica: can you apply these ref updates? Each runs Git's own ref transaction: lock the refs, check the old values. Phase 2: a majority said yes, so get ready. Phase 3: commit, or roll back everywhere. Spokes then compares a checksum of every replica's refs; one that disagrees is marked unhealthy and repaired. About four round trips per push."},
       {label:"Reads go to any replica",cue:"Any replica can serve a fetch; a routing DB says which servers hold each repo. Say the cost out loud: every push waits for the slowest replica, even idle repos need 3+ copies, adding replicas slows pushes, and the replicas need checksums, repair jobs and that routing DB."}
     ];
@@ -665,7 +665,7 @@
         [["1 Can you?","lock ref, check old SHA"],["2 Get ready","a majority said yes"],["3 Commit","or abort everywhere"]]
           .map(([k,v],i)=>text(0,50+i*74,k,22,C.ink,"start",600)+text(0,78+i*74,v,19,C.muted)).join("")+`</g>`);
       b+=S("3",box(0,450,170,64,"git fetch","",{size:22,color:C.blue})+arrow(172,482,756,445,C.blue,3)+box(260,500,280,70,"routing DB","repo → replicas",{size:21,subSize:19,color:C.muted}));
-      b+=text(930,545,"GitHub: 3 replicas at launch · 5 by default today",21,C.muted,"middle",600);
+      b+=text(930,545,"GitHub: 3 replicas at launch · 5 for most repos today",21,C.muted,"middle",600);
       return svg(b,"Distributed Git fans the pack out to three replicas, then runs three-phase commit on the ref transaction; reads go to any replica.");
     }
     const entireBuilds=[
@@ -867,7 +867,7 @@
       `<p class="eyebrow">Part 1 · The data model</p><p class="statement divider-q">What's actually <span class="accent">in a repository?</span></p><p class="statement-sub">Objects, refs, and how they're stored on disk.</p>`,
       "- Every clone is the whole repository. So what's actually in it?\n- Four kinds of object, a few refs, and how they're stored.",
       [],{theme:"dark",custom:true});
-    add("Git's data model","Part 1 · Data model · Objects",60,
+    add("Git's history is made of objects","Part 1 · Data model · Objects",60,
       `<div class="split" style="grid-template-columns:600px 1fr;gap:56px"><div>
         <div style="height:224px;margin-bottom:24px">${objectBytesDiagram()}</div>
         <p class="obj-note"><strong>Git 3.0:</strong> new repos use SHA-256 instead of SHA-1.</p>
@@ -886,8 +886,8 @@ hello
         <pre class="codeblock"><span class="c">$ git cat-file -p HEAD^{tree}</span>
 <span class="lbl">mode   type hash     name</span>
 100644 blob ce0136…  README.md
-040000 tree 6c81a3…  src
-040000 tree 0db5e7…  docs</pre>
+040000 tree 0db5e7…  docs
+040000 tree 6c81a3…  src</pre>
        </div><div style="height:560px">${treeDiagram()}</div></div>`,
       "- A blob is the file's bytes with a small header; its name is the SHA-1 of that. No filename, no metadata.\n- A tree maps names and modes to blob or tree hashes (mode 100644 = file, 100755 = executable, 040000 = directory). Identical content anywhere in history is stored exactly once.\n- Because names are derived from content, any copy can verify any object. That is what makes replication safe later.",
       ["objects"]);
@@ -897,15 +897,15 @@ hello
       ["objects"],{builds:commitBuilds});
     add("Refs give names to commits","Part 1 · Data model · Refs and reachability",75,
       refsDiagram(),
-      "- A ref is a 41-byte file holding a SHA. Branches move with each commit, tags stay put, remote-tracking refs remember the server as of the last fetch, and HEAD names the current branch. As they multiply, Git moves them from loose files to one packed-refs file, or to reftable. Git 3.0 plans to make reftable the default for new repos.\n- If asked about reftable: Git starts with one loose file per ref: simple, but 100k refs means 100k files, and on macOS or Windows two names that differ only in case collide. gc packs them into packed-refs, one sorted text file: fast lookups, but changing or deleting one ref rewrites the whole file, which can be tens of megabytes. reftable (in Git since 2.45; designed at Google for JGit) keeps refs in a small stack of binary files. Inside each file, refs are sorted by name and grouped into blocks of about 4 KB; neighboring names share their prefix (refs/heads/feature-…), so it is stored once. Finding a ref is a binary search, not a scan. An update never edits an existing file: it writes a new tiny table holding only the changed refs and adds it to the top of the stack in one atomic step, so updating many refs at once is all-or-nothing. Readers check the newest table first. In the background, small tables are merged into bigger ones (like compaction in a log-structured store).\n- Updating a ref is lock, compare, rename: a tiny compare-and-swap. Every write to a repo ends with one, and it is the only mutable thing in Git.\n- Reachability from refs defines what the repo contains. Unreachable objects are eventually garbage-collected.",
+      "- A ref is a 41-byte file holding a SHA. Branches move with each commit, tags stay put, remote-tracking refs remember the server as of the last fetch, and HEAD names the current branch. As they multiply, Git moves them from loose files to one packed-refs file, or to reftable. Git 3.0 plans to make reftable the default for new repos.\n- If asked about reftable: Git starts with one loose file per ref: simple, but 100k refs means 100k files, and on macOS or Windows two names that differ only in case collide. gc packs them into packed-refs, one sorted text file: fast lookups, but deleting a ref rewrites the whole file, which can be tens of megabytes, and an update goes back to a loose file until the next gc. reftable (in Git since 2.45; designed at Google for JGit) keeps refs in a small stack of binary files. Inside each file, refs are sorted by name and grouped into blocks of about 4 KB; neighboring names share their prefix (refs/heads/feature-…), so it is stored once. Finding a ref is a binary search, not a scan. An update never edits an existing file: it writes a new tiny table holding only the changed refs and adds it to the top of the stack in one atomic step, so updating many refs at once is all-or-nothing. Readers check the newest table first. In the background, small tables are merged into bigger ones (like compaction in a log-structured store).\n- Updating a ref is lock, compare, rename: a tiny compare-and-swap. Every write to a repo ends with one, and it is the only mutable thing in Git.\n- Reachability from refs defines what the repo contains. Unreachable objects are eventually garbage-collected; reflogs keep them alive for a while first (by default about 30 days, then a two-week grace period).",
       ["refs"],{builds:refBuilds});
     add("Where objects live: loose files and packs","Part 1 · Data model · Storage",90,
       storageDiagram(),
-      "- New objects are written loose, one file each. gc, repack, or a large fetch or push rolls many objects into one packfile plus its .idx.\n- Inside a pack, older versions are deltas against newer ones, placed for size rather than by commit.\n- To read any object, Git checks loose files first, then binary-searches each .idx for the offset. Remember A–E: the fetch slide uses the same history.\n- Database hook: a pack is like an SSTable in an LSM tree (RocksDB, Cassandra). Small writes land loose, gc merges them into one immutable file the way compaction does, and the .idx is the index that finds a key without a scan.",
+      "- New objects are written loose, one file each. gc, repack, or a large fetch or push rolls many objects into one packfile plus its .idx.\n- Inside a pack, older versions are deltas against newer ones, placed for size rather than by commit.\n- To read any object, Git binary-searches each pack's .idx for the offset, then falls back to a loose file. Remember A–E: the fetch slide uses the same history.\n- Database hook: a pack is like an SSTable in an LSM tree (RocksDB, Cassandra). Small writes land loose, gc merges them into one immutable file the way compaction does, and the .idx is the index that finds a key without a scan.",
       ["packformat"],{builds:storageBuilds});
     add("How a delta is stored","Part 1 · Data model · Deltas",60,
       deltaDiagram(),
-      "- A delta is a recipe: COPY byte ranges from a base object, INSERT the bytes the base doesn't have. src/ is a tree: two entries (pack.ts, server.ts) of mode, name, and file hash, 72 bytes. Editing server.ts in commit E changes only its hash. Matching the newest-whole rule, E's src/ is stored whole and D's src/ becomes: copy bytes 0–51, insert the old 20-byte hash. 25 bytes instead of 72 (2 for the two sizes, 2 for the COPY, 21 for the INSERT). Left vs right: without a delta both trees are stored whole, 144 B, and the first 52 bytes are stored twice; with a delta it is 72 + 25 = 97 B. A commit is mostly new hashes and timestamps, so it usually stays whole.\n- Same idea for file contents: server.ts (~12 KB) edited 100 times is 100 objects, about 1.2 MB loose. Packed, the newest is whole and the rest are ~200-byte deltas, about 35 KB in total; Git starts a new base only if a chain would pass 50 steps.\n- Deltas are made when packing, reused when sending, and resolved whenever someone reads an old version.\n- Database hook: deltas are like MVCC undo chains in InnoDB or Oracle. The newest row is stored whole; older versions are rebuilt by walking the undo chain backward, so history costs a walk and long chains get slow (hence the cap at 50). PostgreSQL keeps full row versions instead, much like loose objects, with VACUUM in roughly gc's role.\n- If asked why 52: bytes 0–34 are \"100644 pack.ts\\0\" plus pack.ts's hash (6 + 1 + 7 + 1 + 20 = 35 B); bytes 35–51 are \"100644 server.ts\\0\" (6 + 1 + 9 + 1 = 17 B); bytes 52–71 are server.ts's hash (20 B).",
+      "- A delta is a recipe: COPY byte ranges from a base object, INSERT the bytes the base doesn't have. src/ is a tree: two entries (pack.ts, server.ts) of mode, name, and file hash, 72 bytes. Editing server.ts in commit E changes only its hash. Matching the newest-whole rule, E's src/ is stored whole and D's src/ becomes: copy bytes 0–51, insert the old 20-byte hash. 25 bytes instead of 72 (2 for the two sizes, 2 for the COPY, 21 for the INSERT). Left vs right: without a delta both trees are stored whole, 144 B, and the first 52 bytes are stored twice; with a delta it is 72 + 25 = 97 B. A commit is mostly new hashes and timestamps, so it usually stays whole.\n- Same idea for file contents: server.ts (~12 KB) edited 100 times is 100 objects, about 1.2 MB of content (each loose file is zlib-compressed, so less on disk). Packed, the newest is whole and the rest are ~200-byte deltas, a few tens of KB in total; Git starts a new base only if a chain would pass 50 steps.\n- Deltas are made when packing, reused when sending, and resolved whenever someone reads an old version.\n- Database hook: deltas are like MVCC undo chains in InnoDB or Oracle. The newest row is stored whole; older versions are rebuilt by walking the undo chain backward, so history costs a walk and long chains get slow (hence the cap at 50). PostgreSQL keeps full row versions instead, much like loose objects, with VACUUM in roughly gc's role.\n- If asked why 52: bytes 0–34 are \"100644 pack.ts\\0\" plus pack.ts's hash (6 + 1 + 7 + 1 + 20 = 35 B); bytes 35–51 are \"100644 server.ts\\0\" (6 + 1 + 9 + 1 = 17 B); bytes 52–71 are server.ts's hash (20 B).",
       ["packformat"]);
     add("Part 2: How does it move between machines?","Part 2 · Fetch and push",10,
       `<p class="eyebrow">Part 2 · Fetch and push</p><p class="statement divider-q">How does it move <span class="accent">between machines?</span></p><p class="statement-sub">What fetch and push send, step by step.</p>`,
@@ -937,7 +937,7 @@ hello
       ["ghfast","dgit"],{builds:raidBuilds});
     add("Stage 2: Distributed Git — replicate Git, not disks","Part 3 · Server evolution · Application-level replication",85,
       spokesDiagram(),
-      "- Distributed Git: GitHub DGit, later Spokes (2016); GitLab Gitaly Cluster (2020); Bitbucket Mesh (2022). Real Git repos on several servers (3 at launch, 5 by default today per GitHub), replicated by Git-aware software, not by blocks.\n- Packs fan out freely; only the ref transaction goes through three-phase commit. Reads go to any replica.\n- Costs: latency bound by the slowest replica; a floor of 3 copies even for idle repos; a ceiling, because every extra replica slows every push, so adding replicas for read load makes pushes slower; and repos as pets. Atlassian landed in the same place later: Bitbucket Mesh (Data Center 8.0, 2022) replaced NFS with repos replicated on local disk across nodes.",
+      "- Distributed Git: GitHub DGit, later Spokes (2016); GitLab Gitaly Cluster (2020); Bitbucket Mesh (2022). Real Git repos on several servers (3 at launch, 5 for most repos today per GitHub), replicated by Git-aware software, not by blocks.\n- Packs fan out freely; only the ref transaction goes through three-phase commit. Reads go to any replica.\n- Costs: latency bound by the slowest replica; a floor of 3 copies even for idle repos; a ceiling, because every extra replica slows every push, so adding replicas for read load makes pushes slower; and repos as pets. Atlassian landed in the same place later: Bitbucket Mesh (Data Center 8.0, 2022) replaced NFS with repos replicated on local disk across nodes.",
       ["dgit","ghagent","cursor","mesh"],{builds:spokesBuilds});
     add("Stage 2b: refs in a database, packs on replicas","Part 3 · Server evolution · Refs in a database",60,
       entireDiagram(),

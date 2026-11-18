@@ -10,7 +10,7 @@ Planned at about 28 minutes for a 30–45 minute slot · 31 slides. Each slide h
 | 02 | 00:20 | 00:15 | About me |
 | 03 | 00:35 | 00:50 | Built for one very unusual project: Linux |
 | 04 | 01:25 | 00:10 | Part 1: What's actually in a repository? |
-| 05 | 01:35 | 01:00 | Git's data model |
+| 05 | 01:35 | 01:00 | Git's history is made of objects |
 | 06 | 02:35 | 01:10 | Files are blobs, directories are trees |
 | 07 | 03:45 | 01:20 | A commit is a snapshot that shares structure |
 | 08 | 05:05 | 01:15 | Refs give names to commits |
@@ -71,7 +71,7 @@ Planned at about 28 minutes for a 30–45 minute slot · 31 slides. Each slide h
 - Every clone is the whole repository. So what's actually in it?
 - Four kinds of object, a few refs, and how they're stored.
 
-### 05 · Git's data model
+### 05 · Git's history is made of objects
 
 01:35–02:35
 
@@ -107,9 +107,9 @@ Builds:
 05:05–06:20 · 3 builds
 
 - A ref is a 41-byte file holding a SHA. Branches move with each commit, tags stay put, remote-tracking refs remember the server as of the last fetch, and HEAD names the current branch. As they multiply, Git moves them from loose files to one packed-refs file, or to reftable. Git 3.0 plans to make reftable the default for new repos.
-- If asked about reftable: Git starts with one loose file per ref: simple, but 100k refs means 100k files, and on macOS or Windows two names that differ only in case collide. gc packs them into packed-refs, one sorted text file: fast lookups, but changing or deleting one ref rewrites the whole file, which can be tens of megabytes. reftable (in Git since 2.45; designed at Google for JGit) keeps refs in a small stack of binary files. Inside each file, refs are sorted by name and grouped into blocks of about 4 KB; neighboring names share their prefix (refs/heads/feature-…), so it is stored once. Finding a ref is a binary search, not a scan. An update never edits an existing file: it writes a new tiny table holding only the changed refs and adds it to the top of the stack in one atomic step, so updating many refs at once is all-or-nothing. Readers check the newest table first. In the background, small tables are merged into bigger ones (like compaction in a log-structured store).
+- If asked about reftable: Git starts with one loose file per ref: simple, but 100k refs means 100k files, and on macOS or Windows two names that differ only in case collide. gc packs them into packed-refs, one sorted text file: fast lookups, but deleting a ref rewrites the whole file, which can be tens of megabytes, and an update goes back to a loose file until the next gc. reftable (in Git since 2.45; designed at Google for JGit) keeps refs in a small stack of binary files. Inside each file, refs are sorted by name and grouped into blocks of about 4 KB; neighboring names share their prefix (refs/heads/feature-…), so it is stored once. Finding a ref is a binary search, not a scan. An update never edits an existing file: it writes a new tiny table holding only the changed refs and adds it to the top of the stack in one atomic step, so updating many refs at once is all-or-nothing. Readers check the newest table first. In the background, small tables are merged into bigger ones (like compaction in a log-structured store).
 - Updating a ref is lock, compare, rename: a tiny compare-and-swap. Every write to a repo ends with one, and it is the only mutable thing in Git.
-- Reachability from refs defines what the repo contains. Unreachable objects are eventually garbage-collected.
+- Reachability from refs defines what the repo contains. Unreachable objects are eventually garbage-collected; reflogs keep them alive for a while first (by default about 30 days, then a two-week grace period).
 
 Builds:
 
@@ -123,12 +123,12 @@ Builds:
 
 - New objects are written loose, one file each. gc, repack, or a large fetch or push rolls many objects into one packfile plus its .idx.
 - Inside a pack, older versions are deltas against newer ones, placed for size rather than by commit.
-- To read any object, Git checks loose files first, then binary-searches each .idx for the offset. Remember A–E: the fetch slide uses the same history.
+- To read any object, Git binary-searches each pack's .idx for the offset, then falls back to a loose file. Remember A–E: the fetch slide uses the same history.
 - Database hook: a pack is like an SSTable in an LSM tree (RocksDB, Cassandra). Small writes land loose, gc merges them into one immutable file the way compaction does, and the .idx is the index that finds a key without a scan.
 
 Builds:
 
-1. **Every commit starts loose.** git commit writes each new object (commit, trees, blob) as its own zlib file under .git/objects, named by its hash.
+1. **Every commit starts loose.** Each new object is its own zlib file under .git/objects, named by its hash: git add writes the blob, git commit writes the trees and the commit.
 2. **gc rolls them into a pack.** Auto gc runs after commit or fetch once there are about 6,700 loose objects or 50 packs (or on a schedule with git maintenance). A fetch of 100+ objects is kept as a pack; a big push lands as one on the server. The id in the name is a checksum of the contents. D and E came later, so they are still loose.
 3. **Inside the pack.** Every object is zlib-compressed. Blobs and trees can be deltas against a similar nearby object, usually newest whole and older as deltas. Chains are capped at 50. Entries are placed for size, not by commit.
 4. **The .idx finds things.** The .idx is sorted by hash: a 256-entry fanout jumps to rows sharing the first byte, binary search finds the row, and the row gives the offset (plus a CRC to check the stored bytes). The .pack itself stays in write order.
@@ -138,7 +138,7 @@ Builds:
 07:50–08:50
 
 - A delta is a recipe: COPY byte ranges from a base object, INSERT the bytes the base doesn't have. src/ is a tree: two entries (pack.ts, server.ts) of mode, name, and file hash, 72 bytes. Editing server.ts in commit E changes only its hash. Matching the newest-whole rule, E's src/ is stored whole and D's src/ becomes: copy bytes 0–51, insert the old 20-byte hash. 25 bytes instead of 72 (2 for the two sizes, 2 for the COPY, 21 for the INSERT). Left vs right: without a delta both trees are stored whole, 144 B, and the first 52 bytes are stored twice; with a delta it is 72 + 25 = 97 B. A commit is mostly new hashes and timestamps, so it usually stays whole.
-- Same idea for file contents: server.ts (~12 KB) edited 100 times is 100 objects, about 1.2 MB loose. Packed, the newest is whole and the rest are ~200-byte deltas, about 35 KB in total; Git starts a new base only if a chain would pass 50 steps.
+- Same idea for file contents: server.ts (~12 KB) edited 100 times is 100 objects, about 1.2 MB of content (each loose file is zlib-compressed, so less on disk). Packed, the newest is whole and the rest are ~200-byte deltas, a few tens of KB in total; Git starts a new base only if a chain would pass 50 steps.
 - Deltas are made when packing, reused when sending, and resolved whenever someone reads an old version.
 - Database hook: deltas are like MVCC undo chains in InnoDB or Oracle. The newest row is stored whole; older versions are rebuilt by walking the undo chain backward, so history costs a walk and long chains get slow (hence the cap at 50). PostgreSQL keeps full row versions instead, much like loose objects, with VACUUM in roughly gc's role.
 - If asked why 52: bytes 0–34 are "100644 pack.ts\\0" plus pack.ts's hash (6 + 1 + 7 + 1 + 20 = 35 B); bytes 35–51 are "100644 server.ts\\0" (6 + 1 + 9 + 1 = 17 B); bytes 52–71 are server.ts's hash (20 B).
@@ -171,7 +171,7 @@ Builds:
 2. **want / have.** want = the tip of each ref the client is missing (E). have = the client's own tips first (B), then older commits in batches only if needed. Once the server ACKs B, it knows the client has everything behind B, including A.
 3. **Server walks the graph.** Walk back from E until you hit what the client has. E and D are found loose; C is found through the pack's .idx; B is common, so stop.
 4. **Server builds one pack.** The sender builds; the receiver resolves. pack-objects puts C, D, E and their new trees and blobs in one pack. C's bytes are reused from the existing pack (CRC-checked, never re-inflated); D and E are compressed now. Deltas against B's objects are allowed: a thin pack.
-5. **Client resolves and moves the ref.** Whoever receives a pack resolves it. Pack entries carry no hashes, so index-pack rebuilds every delta from its base, SHA-1s the result, and writes the .idx. Thin bases come from the client's own store (B) and are appended. Only after the connectivity check does origin/main move to E.
+5. **Client resolves and moves the ref.** Whoever receives a pack resolves it. Pack entries don't carry their own hashes, so index-pack rebuilds every delta from its base, SHA-1s the result, and writes the .idx. Thin bases come from the client's own store (B) and are appended. Only after the connectivity check does origin/main move to E.
 
 ### 13 · git push origin main
 
@@ -188,7 +188,7 @@ Builds:
 3. **Commands + pack.** Each command is old, new, ref: here E F refs/heads/main. The pack follows on the same stream.
 4. **Server resolves in quarantine.** Now the server is the receiver, so it resolves: index-pack rebuilds every delta, SHA-1s each object, fills thin bases from E's objects, and writes the .idx, all inside a quarantine directory. Then the connectivity check on F. If anything fails, the quarantine is deleted and nothing becomes visible.
 5. **Ref transaction.** pre-receive can reject. Then lock main, check it still points at E, write F, commit. If someone else pushed G first, main is no longer E and this push is rejected. This is compare-and-swap.
-6. **Report status.** post-receive fires (webhooks, CI), and the client gets per-ref ok or ng.
+6. **Report status.** The client gets per-ref ok or ng, then post-receive fires (webhooks, CI).
 
 ### 14 · Part 3: How do you serve it to everyone?
 
@@ -234,7 +234,7 @@ Builds:
 
 15:50–17:15 · 3 builds
 
-- Distributed Git: GitHub DGit, later Spokes (2016); GitLab Gitaly Cluster (2020); Bitbucket Mesh (2022). Real Git repos on several servers (3 at launch, 5 by default today per GitHub), replicated by Git-aware software, not by blocks.
+- Distributed Git: GitHub DGit, later Spokes (2016); GitLab Gitaly Cluster (2020); Bitbucket Mesh (2022). Real Git repos on several servers (3 at launch, 5 for most repos today per GitHub), replicated by Git-aware software, not by blocks.
 - Packs fan out freely; only the ref transaction goes through three-phase commit. Reads go to any replica.
 - Costs: latency bound by the slowest replica; a floor of 3 copies even for idle repos; a ceiling, because every extra replica slows every push, so adding replicas for read load makes pushes slower; and repos as pets. Atlassian landed in the same place later: Bitbucket Mesh (Data Center 8.0, 2022) replaced NFS with repos replicated on local disk across nodes.
 
@@ -242,7 +242,7 @@ Sources: [GitHub · Introducing DGit (2016)](https://github.blog/engineering/arc
 
 Builds:
 
-1. **Fan out the pack.** Packs are idempotent, so send them to every replica in parallel: 3 at launch, 5 by default today. No agreement needed yet.
+1. **Fan out the pack.** Packs are idempotent, so send them to every replica in parallel: 3 at launch, 5 for most repos today. No agreement needed yet.
 2. **3PC on the ref transaction.** Only the tiny ref update needs agreement. Phase 1 asks every replica: can you apply these ref updates? Each runs Git's own ref transaction: lock the refs, check the old values. Phase 2: a majority said yes, so get ready. Phase 3: commit, or roll back everywhere. Spokes then compares a checksum of every replica's refs; one that disagrees is marked unhealthy and repaired. About four round trips per push.
 3. **Reads go to any replica.** Any replica can serve a fetch; a routing DB says which servers hold each repo. Say the cost out loud: every push waits for the slowest replica, even idle repos need 3+ copies, adding replicas slows pushes, and the replicas need checksums, repair jobs and that routing DB.
 
